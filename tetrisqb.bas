@@ -19,24 +19,25 @@ DECLARE SUB SettleActiveShapeInPit ()
 Const FALSE = 0
 Const TRUE = -1
 
-Const BLOCKSCALE = 24
-Const LASTSIDEBLOCK = 3
+Const BLOCKSCALE = 24 'pixeles de cada bloque (para pasar coordenadas de caracter a pixeles)
+Const LASTSIDEBLOCK = 3 'para recorrer con bucles la pieza
+Const SIDEBLOCKCOUNT = 4 'tamano del lado de la pieza en caracteres
 Const NOBLOCK$ = "0" 'caracter vacio en el pozo
-Const PITHEIGHT = 16 'alto del pozo en caracteres
-Const PITLEFT = 8 'pos X para mensajes
-Const PITTOP = 2 'pos Y para mensajes
+
+Const PITLEFT = 8 'pos X en caracteres del lado izquierdo del pozo
+Const PITTOP = 2 'pos Y en caracteres de la parte de arriba del pozo
 Const PITWIDTH = 10 'ancho del pozo en caracteres
-Const SIDEBLOCKCOUNT = 4
+Const PITHEIGHT = 16 'alto del pozo en caracteres
 
 'DropDate!      1=cayendo 0=parada al fondo del pozo
-'GameOver       0=juego en curso
+'GameOver       0=juego en curso 1=finalizado
 'Pit$           Contenido del pozo
 'Score          Puntuacion
-'Shape
-'ShapeAngle
-'ShapeMap$
-'ShapeX
-'ShapeY
+'Shape          Tipo de pieza
+'ShapeAngle     Rotacion de la pieza
+'ShapeMap$      Diseno de la pieza
+'ShapeX         Pos X de la pieza
+'ShapeY         Pos Y de la pieza
 Common Shared DropRate!, GameOver, Pit$, Score, Shape, ShapeAngle, ShapeMap$, ShapeX, ShapeY
 
 Init 'iniciaiza el sistema y el pozo
@@ -204,7 +205,7 @@ Sub Init () 'inicializa sistema y pozo
     Locate 1, 1 'primera posicion superior izquierda
     Print "*** TETRIS4DRAGON SalvaKantero 2024 ***"
     SetPiece 'genera pieza (forma, posicion)
-    GameOver = FALSE 'juego en curso
+    GameOver = FALSE 'comienza partida
     Score = 0 'puntuacion actual
     Pit$ = String$(PITWIDTH * PITHEIGHT, NOBLOCK$) 'inicializa el pozo vacio (tabla de 0)
     DrawPit 'pinta los bordes del pozo
