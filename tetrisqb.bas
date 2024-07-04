@@ -8,7 +8,6 @@ DECLARE SUB CheckForFullRows ()
 DECLARE SUB SetPiece ()
 DECLARE SUB DisplayStatus ()
 DECLARE SUB DrawBlock (BlockColor$, PitX, PitY)
-DECLARE SUB DrawPit ()
 DECLARE SUB DrawShape (EraseShape)
 DECLARE SUB DropShape ()
 DECLARE SUB Init ()
@@ -85,23 +84,6 @@ Sub DrawBlock (BlockColor$, PitX, PitY)
     Line (DrawX + CInt(BLOCKSCALE / 10) + (PITLEFT * BLOCKSCALE), DrawY + CInt(BLOCKSCALE / 10) + (PITTOP * BLOCKSCALE))-Step(BLOCKSCALE - CInt(BLOCKSCALE / 5), BLOCKSCALE - CInt(BLOCKSCALE / 5)), 0, B
 End Sub
 
-Sub DrawPit ()
-    Line ((PITLEFT * BLOCKSCALE) - 1, (PITTOP * BLOCKSCALE) - 1)-Step((PITWIDTH * BLOCKSCALE) + 2, (PITHEIGHT * BLOCKSCALE) + 2), 15, B
-    Line ((PITLEFT * BLOCKSCALE) - 1, (PITTOP * BLOCKSCALE) - 1)-Step(PITWIDTH * BLOCKSCALE + 2, 0), 0
-
-    For PitY = 0 To PITHEIGHT - 1
-        For PitX = 0 To PITWIDTH - 1
-            If GameOver Then
-                BlockColor$ = "4"
-            Else
-                BlockColor$ = Mid$(Pit$, ((PITWIDTH * PitY) + PitX) + 1, 1)
-            End If
-
-            DrawBlock BlockColor$, PitX, PitY
-        Next PitX
-    Next PitY
-End Sub
-
 Sub DrawShape (EraseShape)
     For BlockX = 0 To LASTSIDEBLOCK
         For BlockY = 0 To LASTSIDEBLOCK
@@ -132,7 +114,6 @@ Sub DropShape ()
         GameOver = (ShapeY < 0)
 
         CheckForFullRows
-        DrawPit
         DisplayStatus
 
         If Not GameOver Then
@@ -208,7 +189,6 @@ Sub Init () 'inicializa sistema y pozo
     GameOver = FALSE 'comienza partida
     Score = 0 'puntuacion actual
     Pit$ = String$(PITWIDTH * PITHEIGHT, NOBLOCK$) 'inicializa el pozo vacio (tabla de 0)
-    DrawPit 'pinta los bordes del pozo
     DisplayStatus 'pinta la puntuacion o mensajes arriba del pozo
 End Sub
 
@@ -218,38 +198,42 @@ Sub Main () 'bucle principal
         Key$ = ""
         Do While Key$ = "" 'mientras no se pulse una tecla
             If Not GameOver Then 'juego en curso
+                'Si ha sido superado el tiempo de caida
                 If Timer >= StartTime! + DropRate! Or StartTime! > Timer Then
-                    DropShape
-                    StartTime! = Timer
+                    DropShape 'la pieza avanza hacia abajo
+                    StartTime! = Timer 'reinicia el temporizador
                 End If
             End If
-            Key$ = InKey$
+            Key$ = InKey$ 'lee pulsaciones del teclado
         Loop
-        If Key$ = Chr$(27) Then
+        If Key$ = Chr$(27) Then 'si se pulsa ESC
             Screen 0
             End
-        ElseIf GameOver Then
-            If Key$ = Chr$(13) Then Init
+        ElseIf GameOver Then 'fuera de juego
+            If Key$ = Chr$(13) Then Init 'si se pulsa ENTER inicia juego
         Else
+            'durante el juego
             Select Case Key$
-                Case "A", "a"
-                    DrawShape TRUE
+                Case "A", "a" 'al pulsar A rota la pieza
+                    DrawShape TRUE 'borra pieza
+                    'cambia el angulo de la pieza
                     If ShapeAngle = 3 Then NewAngle = 0 Else NewAngle = ShapeAngle + 1
+                    'modifica la pieza
                     RotatedMap$ = GetRotatedShapeMap(Shape, NewAngle)
-                    If ShapeCanMove(RotatedMap$, 0, 0) Then
+                    If ShapeCanMove(RotatedMap$, 0, 0) Then 'si se puede mover...
                         ShapeAngle = NewAngle
                         ShapeMap$ = RotatedMap$
                     End If
-                    DrawShape FALSE
-                Case Chr$(0) + "K"
-                    DrawShape TRUE
+                    DrawShape FALSE 'pinta pieza
+                Case Chr$(0) + "K" 'al pulsar CURSOR IZDA. mueve a la izquierda si puede
+                    DrawShape TRUE 'borra pieza
                     If ShapeCanMove(ShapeMap$, -1, 0) Then ShapeX = ShapeX - 1
-                    DrawShape FALSE
-                Case Chr$(0) + "M"
-                    DrawShape TRUE
+                    DrawShape FALSE 'pinta pieza
+                Case Chr$(0) + "M" 'al pulsar CURSOR DCHA. mueve a la derecha si puede
+                    DrawShape TRUE 'borra pieza
                     If ShapeCanMove(ShapeMap$, 1, 0) Then ShapeX = ShapeX + 1
-                    DrawShape FALSE
-                Case " "
+                    DrawShape FALSE 'pinta pieza
+                Case " " 'al pulsar SPACE pone el tiempo de descenso a 0
                     DropRate! = 0
             End Select
         End If
