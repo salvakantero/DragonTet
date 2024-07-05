@@ -1,18 +1,9 @@
 DefInt A-Z
 
 DECLARE FUNCTION GetRotatedShapeMap$ (Shape, Angle)
-DECLARE FUNCTION GetShapeMap$ (Shape)
-DECLARE FUNCTION RandomShapeX ()
 DECLARE FUNCTION ShapeCanMove (Map$, XDirection, YDirection)
-DECLARE SUB CheckForFullRows ()
-DECLARE SUB SetPiece ()
-DECLARE SUB DisplayStatus ()
 DECLARE SUB DrawBlock (BlockColor$, PitX, PitY)
 DECLARE SUB DrawShape (EraseShape)
-DECLARE SUB DropShape ()
-DECLARE SUB Init ()
-DECLARE SUB Main ()
-DECLARE SUB RemoveFullRow (RemovedRow)
 DECLARE SUB SettleActiveShapeInPit ()
 
 Const FALSE = 0
@@ -39,32 +30,44 @@ Const PITHEIGHT = 16 'alto del pozo en caracteres
 'ShapeY         Pos Y de la pieza
 Common Shared DropRate!, GameOver, Pit$, Score, Shape, ShapeAngle, ShapeMap$, ShapeX, ShapeY
 
+
+
+
 Init 'iniciaiza el sistema y el pozo
 Main 'bucle principal
 
-Sub CheckForFullRows ()
-    FullRow = FALSE
 
-    For PitY = 0 To PITHEIGHT - 1
+
+
+Sub CheckForFullRows () 'busca filas completas
+    FullRow = FALSE
+    For PitY = 0 To PITHEIGHT - 1 'para todas las filas del pozo
         FullRow = TRUE
-        For PitX = 0 To PITWIDTH - 1
+        For PitX = 0 To PITWIDTH - 1 'para todos los caracteres de la linea
             If Mid$(Pit$, ((PITWIDTH * PitY) + PitX) + 1, 1) = NOBLOCK$ Then
-                FullRow = FALSE
+                FullRow = FALSE 'hay al menos un hueco
                 Exit For
             End If
         Next PitX
-        If FullRow Then RemoveFullRow PitY
+        If FullRow Then RemoveFullRow PitY 'fila completa, la borra
     Next PitY
 End Sub
 
+
+
+
 Sub SetPiece ()
     DropRate! = 1 'tiempo de caida
-    Shape = Int(Rnd * 6) 'tipo de pieza. x6
+    Shape = Int(Rnd * 7) 'tipo de pieza. x7
+
     ShapeAngle = Int(Rnd * 4) 'angulo de rotacion de la pieza. x4
     ShapeMap$ = GetRotatedShapeMap$(Shape, ShapeAngle) 'composicion de la pieza
     ShapeX = RandomShapeX 'posicion X (aleatoria)
     ShapeY = -SIDEBLOCKCOUNT 'posicion Y (totalmente oculta)
 End Sub
+
+
+
 
 Sub DisplayStatus ()
     Color 4 'primer plano rojo
@@ -76,6 +79,9 @@ Sub DisplayStatus ()
     End If
 End Sub
 
+
+
+
 Sub DrawBlock (BlockColor$, PitX, PitY)
     DrawX = PitX * BLOCKSCALE
     DrawY = PitY * BLOCKSCALE
@@ -83,6 +89,9 @@ Sub DrawBlock (BlockColor$, PitX, PitY)
     Line (DrawX + (PITLEFT * BLOCKSCALE), DrawY + (PITTOP * BLOCKSCALE))-Step(BLOCKSCALE, BLOCKSCALE), Val("&H" + BlockColor$), BF
     Line (DrawX + CInt(BLOCKSCALE / 10) + (PITLEFT * BLOCKSCALE), DrawY + CInt(BLOCKSCALE / 10) + (PITTOP * BLOCKSCALE))-Step(BLOCKSCALE - CInt(BLOCKSCALE / 5), BLOCKSCALE - CInt(BLOCKSCALE / 5)), 0, B
 End Sub
+
+
+
 
 Sub DrawShape (EraseShape)
     For BlockX = 0 To LASTSIDEBLOCK
@@ -102,26 +111,32 @@ Sub DrawShape (EraseShape)
     Next BlockX
 End Sub
 
-Sub DropShape ()
-    If ShapeCanMove(ShapeMap$, 0, 1) Then
-        DrawShape TRUE
-        If DropRate! > 0 Then Sound 37, .3
-        ShapeY = ShapeY + 1
-        DrawShape FALSE
+
+
+
+Sub DropShape () 'cae un caracter la pieza
+    If ShapeCanMove(ShapeMap$, 0, 1) Then 'si se puede mover
+        DrawShape TRUE 'borra la pieza
+        'If DropRate! > 0 Then Sound 37, .3
+        ShapeY = ShapeY + 1 'baja un caracter de altura
+        DrawShape FALSE 'pinta la pieza
     Else
         SettleActiveShapeInPit
 
-        GameOver = (ShapeY < 0)
+        GameOver = (ShapeY < 0) 'si llega arriba pierde partida
 
-        CheckForFullRows
-        DisplayStatus
+        CheckForFullRows 'busca lineas completadas
+        DisplayStatus 'muestra puntos o mensajes
 
         If Not GameOver Then
-            SetPiece
-            DrawShape FALSE
+            SetPiece 'genera una nueva pieza
+            DrawShape FALSE 'pinta la pieza
         End If
     End If
 End Sub
+
+
+
 
 Function GetRotatedShapeMap$ (Shape, Angle)
     Map$ = GetShapeMap$(Shape)
@@ -151,11 +166,13 @@ Function GetRotatedShapeMap$ (Shape, Angle)
             Next BlockY
         Next BlockX
     End If
-
     GetRotatedShapeMap = RotatedMap$
 End Function
 
-Function GetShapeMap$ (Shape)
+
+
+
+Function GetShapeMap$ (Shape) 'formas de las figuras
     Select Case Shape
         Case 0
             Map$ = "0000333300000000" ' = palo largo
@@ -174,9 +191,10 @@ Function GetShapeMap$ (Shape)
         Case Else
             Map$ = ""
     End Select
-
     GetShapeMap$ = Map$
 End Function
+
+
 
 
 Sub Init () 'inicializa sistema y pozo
@@ -191,6 +209,9 @@ Sub Init () 'inicializa sistema y pozo
     Pit$ = String$(PITWIDTH * PITHEIGHT, NOBLOCK$) 'inicializa el pozo vacio (tabla de 0)
     DisplayStatus 'pinta la puntuacion o mensajes arriba del pozo
 End Sub
+
+
+
 
 Sub Main () 'bucle principal
     StartTime! = Timer 'guarda el tiempo de inicio
@@ -240,6 +261,9 @@ Sub Main () 'bucle principal
     Loop
 End Sub
 
+
+
+
 Function RandomShapeX () 'genera una posicion X aleatoria dentro del pozo
     IntendedShapeX = Int(Rnd * (PITWIDTH - 1)) 'posicion X deseada
     ShapeX = 0 'posicion X actual
@@ -255,21 +279,26 @@ Function RandomShapeX () 'genera una posicion X aleatoria dentro del pozo
     RandomShapeX = ShapeX 'posicion X final
 End Function
 
+
+
+'baja todas las lineas 1 unidad hasta la linea completada
 Sub RemoveFullRow (RemovedRow)
-    For PitY = RemovedRow To 0 Step -1
-        For PitX = 0 To PITWIDTH - 1
+    For PitY = RemovedRow To 0 Step -1 'para cada linea del pozo desde RemovedRow
+        For PitX = 0 To PITWIDTH - 1 'para cada caracter de la linea
             If PitY = 0 Then
-                BlockColor$ = NOBLOCK$
-            Else
+                BlockColor$ = NOBLOCK$ 'la linea mas alta queda vacia
+            Else 'copia la linea superior a la actual
                 BlockColor$ = Mid$(Pit$, ((PITWIDTH * (PitY - 1)) + PitX) + 1, 1)
             End If
-
+            'aplica a la linea actual la que tenia encima
             Mid$(Pit$, ((PITWIDTH * PitY) + PitX) + 1, 1) = BlockColor$
         Next PitX
     Next PitY
-
-    Score = Score + 1
+    Score = Score + 1 'aumenta la puntuacion
 End Sub
+
+
+
 
 Sub SettleActiveShapeInPit ()
     Play "N21"
@@ -286,6 +315,9 @@ Sub SettleActiveShapeInPit ()
         Next BlockX
     Next BlockY
 End Sub
+
+
+
 
 Function ShapeCanMove (Map$, XDirection, YDirection)
     For BlockY = 0 To LASTSIDEBLOCK
