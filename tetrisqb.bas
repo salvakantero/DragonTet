@@ -58,17 +58,17 @@ Sub CheckForFullRows ()
 End Sub
 
 Sub SetPiece ()
-    DropRate! = 1
-    Shape = Int(Rnd * 6)
-    ShapeAngle = Int(Rnd * 4)
-    ShapeMap$ = GetRotatedShapeMap$(Shape, ShapeAngle)
-    ShapeX = RandomShapeX
-    ShapeY = -SIDEBLOCKCOUNT
+    DropRate! = 1 'tiempo de caida
+    Shape = Int(Rnd * 6) 'tipo de pieza. x6
+    ShapeAngle = Int(Rnd * 4) 'angulo de rotacion de la pieza. x4
+    ShapeMap$ = GetRotatedShapeMap$(Shape, ShapeAngle) 'composicion de la pieza
+    ShapeX = RandomShapeX 'posicion X (aleatoria)
+    ShapeY = -SIDEBLOCKCOUNT 'posicion Y (totalmente oculta)
 End Sub
 
 Sub DisplayStatus ()
     Color 4 'primer plano rojo
-    Locate Int((PITTOP * BLOCKSCALE) / 16), Int((PITLEFT * BLOCKSCALE) / 8) + 1 'arriba a la izquierda del pozo
+    Locate 2, 1
     If GameOver Then
         Print "Game over - press Enter to play a new game."
     Else
@@ -158,19 +158,19 @@ End Function
 Function GetShapeMap$ (Shape)
     Select Case Shape
         Case 0
-            Map$ = "0000333300000000"
+            Map$ = "0000333300000000" ' = palo largo
         Case 1
-            Map$ = "0000111000100000"
+            Map$ = "0000111000100000" ' L 1
         Case 2
-            Map$ = "0000666060000000"
+            Map$ = "0000666060000000" ' L 2
         Case 3
-            Map$ = "00000EE00EE00000"
+            Map$ = "00000EE00EE00000" ' # cubo
         Case 4
-            Map$ = "0000022022000000"
+            Map$ = "0000022022000000" ' S 1
         Case 5
-            Map$ = "0000555005000000"
+            Map$ = "0000555005000000" ' T
         Case 6
-            Map$ = "0000440004400000"
+            Map$ = "0000440004400000" ' S 2
         Case Else
             Map$ = ""
     End Select
@@ -240,10 +240,10 @@ Sub Main () 'bucle principal
     Loop
 End Sub
 
-Function RandomShapeX ()
-    IntendedShapeX = Int(Rnd * (PITWIDTH - 1))
-    ShapeX = 0
-
+Function RandomShapeX () 'genera una posicion X aleatoria dentro del pozo
+    IntendedShapeX = Int(Rnd * (PITWIDTH - 1)) 'posicion X deseada
+    ShapeX = 0 'posicion X actual
+    'chequea desde 0 hasta la posicion X deseada si puede moverse
     For XMove = 0 To IntendedShapeX
         If ShapeCanMove(ShapeMap$, 1, 0) Then
             ShapeX = ShapeX + 1
@@ -252,7 +252,7 @@ Function RandomShapeX ()
         End If
     Next XMove
 
-    RandomShapeX = ShapeX
+    RandomShapeX = ShapeX 'posicion X final
 End Function
 
 Sub RemoveFullRow (RemovedRow)
