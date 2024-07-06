@@ -1,9 +1,5 @@
 DefInt A-Z
 
-DECLARE FUNCTION GetRotatedShapeMap$ (Shape, Angle)
-DECLARE SUB DrawBlock (BlockColor$, PitX, PitY)
-DECLARE SUB DrawShape (EraseShape)
-
 Const FALSE = 0
 Const TRUE = -1
 
@@ -80,11 +76,11 @@ End Sub
 
 
 
-Sub DrawBlock (BlockColor$, PitX, PitY)
-    
+Sub DrawBlock (BlockColor$, PitX, PitY) 'pinta bloque de pieza
+    'coordenadas en pixeles
     DrawX = PitX * BLOCKSCALE
     DrawY = PitY * BLOCKSCALE
-
+    'pinta el bloque
     Line (DrawX + (PITLEFT * BLOCKSCALE), DrawY + (PITTOP * BLOCKSCALE))-Step(BLOCKSCALE, BLOCKSCALE), Val("&H" + BlockColor$), BF
     Line (DrawX + CInt(BLOCKSCALE / 10) + (PITLEFT * BLOCKSCALE), DrawY + CInt(BLOCKSCALE / 10) + (PITTOP * BLOCKSCALE))-Step(BLOCKSCALE - CInt(BLOCKSCALE / 5), BLOCKSCALE - CInt(BLOCKSCALE / 5)), 0, B
 End Sub
@@ -93,18 +89,22 @@ End Sub
 
 
 Sub DrawShape (EraseShape)
+    'para todos los bloques de la pieza
     For BlockX = 0 To LASTSIDEBLOCK
         For BlockY = 0 To LASTSIDEBLOCK
             PitX = ShapeX + BlockX
             PitY = ShapeY + BlockY
+            'si el bloque esta dentro del pozo
             If PitX >= 0 And PitX < PITWIDTH And PitY >= 0 And PitY < PITHEIGHT Then
-                If EraseShape Then
-                    BlockColor$ = Mid$(Pit$, ((PITWIDTH * PitY) + PitX) + 1, 1)
+                If EraseShape Then 'hay que borrar la pieza
+                    BlockColor$ = Mid$(Pit$, ((PITWIDTH * PitY) + PitX) + 1, 1) 'color del pozo
                 Else
+                    'color de la pieza
                     BlockColor$ = Mid$(ShapeMap$, ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1)
+                    'color del pozo
                     If BlockColor$ = NOBLOCK$ Then BlockColor$ = Mid$(Pit$, ((PITWIDTH * PitY) + PitX) + 1, 1)
                 End If
-                DrawBlock BlockColor$, PitX, PitY
+                DrawBlock BlockColor$, PitX, PitY 'pinta el bloque
             End If
         Next BlockY
     Next BlockX
@@ -138,29 +138,30 @@ End Sub
 
 
 Function GetRotatedShapeMap$ (Shape, Angle)
-    Map$ = GetShapeMap$(Shape)
     NewBlockX = 0
     NewBlockY = 0
-    RotatedMap$ = String$(SIDEBLOCKCOUNT * SIDEBLOCKCOUNT, NOBLOCK$)
+    Map$ = GetShapeMap$(Shape) 'pieza sin rotar
+    RotatedMap$ = String$(SIDEBLOCKCOUNT * SIDEBLOCKCOUNT, NOBLOCK$) 'nueva pieza rotada
 
-    If Angle = 0 Then
+    If Angle = 0 Then 'vuelve a la posicion inicial
         GetRotatedShapeMap = Map$
         Exit Function
     Else
+        'para todos los bloques de la pieza
         For BlockX = 0 To LASTSIDEBLOCK
             For BlockY = 0 To LASTSIDEBLOCK
                 Select Case Angle
-                    Case 1
+                    Case 1 '90 grados
                         NewBlockX = LASTSIDEBLOCK - BlockY
                         NewBlockY = BlockX
-                    Case 2
+                    Case 2 '180 grados
                         NewBlockX = LASTSIDEBLOCK - BlockX
                         NewBlockY = LASTSIDEBLOCK - BlockY
-                    Case 3
+                    Case 3 '27' grados
                         NewBlockX = BlockY
                         NewBlockY = LASTSIDEBLOCK - BlockX
                 End Select
-
+                'asigna a la pieza rotada el bloque correspondiente al angulo
                 Mid$(RotatedMap$, ((SIDEBLOCKCOUNT * NewBlockY) + NewBlockX) + 1, 1) = Mid$(Map$, ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1)
             Next BlockY
         Next BlockX
