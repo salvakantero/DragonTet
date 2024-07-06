@@ -1,10 +1,8 @@
 DefInt A-Z
 
 DECLARE FUNCTION GetRotatedShapeMap$ (Shape, Angle)
-DECLARE FUNCTION ShapeCanMove (Map$, XDirection, YDirection)
 DECLARE SUB DrawBlock (BlockColor$, PitX, PitY)
 DECLARE SUB DrawShape (EraseShape)
-DECLARE SUB SettleActiveShapeInPit ()
 
 Const FALSE = 0
 Const TRUE = -1
@@ -83,6 +81,7 @@ End Sub
 
 
 Sub DrawBlock (BlockColor$, PitX, PitY)
+    
     DrawX = PitX * BLOCKSCALE
     DrawY = PitY * BLOCKSCALE
 
@@ -121,7 +120,7 @@ Sub DropShape () 'cae un caracter la pieza
         ShapeY = ShapeY + 1 'baja un caracter de altura
         DrawShape FALSE 'pinta la pieza
     Else
-        SettleActiveShapeInPit
+        SettleActiveShapeInPit 'mantiene la pieza inmovil
 
         GameOver = (ShapeY < 0) 'si llega arriba pierde partida
 
@@ -299,16 +298,17 @@ End Sub
 
 
 
-
+'fija la pieza al pozo si ya no se puede mover
 Sub SettleActiveShapeInPit ()
-    Play "N21"
-
-    For BlockY = 0 To LASTSIDEBLOCK
-        For BlockX = 0 To LASTSIDEBLOCK
+    For BlockY = 0 To LASTSIDEBLOCK 'para cada pos Y del bloque de la pieza
+        For BlockX = 0 To LASTSIDEBLOCK 'para cada pos X del bloque de la pieza
             PitX = ShapeX + BlockX
             PitY = ShapeY + BlockY
+            'si el bloque de la pieza esta en los limites del pozo
             If PitX >= 0 And PitX < PITWIDTH And PitY >= 0 And PitY < PITHEIGHT Then
+                'si el bloque no es un hueco vacio
                 If Not Mid$(ShapeMap$, ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1) = NOBLOCK$ Then
+                    'fija el bloque de la pieza en el pozo
                     Mid$(Pit$, ((PITWIDTH * PitY) + PitX) + 1, 1) = Mid$(ShapeMap$, ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1)
                 End If
             End If
@@ -318,26 +318,30 @@ End Sub
 
 
 
-
+'chequea si puede moverse a XDirection/YDirection
 Function ShapeCanMove (Map$, XDirection, YDirection)
+    'para todos los bloques de la pieza
     For BlockY = 0 To LASTSIDEBLOCK
         For BlockX = 0 To LASTSIDEBLOCK
+            'si no es un bloque vacio
             If Not Mid$(Map$, ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1) = NOBLOCK$ Then
+                'si el bloque esta dentro de los limites del pozo
                 PitX = (ShapeX + BlockX) + XDirection
                 PitY = (ShapeY + BlockY) + YDirection
                 If PitX >= 0 And PitX < PITWIDTH And PitY >= 0 And PitY < PITHEIGHT Then
+                    'el lugar esta ocupado por una pieza
                     If Not Mid$(Pit$, (((PITWIDTH * PitY) + PitX) + 1), 1) = NOBLOCK$ Then
-                        ShapeCanMove = FALSE
+                        ShapeCanMove = FALSE 'no puede moverse
                         Exit Function
                     End If
+                    'el bloque queda fuera de los limites del pozo
                 ElseIf PitX < 0 Or PitX >= PITWIDTH Or PitY >= PITHEIGHT Then
-                    ShapeCanMove = FALSE
+                    ShapeCanMove = FALSE 'no puede moverse
                     Exit Function
                 End If
             End If
         Next BlockX
     Next BlockY
-
     ShapeCanMove = TRUE
 End Function
 
