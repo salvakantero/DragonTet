@@ -27,7 +27,7 @@ Common Shared DropRate!, GameOver, Pit$, Score, Shape, ShapeAngle, ShapeMap$, Sh
 
 
 
-Init 'iniciaiza el sistema y el foso
+Init 'inicializa el sistema y el foso
 Main 'bucle principal
 
 
@@ -87,9 +87,16 @@ End Sub
 
 
 
-Sub DrawPit () 'pinta los bordes del foso
-    Line ((PITLEFT * BLOCKSCALE) - 1, (PITTOP * BLOCKSCALE) - 1)-Step((PITWIDTH * BLOCKSCALE) + 2, (PITHEIGHT * BLOCKSCALE) + 2), 15, B
-    Line ((PITLEFT * BLOCKSCALE) - 1, (PITTOP * BLOCKSCALE) - 1)-Step(PITWIDTH * BLOCKSCALE + 2, 0), 0
+Sub DrawPit ()
+    'pinta los bordes del foso
+    Color 7
+    For y = PITTOP + 1 To (PITTOP + PITHEIGHT)
+        Locate y, PITLEFT - 1: Print "*"
+        Locate y, PITLEFT + PITWIDTH + 1: Print "*"
+    Next y
+    For x = 0 To PITWIDTH + 2
+        Locate PITTOP + PITHEIGHT + 1, PITLEFT + x - 1: Print "*"
+    Next x
     'repinta el contenido del foso
     For PitY = 0 To PITHEIGHT - 1
         For PitX = 0 To PITWIDTH - 1
