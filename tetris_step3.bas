@@ -51,13 +51,19 @@ Sub CheckForFullRows () 'busca filas completas
             RemoveFullRow PitY 'fila completa, la borra
             NumLines = NumLines + 1
         End If
-        If NumLines > 0 Then
-            If NumLines = 1 Then Score = Score + 100
-            If NumLines = 2 Then Score = Score + 300
-            If NumLines = 3 Then Score = Score + 500
-            If NumLines = 4 Then Score = Score + 800 'tetris!
-        End If
     Next PitY
+    If NumLines > 0 Then
+        If NumLines = 1 Then Score = Score + 100
+        If NumLines = 2 Then Score = Score + 300
+        If NumLines = 3 Then Score = Score + 500
+        If NumLines = 4 Then Score = Score + 800 'tetris!
+
+        If Lines Mod 10 = 0 Then
+            Level = Level + 1
+            If DropRate! > .1 Then DropRate! = DropRate! - 0.1
+        End If
+
+    End If
 End Sub
 
 
@@ -239,6 +245,7 @@ Sub Init () 'inicializa sistema y foso
     GameOver = FALSE 'comienza partida
     Score = 0 'puntuacion actual
     Level = 1 'nivel actual
+    Lines = 0 'lineas conseguidas
     Pit$ = String$(PITWIDTH * PITHEIGHT, NOBLOCK$) 'inicializa el foso vacio (tabla de 0)
     DrawPit
     DisplayStatus 'pinta el marcador
