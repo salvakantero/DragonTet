@@ -7,8 +7,8 @@ Const LASTSIDEBLOCK = 3 'para recorrer con bucles la pieza
 Const SIDEBLOCKCOUNT = 4 'tamano del lado de la pieza en caracteres
 Const NOBLOCK$ = "0" 'caracter vacio en el foso
 
-Const PITLEFT = 8 'pos X en caracteres del lado izquierdo del foso
-Const PITTOP = 2 'pos Y en caracteres de la parte de arriba del foso
+Const PITLEFT = 22 'pos X en caracteres del lado izquierdo del foso
+Const PITTOP = 1 'pos Y en caracteres de la parte de arriba del foso
 Const PITWIDTH = 10 'ancho del foso en caracteres
 Const PITHEIGHT = 16 'alto del foso en caracteres
 
@@ -16,12 +16,16 @@ Const PITHEIGHT = 16 'alto del foso en caracteres
 'GameOver       0=juego en curso 1=finalizado
 'Pit$           Contenido del foso
 'Score          Puntuacion
+'Level          Nivel
+'Lines          Lineas conseguidas
+Common Shared DropRate!, GameOver, Pit$, Score, Level, Lines
+
 'Shape          Tipo de pieza
 'ShapeAngle     Rotacion de la pieza
 'ShapeMap$      Diseno de la pieza
 'ShapeX         Pos X de la pieza
 'ShapeY         Pos Y de la pieza
-Common Shared DropRate!, GameOver, Pit$, Score, Shape, ShapeAngle, ShapeMap$, ShapeX, ShapeY
+Common Shared Shape, ShapeAngle, ShapeMap$, ShapeX, ShapeY
 
 
 
@@ -34,6 +38,7 @@ Main 'bucle principal
 
 Sub CheckForFullRows () 'busca filas completas
     FullRow = FALSE
+    NumLines = 0
     For PitY = 0 To PITHEIGHT - 1 'para todas las filas del foso
         FullRow = TRUE
         For PitX = 0 To PITWIDTH - 1 'para todos los caracteres de la linea
@@ -42,7 +47,16 @@ Sub CheckForFullRows () 'busca filas completas
                 Exit For
             End If
         Next PitX
-        If FullRow Then RemoveFullRow PitY 'fila completa, la borra
+        If FullRow Then
+            RemoveFullRow PitY 'fila completa, la borra
+            NumLines = NumLines + 1
+        End If
+        If NumLines > 0 Then
+            If NumLines = 1 Then Score = Score + 100
+            If NumLines = 2 Then Score = Score + 300
+            If NumLines = 3 Then Score = Score + 500
+            If NumLines = 4 Then Score = Score + 800 'tetris!
+        End If
     Next PitY
 End Sub
 
@@ -50,7 +64,7 @@ End Sub
 
 
 Sub CreateShape ()
-    DropRate! = 1 'tiempo de caida
+    DropRate! = .6 'tiempo de caida
     Shape = Int(Rnd * 7) 'tipo de pieza. x7
     ShapeAngle = Int(Rnd * 4) 'angulo de rotacion de la pieza. x4
     ShapeMap$ = GetRotatedShapeMap$(Shape, ShapeAngle) 'composicion de la pieza
@@ -62,12 +76,15 @@ End Sub
 
 
 Sub DisplayStatus ()
-    Color 4 'primer plano rojo
-    Locate 2, 1
+    Color 10 'primer plano rojo
     If GameOver Then
-        Print "Game over - press Enter to play a new game."
+        Locate 7, 10: Print "Game over!"
+        Locate 8, 2: Print "Press Enter to play a new game"
     Else
-        Print "Score:" + Str$(Score) 'pinta los puntos (lineas)
+        Locate 4, 1: Print "Score:" + Str$(Score) 'pinta los puntos
+        Locate 6, 1: Print "Level:" + Str$(Level) 'pinta el num. de nivel
+        Locate 8, 1: Print "Lines:" + Str$(Lines) 'pinta las lineas
+        Locate 10, 1: Print "Next:"
     End If
 End Sub
 
@@ -84,15 +101,6 @@ End Sub
 
 
 Sub DrawPit ()
-    'pinta los bordes del foso
-    Color 7
-    For y = PITTOP + 1 To (PITTOP + PITHEIGHT)
-        Locate y, PITLEFT - 1: Print Chr$(176)
-        Locate y, PITLEFT + PITWIDTH: Print Chr$(176)
-    Next y
-    For x = 0 To PITWIDTH + 1
-        Locate PITTOP + PITHEIGHT + 1, PITLEFT + x - 1: Print Chr$(176)
-    Next x
     'repinta el contenido del foso
     For PitY = 0 To PITHEIGHT - 1
         For PitX = 0 To PITWIDTH - 1
@@ -221,16 +229,19 @@ End Function
 
 Sub Init () 'inicializa sistema y foso
     Randomize Timer 'semilla de aleatoriedad
-    Screen 12 '640x480 16 colores
-    Color 9 'primer plano azul claro
-    Locate 1, 1 'primera posicion superior izquierda
-    Print "*** TETRIS4DRAGON SalvaKantero 2024 ***"
+    Screen 13 '320x200 256 colores MCGA
+    'Screen 0 '40x25 16 colores
+    Cls
+    Color 7 'primer plano azul claro
+    Locate 1, 1: Print "=TETRIS4DRAGON="
+    Locate 2, 1: Print "SalvaKantero 24"
     CreateShape 'genera pieza (forma, posicion)
     GameOver = FALSE 'comienza partida
     Score = 0 'puntuacion actual
+    Level = 1 'nivel actual
     Pit$ = String$(PITWIDTH * PITHEIGHT, NOBLOCK$) 'inicializa el foso vacio (tabla de 0)
     DrawPit
-    DisplayStatus 'pinta la puntuacion o mensajes arriba del foso
+    DisplayStatus 'pinta el marcador
 End Sub
 
 
@@ -245,12 +256,12 @@ Sub Main () 'bucle principal
                 'Si ha sido superado el tiempo de caida
                 If Timer >= StartTime! + DropRate! Or StartTime! > Timer Then
                     DropShape 'la pieza avanza hacia abajo
-                    StartTime! = Timer 'reinicia el temporizador
+                    StartTime! = Timer 'reinicia el temporizador de caida
                 End If
             End If
             Key$ = InKey$ 'lee pulsaciones del teclado
         Loop
-        If Key$ = Chr$(27) Then 'si se pulsa ESC
+        If Key$ = Chr$(27) Then 'si se pulsa ESC sale
             Screen 0
             End
         ElseIf GameOver Then 'fuera de juego
@@ -320,7 +331,7 @@ Sub RemoveFullRow (RemovedRow)
             Mid$(Pit$, ((PITWIDTH * PitY) + PitX) + 1, 1) = BlockColor$
         Next PitX
     Next PitY
-    Score = Score + 1 'aumenta la puntuacion
+    Lines = Lines + 1 'aumenta las lineas
 End Sub
 
 
