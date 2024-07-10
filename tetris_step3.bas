@@ -185,7 +185,8 @@ End Function
 
 
 Sub CreateShape ()
-    DropRate! = .6 'tiempo de caida
+    DropRate! = 1 - (Level * 0.2) 'tiempo de caida variable segun el nivel
+    If DropRate! <= 0 Then DropRate! = .1 'hasta un limite de caida de .1
     Shape = Int(Rnd * 7) 'tipo de pieza. x7
     ShapeAngle = Int(Rnd * 4) 'angulo de rotacion de la pieza. x4
     ShapeMap$ = GetRotatedShapeMap$(Shape, ShapeAngle) 'composicion de la pieza
@@ -309,11 +310,7 @@ Sub CheckForFullRows () 'busca filas completas
         If NumLines = 3 Then Score = Score + 500
         If NumLines = 4 Then Score = Score + 800 'tetris!
         'cada 10 lineas cambia de nivel / aumenta velocidad
-        If Lines Mod 10 = 0 Then
-            Level = Level + 1
-            If DropRate! > .1 Then DropRate! = DropRate! - .1
-        End If
-
+        If Lines Mod 10 = 0 Then Level = Level + 1
     End If
 End Sub
 
