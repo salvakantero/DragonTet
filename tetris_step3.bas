@@ -3,7 +3,7 @@ DefInt A-Z
 Const FALSE = 0
 Const TRUE = -1
 
-Const LASTSIDEBLOCK = 3 'para recorrer con bucles la pieza
+Const LASTSIDEBLOCK = 3 'para recorrer con bucles la pieza (0 a 3)
 Const SIDEBLOCKCOUNT = 4 'tamano del lado de la pieza en caracteres
 Const NOBLOCK$ = "0" 'caracter vacio en el foso
 
@@ -20,8 +20,8 @@ Const PITHEIGHT = 16 'alto del foso en caracteres
 'Score          Puntuacion
 Common Shared DropRate!, GameOver, Pit$, Level, Lines, Score
 
-'Shape          Tipo de pieza
-'ShapeAngle     Rotacion de la pieza
+'Shape          Tipo de pieza (0 a 6)
+'ShapeAngle     Rotacion de la pieza (0 a 3)
 'ShapeMap$      Diseno de la pieza
 'ShapeX         Pos X de la pieza
 'ShapeY         Pos Y de la pieza
@@ -67,9 +67,9 @@ Sub DisplayStatus ()
         Locate 7, 10: Print "Game over!"
         Locate 8, 2: Print "Press Enter to play a new game"
     Else
-        Locate 4, 1: Print "Score:" + Str$(Score) 'pinta los puntos
-        Locate 6, 1: Print "Level:" + Str$(Level) 'pinta el num. de nivel
-        Locate 8, 1: Print "Lines:" + Str$(Lines) 'pinta las lineas
+        Locate 4, 1: Print "Level:" + Str$(Level) 'pinta el num. de nivel
+        Locate 6, 1: Print "Lines:" + Str$(Lines) 'pinta las lineas
+        Locate 8, 1: Print "Score:" + Str$(Score) 'pinta la puntuacion
         Locate 10, 1: Print "Next:"
     End If
 End Sub
@@ -78,9 +78,9 @@ End Sub
 
 
 Sub DrawBlock (BlockColor$, PitX, PitY) 'pinta bloque de pieza
-    Color Val("&H" + BlockColor$)
+    Color Val("&H" + BlockColor$) 'convierte el color de hexadecimal a int
     Locate PitY + PITTOP + 1, PitX + PITLEFT
-    Print Chr$(219)
+    Print Chr$(219) 'bloque relleno
 End Sub
 
 
@@ -303,14 +303,15 @@ Sub CheckForFullRows () 'busca filas completas
         End If
     Next PitY
     If NumLines > 0 Then
+        'puntuacion segun el numero de lineas conseguidas
         If NumLines = 1 Then Score = Score + 100
         If NumLines = 2 Then Score = Score + 300
         If NumLines = 3 Then Score = Score + 500
         If NumLines = 4 Then Score = Score + 800 'tetris!
-
+        'cada 10 lineas cambia de nivel / aumenta velocidad
         If Lines Mod 10 = 0 Then
             Level = Level + 1
-            If DropRate! > .1 Then DropRate! = DropRate! - 0.1
+            If DropRate! > .1 Then DropRate! = DropRate! - .1
         End If
 
     End If
@@ -389,4 +390,3 @@ Sub Main () 'bucle principal
         End If
     Loop
 End Sub
-
