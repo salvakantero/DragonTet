@@ -46,6 +46,10 @@ Common Shared DropRate!, GameOver, Pit$, Level, Lines, Score
 'ShapeY         Pos Y de la pieza
 Common Shared Shape, ShapeAngle, ShapeMap$, ShapeX, ShapeY
 
+'NextShape      Tipo de la siguiente pieza (0 a 6)
+'ShapeMap$      Diseno de la siguiente pieza
+Common Shared NextShape, NextShapeMap$
+
 
 
 
@@ -187,14 +191,39 @@ End Function
 
 
 
+Sub CreateNextShape ()
+    NextShape = Int(Rnd * 7) 'tipo de pieza. x7
+    NextShapeMap$ = GetRotatedShapeMap$(NextShape, 0) 'composicion de la pieza
+End Sub
+
+
+
+
+Sub DrawNextShape
+    'para todos los bloques de la pieza
+    For BlockX = 0 To LASTSIDEBLOCK
+        For BlockY = 0 To LASTSIDEBLOCK
+            'color de la pieza
+            BlockColor$ = Mid$(NextShapeMap$, ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1)
+            DrawBlock BlockColor$, BlockX - 20, BlockY + 9 'pinta el bloque
+        Next BlockY
+    Next BlockX
+End Sub
+
+
+
+
 Sub CreateShape ()
     DropRate! = 1 - (Level * 0.2) 'tiempo de caida variable segun el nivel
     If DropRate! <= 0 Then DropRate! = .1 'hasta un limite de caida de .1
-    Shape = Int(Rnd * 7) 'tipo de pieza. x7
-    ShapeAngle = 0 'angulo de rotacion de la pieza (0 a 3)
+    'si no es la primera pieza la toma de NextShape
+    'si es la primera la genera (0 a 6)
+    If NextShape >= 0 Then Shape = NextShape Else Shape = Int(Rnd * 7)
+    ShapeAngle = 0
     ShapeMap$ = GetRotatedShapeMap$(Shape, ShapeAngle) 'composicion de la pieza
     ShapeX = 3 'posicion X inicial (centro del foso)
     ShapeY = -SIDEBLOCKCOUNT 'posicion Y inicial (totalmente oculta)
+    CreateNextShape
 End Sub
 
 
@@ -218,20 +247,6 @@ Sub DrawShape (EraseShape)
                 End If
                 DrawBlock BlockColor$, PitX, PitY 'pinta el bloque
             End If
-        Next BlockY
-    Next BlockX
-End Sub
-
-
-
-
-Sub DrawNextShape
-    'para todos los bloques de la pieza
-    For BlockX = 0 To LASTSIDEBLOCK
-        For BlockY = 0 To LASTSIDEBLOCK
-            'color de la pieza
-            BlockColor$ = Mid$(ShapeMap$, ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1)
-            DrawBlock BlockColor$, BlockX - 20, BlockY + 9 'pinta el bloque
         Next BlockY
     Next BlockX
 End Sub
@@ -342,6 +357,7 @@ Sub Init () 'inicializa sistema y foso
     Level = 1 'nivel actual
     Lines = 0 'lineas conseguidas
     Score = 0 'puntuacion actual
+    NextShape = -1
     Pit$ = String$(PITWIDTH * PITHEIGHT, NOBLOCK$) 'inicializa el foso vacio (tabla de 0)
     CreateShape 'genera pieza (forma, posicion)
     DrawPit
