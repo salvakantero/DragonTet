@@ -14,6 +14,7 @@
 'TETRIS_STEP4:
 '   - se elimina la posicion X inicial aleatoria
 '   - se elimina la rotacion inicial aleatoria
+'   - se cambia el sentido de rotacion a la izquierda
 '   - se implementa la funcion NEXT
 
 DefInt A-Z
@@ -89,6 +90,7 @@ Sub DisplayStatus ()
         Locate 6, 1: Print "Lines:" + Str$(Lines) 'pinta las lineas
         Locate 8, 1: Print "Score:" + Str$(Score) 'pinta la puntuacion
         Locate 10, 1: Print "Next:"
+        DrawNextShape
     End If
 End Sub
 
@@ -150,23 +152,6 @@ End Function
 
 
 
-Function RandomShapeX () 'genera una posicion X aleatoria dentro del foso
-    IntendedShapeX = Int(Rnd * (PITWIDTH - 1)) 'posicion X deseada
-    ShapeX = 0 'posicion X actual
-    'chequea desde 0 hasta la posicion X deseada si puede moverse
-    For XMove = 0 To IntendedShapeX
-        If ShapeCanMove(ShapeMap$, 1, 0) Then
-            ShapeX = ShapeX + 1
-        Else
-            Exit For
-        End If
-    Next XMove
-    RandomShapeX = ShapeX 'posicion X final
-End Function
-
-
-
-
 Function GetRotatedShapeMap$ (Shape, Angle)
     NewBlockX = 0
     NewBlockY = 0
@@ -181,15 +166,15 @@ Function GetRotatedShapeMap$ (Shape, Angle)
         For BlockX = 0 To LASTSIDEBLOCK
             For BlockY = 0 To LASTSIDEBLOCK
                 Select Case Angle
-                    Case 1 '90 grados
-                        NewBlockX = LASTSIDEBLOCK - BlockY
-                        NewBlockY = BlockX
+                    Case 1 '270' grados
+                        NewBlockX = BlockY
+                        NewBlockY = LASTSIDEBLOCK - BlockX
                     Case 2 '180 grados
                         NewBlockX = LASTSIDEBLOCK - BlockX
                         NewBlockY = LASTSIDEBLOCK - BlockY
-                    Case 3 '270' grados
-                        NewBlockX = BlockY
-                        NewBlockY = LASTSIDEBLOCK - BlockX
+                    Case 3 '90 grados
+                        NewBlockX = LASTSIDEBLOCK - BlockY
+                        NewBlockY = BlockX
                 End Select
                 'asigna a la pieza rotada el bloque correspondiente al angulo
                 Mid$(RotatedMap$, ((SIDEBLOCKCOUNT * NewBlockY) + NewBlockX) + 1, 1) = Mid$(Map$, ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1)
@@ -206,10 +191,10 @@ Sub CreateShape ()
     DropRate! = 1 - (Level * 0.2) 'tiempo de caida variable segun el nivel
     If DropRate! <= 0 Then DropRate! = .1 'hasta un limite de caida de .1
     Shape = Int(Rnd * 7) 'tipo de pieza. x7
-    ShapeAngle = Int(Rnd * 4) 'angulo de rotacion de la pieza. x4
+    ShapeAngle = 0 'angulo de rotacion de la pieza (0 a 3)
     ShapeMap$ = GetRotatedShapeMap$(Shape, ShapeAngle) 'composicion de la pieza
-    ShapeX = RandomShapeX 'posicion X (aleatoria)
-    ShapeY = -SIDEBLOCKCOUNT 'posicion Y (totalmente oculta)
+    ShapeX = 3 'posicion X inicial (centro del foso)
+    ShapeY = -SIDEBLOCKCOUNT 'posicion Y inicial (totalmente oculta)
 End Sub
 
 
@@ -233,6 +218,20 @@ Sub DrawShape (EraseShape)
                 End If
                 DrawBlock BlockColor$, PitX, PitY 'pinta el bloque
             End If
+        Next BlockY
+    Next BlockX
+End Sub
+
+
+
+
+Sub DrawNextShape
+    'para todos los bloques de la pieza
+    For BlockX = 0 To LASTSIDEBLOCK
+        For BlockY = 0 To LASTSIDEBLOCK
+            'color de la pieza
+            BlockColor$ = Mid$(ShapeMap$, ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1)
+            DrawBlock BlockColor$, BlockX - 20, BlockY + 9 'pinta el bloque
         Next BlockY
     Next BlockX
 End Sub
@@ -264,22 +263,18 @@ End Sub
 Sub DropShape () 'cae un caracter la pieza
     If ShapeCanMove(ShapeMap$, 0, 1) Then 'si se puede mover
         DrawShape TRUE 'borra la pieza
-        'If DropRate! > 0 Then Sound 37, .3
         ShapeY = ShapeY + 1 'baja un caracter de altura
         DrawShape FALSE 'pinta la pieza
     Else
         SettleActiveShapeInPit 'mantiene la pieza inmovil
-
         GameOver = (ShapeY < 0) 'si llega arriba pierde partida
-
         CheckForFullRows 'busca lineas completadas
         DrawPit
-        DisplayStatus 'muestra puntos o mensajes
-
         If Not GameOver Then
             CreateShape 'genera una nueva pieza
             DrawShape FALSE 'pinta la pieza
         End If
+        DisplayStatus 'muestra puntos o mensajes
     End If
 End Sub
 
