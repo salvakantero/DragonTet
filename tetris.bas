@@ -1,3 +1,5 @@
+'TETRIS.BAS: codigo original QBasic de Peter Swinkels (QBBlocks v1.0)
+
 DefInt A-Z
 
 DECLARE FUNCTION GetRotatedShapeMap$ (Shape, Angle)
@@ -49,7 +51,7 @@ End Sub
 
 Sub CreateShape ()
     DropRate! = 1
-    Shape = Int(Rnd * 7)
+    Shape = Int(Rnd * 6)
     ShapeAngle = Int(Rnd * 4)
     ShapeMap$ = GetRotatedShapeMap$(Shape, ShapeAngle)
     ShapeX = RandomShapeX

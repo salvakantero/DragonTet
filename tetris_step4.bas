@@ -1,3 +1,19 @@
+'TETRIS.BAS:
+'   - codigo original QBasic de Peter Swinkels (QBBlocks v1.0)
+'TETRIS_STEP1: 
+'   - comprension y comentarios en el codigo
+'   - se habilita la pieza 7
+'TETRIS_STEP2:
+'   - se convierte a modo texto
+'TETRIS_STEP3:
+'   - se reordenan las funciones
+'   - se añaden LEVELS y se usan los cursores
+'   - se amplia el marcador
+'TETRIS_STEP4:
+'   - se elimina la posicion X inicial aleatoria
+'   - se elimina la rotacion inicial aleatoria
+'   - se implementa la funcion NEXT
+
 DefInt A-Z
 
 Const FALSE = 0

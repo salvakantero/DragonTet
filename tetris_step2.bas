@@ -1,3 +1,12 @@
+'TETRIS.BAS:
+'   - codigo original QBasic de Peter Swinkels (QBBlocks v1.0)
+'TETRIS_STEP1: 
+'   - comprension y comentarios en el codigo
+'   - se habilita la pieza 7
+'TETRIS_STEP2:
+'   - se convierte a modo texto
+
+
 DefInt A-Z
 
 Const FALSE = 0
