@@ -1,6 +1,7 @@
+
 'TETRIS.BAS:
 '   - codigo original QBasic de Peter Swinkels (QBBlocks v1.0)
-'TETRIS_STEP1: 
+'TETRIS_STEP1:
 '   - comprension y comentarios en el codigo
 '   - se habilita la pieza 7
 

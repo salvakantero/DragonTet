@@ -1,4 +1,6 @@
-'TETRIS.BAS: codigo original QBasic de Peter Swinkels (QBBlocks v1.0)
+
+'TETRIS.BAS:
+'   - codigo original QBasic de Peter Swinkels (QBBlocks v1.0)
 
 DefInt A-Z
 
