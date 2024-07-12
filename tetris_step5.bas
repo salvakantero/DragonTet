@@ -18,6 +18,8 @@
 '   - se implementa la funcion NEXT
 'TETRIS_STEP5:
 '   - 2 jugadores
+'   - 32x16 caracteres en pantalla
+'   - Hall of fame
 
 DefInt A-Z
 
@@ -25,32 +27,36 @@ Const FALSE = 0
 Const TRUE = -1
 
 Const LASTSIDEBLOCK = 3 'para recorrer con bucles la pieza (0 a 3)
-Const SIDEBLOCKCOUNT = 4 'tamano del lado de la pieza en caracteres
+Const SIDEBLOCKCOUNT = 4 'tamano del lado de la pieza
 Const NOBLOCK$ = "0" 'caracter vacio en el foso
 
-Const PITLEFT = 22 'pos X en caracteres del lado izquierdo del foso (pegado a la derecha)
-Const PITTOP = 1 'pos Y en caracteres de la parte de arriba del foso (justo arriba de la pantalla)
-Const PITWIDTH = 10 'ancho del foso en caracteres
-Const PITHEIGHT = 16 'alto del foso en caracteres
+Const PITTOP = 1 'pos Y de la parte de arriba del foso (justo arriba de la pantalla)
+Const PITWIDTH = 10 'ancho del foso
+Const PITHEIGHT = 16 'alto del foso
 
-'DropDate!      1=cayendo 0=parada al fondo del foso
+Common Shared Level 'Nivel de juego (velocidad)
+
 'GameOver       0=juego en curso 1=finalizado
+'DropDate!      1=cayendo 0=parada al fondo del foso
 'Pit$           Contenido del foso
-'Level          Nivel
 'Lines          Lineas conseguidas
 'Score          Puntuacion
-Common Shared DropRate!, GameOver, Pit$, Level, Lines, Score
+Dim GameOver(2), DropRate!(2), Pit$(2), Lines(2), Score(2)
 
 'Shape          Tipo de pieza (0 a 6)
 'ShapeAngle     Rotacion de la pieza (0 a 3)
 'ShapeMap$      Diseno de la pieza
 'ShapeX         Pos X de la pieza
 'ShapeY         Pos Y de la pieza
-Common Shared Shape, ShapeAngle, ShapeMap$, ShapeX, ShapeY
+Dim Shape(2), ShapeAngle(2), ShapeMap$(2), ShapeX(2), ShapeY(2)
 
 'NextShape      Tipo de la siguiente pieza (0 a 6)
 'ShapeMap$      Diseno de la siguiente pieza
-Common Shared NextShape, NextShapeMap$
+Dim NextShape(2), NextShapeMap$(2)
+
+Dim PITLEFT(2) 'pos X del lado izquierdo de los fosos
+PITLEFT(0) = 1
+PITLEFT(1) = 23
 
 
 
@@ -87,16 +93,30 @@ End Function
 
 
 Sub DisplayStatus ()
-    Color 10 'primer plano rojo
-    If GameOver Then
+    Color 0, 4
+    ' Bucle para pintar una columna en el centro
+    For y = 1 To 16
+        For x = 11 To 22
+            Locate y, x
+            Print " "; ' Imprimir un espacio con el color de fondo
+        Next x
+    Next y
+
+    If GameOver(0) Then
         Locate 7, 10: Print "Game over!"
         Locate 8, 2: Print "Press Enter to play a new game"
     Else
-        Locate 4, 1: Print "Level:" + Str$(Level) 'pinta el num. de nivel
-        Locate 6, 1: Print "Lines:" + Str$(Lines) 'pinta las lineas
-        Locate 8, 1: Print "Score:" + Str$(Score) 'pinta la puntuacion
-        Locate 10, 1: Print "Next:"
-        DrawNextShape
+        Locate 3, 12: Print "Level:" + Str$(Level) 'pinta el num. de nivel
+        'player 1
+        Locate 5, 12: Print "Lines:" + Str$(Lines(0)) 'pinta las lineas
+        Locate 6, 12: Print "Sc:" + Str$(Score(0)) 'pinta la puntuacion
+        Locate 7, 12: Print "Next:"
+        'player 2
+        Locate 10, 12: Print "Lines:" + Str$(Lines(1)) 'pinta las lineas
+        Locate 11, 12: Print "Sc:" + Str$(Score(1)) 'pinta la puntuacion
+        Locate 12, 12: Print "Next:"
+
+        DrawNextShape 'pinta la siguiente figura
     End If
 End Sub
 
