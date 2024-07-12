@@ -245,7 +245,7 @@ Sub CreateShape (i)
     If NextShape(i) >= 0 Then Shape(i) = NextShape(i) Else Shape(i) = Int(Rnd * 7)
     ShapeAngle(i) = 0
     ShapeMap$(i) = GetRotatedShapeMap$(Shape(i), ShapeAngle(i)) 'composicion de la pieza
-    ShapeX(i) = 3 'posicion X inicial (centro del foso)
+    ShapeX(i) = PITLEFT(i) + 2 'posicion X inicial (centro del foso)
     ShapeY(i) = -SIDEBLOCKCOUNT 'posicion Y inicial (totalmente oculta)
     CreateNextShape
 End Sub
