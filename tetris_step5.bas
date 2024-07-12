@@ -34,27 +34,29 @@ Const PITTOP = 1 'pos Y de la parte de arriba del foso (justo arriba de la panta
 Const PITWIDTH = 10 'ancho del foso
 Const PITHEIGHT = 16 'alto del foso
 
-Common Shared Level 'Nivel de juego (velocidad)
+'Level          Nivel de juego (velocidad)
+'NumPlayers     Jugadores(0-1)
+Common Shared Level, NumPlayers
 
-'GameOver       0=juego en curso 1=finalizado
+'GameOver       0=juego en curso -1=finalizado
 'DropDate!      1=cayendo 0=parada al fondo del foso
 'Pit$           Contenido del foso
 'Lines          Lineas conseguidas
 'Score          Puntuacion
-Dim GameOver(2), DropRate!(2), Pit$(2), Lines(2), Score(2)
+Common Shared GameOver(), DropRate!(), Pit$(), Lines(), Score()
 
 'Shape          Tipo de pieza (0 a 6)
 'ShapeAngle     Rotacion de la pieza (0 a 3)
 'ShapeMap$      Diseno de la pieza
 'ShapeX         Pos X de la pieza
 'ShapeY         Pos Y de la pieza
-Dim Shape(2), ShapeAngle(2), ShapeMap$(2), ShapeX(2), ShapeY(2)
+Common Shared Shape(), ShapeAngle(), ShapeMap$(), ShapeX(), ShapeY()
 
 'NextShape      Tipo de la siguiente pieza (0 a 6)
 'ShapeMap$      Diseno de la siguiente pieza
-Dim NextShape(2), NextShapeMap$(2)
+Common Shared NextShape(), NextShapeMap$()
 
-Dim PITLEFT(2) 'pos X del lado izquierdo de los fosos
+Dim PITLEFT(1) 'pos X del lado izquierdo de los fosos
 PITLEFT(0) = 1
 PITLEFT(1) = 23
 
@@ -132,14 +134,14 @@ End Sub
 
 
 
-Sub DrawPit ()
+Sub DrawPit (i)
     'repinta el contenido del foso
     For PitY = 0 To PITHEIGHT - 1
         For PitX = 0 To PITWIDTH - 1
             If GameOver Then
                 BlockColor$ = "4" 'llena el foso de bloques rojos
             Else
-                BlockColor$ = Mid$(Pit$, ((PITWIDTH * PitY) + PitX) + 1, 1)
+                BlockColor$ = Mid$(Pit$(i), ((PITWIDTH * PitY) + PitX) + 1, 1)
             End If
             DrawBlock BlockColor$, PitX, PitY
         Next PitX
@@ -235,16 +237,16 @@ End Sub
 
 
 
-Sub CreateShape ()
-    DropRate! = 1 - (Level * 0.2) 'tiempo de caida variable segun el nivel
-    If DropRate! <= 0 Then DropRate! = .1 'hasta un limite de caida de .1
+Sub CreateShape (i)
+    DropRate!(i) = 1 - (Level * 0.2) 'tiempo de caida variable segun el nivel
+    If DropRate!(i) <= 0 Then DropRate!(i) = .1 'hasta un limite de caida de .1
     'si no es la primera pieza la toma de NextShape
     'si es la primera la genera (0 a 6)
-    If NextShape >= 0 Then Shape = NextShape Else Shape = Int(Rnd * 7)
-    ShapeAngle = 0
-    ShapeMap$ = GetRotatedShapeMap$(Shape, ShapeAngle) 'composicion de la pieza
-    ShapeX = 3 'posicion X inicial (centro del foso)
-    ShapeY = -SIDEBLOCKCOUNT 'posicion Y inicial (totalmente oculta)
+    If NextShape(i) >= 0 Then Shape(i) = NextShape(i) Else Shape(i) = Int(Rnd * 7)
+    ShapeAngle(i) = 0
+    ShapeMap$(i) = GetRotatedShapeMap$(Shape(i), ShapeAngle(i)) 'composicion de la pieza
+    ShapeX(i) = 3 'posicion X inicial (centro del foso)
+    ShapeY(i) = -SIDEBLOCKCOUNT 'posicion Y inicial (totalmente oculta)
     CreateNextShape
 End Sub
 
@@ -306,9 +308,9 @@ Sub DropShape () 'cae un caracter la pieza
         SettleActiveShapeInPit 'mantiene la pieza inmovil
         GameOver = (ShapeY < 0) 'si llega arriba pierde partida
         CheckForFullRows 'busca lineas completadas
-        DrawPit
+        DrawPit (0)
         If Not GameOver Then
-            CreateShape 'genera una nueva pieza
+            CreateShape (0) 'genera una nueva pieza
             DrawShape FALSE 'pinta la pieza
         End If
         DisplayStatus 'muestra puntos o mensajes
@@ -373,17 +375,34 @@ Sub Init () 'inicializa sistema y foso
     Screen 13 '320x200 256 colores MCGA
     Cls
     Color 7 'primer plano azul claro
-    Locate 1, 1: Print "=TETRIS4DRAGON="
-    Locate 2, 1: Print "SalvaKantero 24"
-    GameOver = FALSE 'comienza partida
+    Locate 1, 12: Print "*** T4D ***"
+    Locate 2, 12: Print "SalvaKantero"
     Level = 1 'nivel actual
-    Lines = 0 'lineas conseguidas
-    Score = 0 'puntuacion actual
-    NextShape = -1
-    Pit$ = String$(PITWIDTH * PITHEIGHT, NOBLOCK$) 'inicializa el foso vacio (tabla de 0)
-    CreateShape 'genera pieza (forma, posicion)
-    DrawPit
-    DisplayStatus 'pinta el marcador
+
+    NumPlayers = 0 'DEBUG
+    ReDim GameOver(NumPlayers)
+    ReDim Lines(NumPlayers)
+    ReDim Score(NumPlayers)
+    ReDim NextShape(NumPlayers)
+    ReDim Pit$(NumPlayers)
+    ReDim DropRate!(NumPlayers)
+    ReDim Shape(NumPlayers)
+    ReDim ShapeMap$(NumPlayers)
+    ReDim ShapeAngle(NumPlayers)
+    ReDim ShapeX(NumPlayers)
+    ReDim ShapeY(NumPlayers)
+
+    For i = 0 To NumPlayers
+        GameOver(i) = FALSE 'comienza partida
+        Lines(i) = 0 'lineas conseguidas
+        Score(i) = 0 'puntuacion actual
+        NextShape(i) = -1
+        Pit$(i) = String$(PITWIDTH * PITHEIGHT, NOBLOCK$) 'inicializa el foso vacio (tabla de 0)
+        CreateShape (i) 'genera pieza (forma, posicion)
+        DrawPit (i) 'pinta foso
+    Next i
+
+    DisplayStatus 'pinta el marcador comun
 End Sub
 
 
