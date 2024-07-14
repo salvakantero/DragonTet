@@ -416,7 +416,52 @@ End Sub
 
 
 
+Sub CheckKeys (i)
+    If i = 0 Then
+        RotateKey$ = "W"
+        LeftKey$ = "A"
+        DownKey$ = "S"
+        RightKey$ = "D"
+    Else
+        RotateKey$ = "O"
+        LeftKey$ = "K"
+        DownKey$ = "L"
+        RightKey$ = "Ñ"
+    End If
+
+    Select Case Key$
+        Case RotateKey$ 'al pulsar CURSOR ARRIBA gira la pieza
+            DrawShape i, TRUE 'borra pieza
+            'cambia el angulo de la pieza
+            If ShapeAngle = 3 Then NewAngle = 0 Else NewAngle = ShapeAngle + 1
+            'modifica la pieza
+            RotatedMap$ = GetRotatedShapeMap(Shape, NewAngle)
+            If ShapeCanMove(RotatedMap$, 0, 0, i) Then 'si se puede mover...
+                ShapeAngle = NewAngle
+                ShapeMap$ = RotatedMap$
+            End If
+            DrawShape i, FALSE 'pinta pieza
+
+        Case LeftKey$ 'al pulsar CURSOR IZDA. mueve a la izquierda si puede
+            DrawShape i, TRUE 'borra pieza
+            If ShapeCanMove(ShapeMap$, -1, 0, i) Then ShapeX = ShapeX - 1
+            DrawShape i, FALSE 'pinta pieza
+
+        Case RightKey$ 'al pulsar CURSOR DCHA. mueve a la derecha si puede
+            DrawShape i, TRUE 'borra pieza
+            If ShapeCanMove(ShapeMap$, 1, 0, i) Then ShapeX = ShapeX + 1
+            DrawShape i, FALSE 'pinta pieza
+
+        Case DownKey$ 'al pulsar CURSOR ABAJO pone el tiempo de descenso a 0
+            DropRate! = 0
+    End Select
+End Sub
+
+
+
+
 Sub Main () 'bucle principal
+    i = 0
     StartTime! = Timer 'guarda el tiempo de inicio
     Do
         Key$ = ""
@@ -436,33 +481,7 @@ Sub Main () 'bucle principal
         ElseIf GameOver Then 'fuera de juego
             If Key$ = Chr$(13) Then Init 'si se pulsa ENTER inicia juego
         Else
-            'durante el juego
-            Select Case Key$
-                Case Chr$(0) + "H" 'al pulsar CURSOR ARRIBA gira la pieza
-                    DrawShape i, TRUE 'borra pieza
-                    'cambia el angulo de la pieza
-                    If ShapeAngle = 3 Then NewAngle = 0 Else NewAngle = ShapeAngle + 1
-                    'modifica la pieza
-                    RotatedMap$ = GetRotatedShapeMap(Shape, NewAngle)
-                    If ShapeCanMove(RotatedMap$, 0, 0, i) Then 'si se puede mover...
-                        ShapeAngle = NewAngle
-                        ShapeMap$ = RotatedMap$
-                    End If
-                    DrawShape i, FALSE 'pinta pieza
-
-                Case Chr$(0) + "K" 'al pulsar CURSOR IZDA. mueve a la izquierda si puede
-                    DrawShape i, TRUE 'borra pieza
-                    If ShapeCanMove(ShapeMap$, -1, 0, i) Then ShapeX = ShapeX - 1
-                    DrawShape i, FALSE 'pinta pieza
-
-                Case Chr$(0) + "M" 'al pulsar CURSOR DCHA. mueve a la derecha si puede
-                    DrawShape i, TRUE 'borra pieza
-                    If ShapeCanMove(ShapeMap$, 1, 0, i) Then ShapeX = ShapeX + 1
-                    DrawShape i, FALSE 'pinta pieza
-
-                Case Chr$(0) + "P" 'al pulsar CURSOR ABAJO pone el tiempo de descenso a 0
-                    DropRate! = 0
-            End Select
+            CheckKeys i
         End If
     Loop
 End Sub
