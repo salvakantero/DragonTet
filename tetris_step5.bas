@@ -1,3 +1,4 @@
+$Debug
 
 'TETRIS.BAS:
 '   - codigo original QBasic de Peter Swinkels (QBBlocks v1.0)
@@ -166,14 +167,14 @@ Function ShapeCanMove (Map$, XDirection, YDirection, i)
                 'si el bloque esta dentro de los limites del foso
                 PitX = (ShapeX(i) + BlockX) + XDirection
                 PitY = (ShapeY(i) + BlockY) + YDirection
-                If PitX >= 0 And PitX < PITWIDTH And PitY >= 0 And PitY < PITHEIGHT Then
+                If PitX >= 0 And PitX < PITWIDTH + (PITLEFT(i) - 1) And PitY >= 0 And PitY < PITHEIGHT Then
                     'el lugar esta ocupado por una pieza
                     If Not Mid$(Pit$(i), (((PITWIDTH * PitY) + PitX) + 1), 1) = NOBLOCK$ Then
                         ShapeCanMove = FALSE 'no puede moverse
                         Exit Function
                     End If
                     'el bloque queda fuera de los limites del foso
-                ElseIf PitX < 0 Or PitX >= PITWIDTH Or PitY >= PITHEIGHT Then
+                ElseIf PitX < 0 Or PitX >= PITWIDTH + (PITLEFT(i) - 1) Or PitY >= PITHEIGHT Then
                     ShapeCanMove = FALSE 'no puede moverse
                     Exit Function
                 End If
@@ -367,12 +368,10 @@ Sub CheckForFullRows (i) 'busca filas completas
     Next PitY
     If NumLines > 0 Then
         'puntuacion segun el numero de lineas conseguidas
-        If NumLines = 1 Then Score(i) = Score(i) + 100
-        If NumLines = 2 Then Score(i) = Score(i) + 300
-        If NumLines = 3 Then Score(i) = Score(i) + 500
-        If NumLines = 4 Then Score(i) = Score(i) + 800 'tetris!
-        'multiplica por nivel actual
-        Score(i) = Score(i) * Level(i)
+        If NumLines = 1 Then Score(i) = Score(i) + (100 * Level(i))
+        If NumLines = 2 Then Score(i) = Score(i) + (300 * Level(i))
+        If NumLines = 3 Then Score(i) = Score(i) + (500 * Level(i))
+        If NumLines = 4 Then Score(i) = Score(i) + (800 * Level(i)) 'tetris!
         'actualiza el total de lineas completadas
         Lines(i) = Lines(i) + NumLines
         'calcula el nivel basado en el total de lineas completadas
