@@ -1,4 +1,3 @@
-$Debug
 
 'TETRIS.BAS:
 '   - codigo original QBasic de Peter Swinkels (QBBlocks v1.0)
@@ -34,17 +33,18 @@ Const PITTOP = 1 'pos Y de la parte de arriba del foso (justo arriba de la panta
 Const PITWIDTH = 10 'ancho del foso
 Const PITHEIGHT = 16 'alto del foso
 
-'Level          Nivel de juego (velocidad)
 'NumPlayers     Jugadores(0-1)
-Common Shared Level, NumPlayers
+Common Shared NumPlayers
 
 'GameOver       0=juego en curso -1=finalizado
 'DropDate!      1=cayendo 0=parada al fondo del foso
+'StartTime!     Tiempo desde que ha avanzado la pieza
 'Pit$           Contenido del foso
+'Level          Nivel de juego (velocidad)
 'Lines          Lineas conseguidas
 'Score          Puntuacion
 'PITLEFT        pos X del lado izquierdo de los fosos
-Common Shared GameOver(), DropRate!(), Pit$(), Lines(), Score(), PITLEFT()
+Common Shared GameOver(), DropRate!(), StartTime!(), Pit$(), Level(), Lines(), Score(), PITLEFT()
 
 'Shape          Tipo de pieza (0 a 6)
 'ShapeAngle     Rotacion de la pieza (0 a 3)
@@ -92,7 +92,7 @@ End Function
 
 
 Sub DisplayStatus ()
-    Color 7, 4
+    Color 7, 8
     ' Bucle para pintar una columna en el centro
     For y = 1 To 17
         For x = 11 To 22
@@ -105,20 +105,24 @@ Sub DisplayStatus ()
         Locate 7, 10: Print "Game over!"
         Locate 8, 2: Print "Press Enter to play a new game"
     Else
-        Locate 3, 12: Print "Level:" + Str$(Level) 'pinta el num. de nivel
         'player 1
-        Locate 5, 12: Print "Lines:" + Str$(Lines(0)) 'pinta las lineas
-        Locate 6, 12: Print "Sc:" + Str$(Score(0)) 'pinta la puntuacion
-        Locate 7, 12: Print "Next:"
+        Locate 2, 12: Print "=PLAYER 1="
+        Locate 3, 12: Print "Level:" + Str$(Level(0)) 'pinta el num. de nivel
+        Locate 4, 12: Print "Lines:" + Str$(Lines(0)) 'pinta las lineas
+        Locate 5, 12: Print "Sc:" + Str$(Score(0)) 'pinta la puntuacion
+        Locate 6, 12: Print "Next:"
+
         'player 2
         If NumPlayers = 1 Then
-            Locate 10, 12: Print "Lines:" + Str$(Lines(1)) 'pinta las lineas
-            Locate 11, 12: Print "Sc:" + Str$(Score(1)) 'pinta la puntuacion
-            Locate 12, 12: Print "Next:"
+            Locate 10, 12: Print "=PLAYER 2="
+            Locate 11, 12: Print "Level:" + Str$(Level(1)) 'pinta el num. de nivel
+            Locate 12, 12: Print "Lines:" + Str$(Lines(1)) 'pinta las lineas
+            Locate 13, 12: Print "Sc:" + Str$(Score(1)) 'pinta la puntuacion
+            Locate 14, 12: Print "Next:"
         End If
 
         For i = 0 To NumPlayers
-            DrawNextShape i 'pinta la siguiente figura
+            DrawNextShape i
         Next i
     End If
 End Sub
@@ -231,10 +235,11 @@ Sub DrawNextShape (i)
         For BlockY = 0 To LASTSIDEBLOCK
             'color de la pieza
             BlockColor$ = Mid$(NextShapeMap$(i), ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1)
+            If BlockColor$ = NOBLOCK$ Then BlockColor$ = "8"
             If i = 0 Then
-                DrawBlock BlockColor$, BlockX - 20, BlockY + 9, i 'pinta el bloque
+                DrawBlock BlockColor$, BlockX + 17, BlockY + 4, i 'pinta el bloque
             Else
-                DrawBlock BlockColor$, BlockX - 20, BlockY + 12, i 'pinta el bloque
+                DrawBlock BlockColor$, BlockX - 5, BlockY + 12, i 'pinta el bloque
             End If
         Next BlockY
     Next BlockX
@@ -244,7 +249,7 @@ End Sub
 
 
 Sub CreateShape (i)
-    DropRate!(i) = 1 - (Level * 0.2) 'tiempo de caida variable segun el nivel
+    DropRate!(i) = 1 - (Level(i) * 0.2) 'tiempo de caida variable segun el nivel
     If DropRate!(i) <= 0 Then DropRate!(i) = .1 'limite de caida de .1
     'si no es la primera pieza la toma de NextShape
     'si es la primera la genera (0 a 6)
@@ -366,10 +371,12 @@ Sub CheckForFullRows (i) 'busca filas completas
         If NumLines = 2 Then Score(i) = Score(i) + 300
         If NumLines = 3 Then Score(i) = Score(i) + 500
         If NumLines = 4 Then Score(i) = Score(i) + 800 'tetris!
+        'multiplica por nivel actual
+        Score(i) = Score(i) * Level(i)
         'actualiza el total de lineas completadas
         Lines(i) = Lines(i) + NumLines
         'calcula el nivel basado en el total de lineas completadas
-        Level = (Lines(i) \ 10) + 1
+        Level(i) = (Lines(i) \ 10) + 1
     End If
 End Sub
 
@@ -380,17 +387,15 @@ Sub Init () 'inicializa sistema y foso
     Randomize Timer 'semilla de aleatoriedad
     Screen 13 '320x200 256 colores MCGA
     Cls
-    'Color 7 'primer plano azul claro
-    'Locate 1, 12: Print "*** T4D ***"
-    'Locate 2, 12: Print "SalvaKantero"
-    Level = 1 'nivel actual
 
-    NumPlayers = 0 'DEBUG
+    NumPlayers = 1 'DEBUG
     ReDim GameOver(NumPlayers)
+    ReDim Level(NumPlayers)
     ReDim Lines(NumPlayers)
     ReDim Score(NumPlayers)
     ReDim Pit$(NumPlayers)
     ReDim DropRate!(NumPlayers)
+    ReDim StartTime!(NumPlayers)
     ReDim Shape(NumPlayers)
     ReDim ShapeMap$(NumPlayers)
     ReDim ShapeAngle(NumPlayers)
@@ -405,6 +410,7 @@ Sub Init () 'inicializa sistema y foso
 
     For i = 0 To NumPlayers
         GameOver(i) = FALSE 'comienza partida
+        Level(i) = 1 'nivel inicial
         Lines(i) = 0 'lineas conseguidas
         Score(i) = 0 'puntuacion actual
         NextShape(i) = -1
@@ -419,108 +425,72 @@ End Sub
 
 
 
-Sub CheckKeys (key$, i)
-    If i = 0 Then
-        RotateKey$ = "W"
-        LeftKey$ = "A"
-        DownKey$ = "S"
-        RightKey$ = "D"
-    Else
-        RotateKey$ = "O"
-        LeftKey$ = "K"
-        DownKey$ = "L"
-        RightKey$ = "Ñ"
-    End If
-
-    Select Case key$
-        Case RotateKey$ 'al pulsar CURSOR ARRIBA gira la pieza
-            DrawShape i, TRUE 'borra pieza
-            'cambia el angulo de la pieza
-            If ShapeAngle(i) = 3 Then NewAngle = 0 Else NewAngle = ShapeAngle(i) + 1
-            'modifica la pieza
-            RotatedMap$ = GetRotatedShapeMap(Shape(i), NewAngle)
-            If ShapeCanMove(RotatedMap$, 0, 0, i) Then 'si se puede mover...
-                ShapeAngle(i) = NewAngle
-                ShapeMap$(i) = RotatedMap$
-            End If
-            DrawShape i, FALSE 'pinta pieza
-
-        Case LeftKey$ 'al pulsar CURSOR IZDA. mueve a la izquierda si puede
-            DrawShape i, TRUE 'borra pieza
-            If ShapeCanMove(ShapeMap$(i), -1, 0, i) Then ShapeX(i) = ShapeX(i) - 1
-            DrawShape i, FALSE 'pinta pieza
-
-        Case RightKey$ 'al pulsar CURSOR DCHA. mueve a la derecha si puede
-            DrawShape i, TRUE 'borra pieza
-            If ShapeCanMove(ShapeMap$(i), 1, 0, i) Then ShapeX(i) = ShapeX(i) + 1
-            DrawShape i, FALSE 'pinta pieza
-
-        Case DownKey$ 'al pulsar CURSOR ABAJO pone el tiempo de descenso a 0
-            DropRate!(i) = 0
-    End Select
-End Sub
-
-
-
-
 Sub Main () 'bucle principal
-    i = 0
-    StartTime! = Timer 'guarda el tiempo de inicio
+    StartTime!(0) = Timer 'guarda el tiempo de inicio para jugador 0
+    StartTime!(1) = Timer 'guarda el tiempo de inicio para jugador 1
     Do
         Key$ = ""
         Do While Key$ = "" 'mientras no se pulse una tecla
-            If Not GameOver(i) Then 'juego en curso
-                'Si ha sido superado el tiempo de caida
-                If Timer >= StartTime! + DropRate!(i) Or StartTime! > Timer Then
-                    DropShape i 'la pieza avanza hacia abajo
-                    StartTime! = Timer 'reinicia el temporizador de caida
+            For i = 0 To NumPlayers 'bucle para ambos jugadores
+                If Not GameOver(i) Then 'juego en curso
+                    'Si ha sido superado el tiempo de caida
+                    If Timer >= StartTime!(i) + DropRate!(i) Or StartTime!(i) > Timer Then
+                        DropShape i 'la pieza avanza hacia abajo
+                        StartTime!(i) = Timer 'reinicia el temporizador de caida
+                    End If
                 End If
-            End If
+            Next i
             Key$ = InKey$ 'lee pulsaciones del teclado
         Loop
         If Key$ = Chr$(27) Then 'si se pulsa ESC sale
             Screen 0
             End
-        ElseIf GameOver(i) = TRUE Then 'fuera de juego
-            If Key$ = Chr$(13) Then Init 'si se pulsa ENTER inicia juego
         Else
-            If i = 0 Then
-                RotateKey$ = "W"
-                LeftKey$ = "A"
-                DownKey$ = "S"
-                RightKey$ = "D"
-            Else
-                RotateKey$ = "O"
-                LeftKey$ = "K"
-                DownKey$ = "L"
-                RightKey$ = "Ñ"
-            End If
-            Select Case Key$
-                Case RotateKey$ 'al pulsar CURSOR ARRIBA gira la pieza
-                    DrawShape i, TRUE 'borra pieza
-                    'cambia el angulo de la pieza
-                    If ShapeAngle(i) = 3 Then NewAngle = 0 Else NewAngle = ShapeAngle(i) + 1
-                    'modifica la pieza
-                    RotatedMap$ = GetRotatedShapeMap(Shape(i), NewAngle)
-                    If ShapeCanMove(RotatedMap$, 0, 0, i) Then 'si se puede mover...
-                        ShapeAngle(i) = NewAngle
-                        ShapeMap$(i) = RotatedMap$
+            For i = 0 To NumPlayers 'bucle para ambos jugadores
+                If GameOver(i) = TRUE Then 'fuera de juego
+                    If Key$ = Chr$(13) Then Init 'si se pulsa ENTER inicia juego
+                Else
+                    ' Asignar teclas para cada jugador
+                    If i = 0 Then
+                        RotateKey$ = "w"
+                        LeftKey$ = "a"
+                        DownKey$ = "s"
+                        RightKey$ = "d"
+                    Else
+                        RotateKey$ = "o"
+                        LeftKey$ = "k"
+                        DownKey$ = "l"
+                        RightKey$ = "ñ"
                     End If
-                    DrawShape i, FALSE 'pinta pieza
+                    Select Case Key$
+                        Case RotateKey$ 'al pulsar la tecla de rotación, gira la pieza
+                            DrawShape i, TRUE 'borra pieza
+                            'cambia el ángulo de la pieza
+                            If ShapeAngle(i) = 3 Then NewAngle = 0 Else NewAngle = ShapeAngle(i) + 1
+                            'modifica la pieza
+                            RotatedMap$ = GetRotatedShapeMap(Shape(i), NewAngle)
+                            If ShapeCanMove(RotatedMap$, 0, 0, i) Then 'si se puede mover...
+                                ShapeAngle(i) = NewAngle
+                                ShapeMap$(i) = RotatedMap$
+                            End If
+                            DrawShape i, FALSE 'pinta pieza
 
-                Case LeftKey$ 'al pulsar CURSOR IZDA. mueve a la izquierda si puede
-                    DrawShape i, TRUE 'borra pieza
-                    If ShapeCanMove(ShapeMap$(i), -1, 0, i) Then ShapeX(i) = ShapeX(i) - 1
-                    DrawShape i, FALSE 'pinta pieza
+                        Case LeftKey$ 'al pulsar la tecla izquierda, mueve a la izquierda si puede
+                            DrawShape i, TRUE 'borra pieza
+                            If ShapeCanMove(ShapeMap$(i), -1, 0, i) Then ShapeX(i) = ShapeX(i) - 1
+                            DrawShape i, FALSE 'pinta pieza
 
-                Case RightKey$ 'al pulsar CURSOR DCHA. mueve a la derecha si puede
-                    DrawShape i, TRUE 'borra pieza
-                    If ShapeCanMove(ShapeMap$(i), 1, 0, i) Then ShapeX(i) = ShapeX(i) + 1
-                    DrawShape i, FALSE 'pinta pieza
+                        Case RightKey$ 'al pulsar la tecla derecha, mueve a la derecha si puede
+                            DrawShape i, TRUE 'borra pieza
+                            If ShapeCanMove(ShapeMap$(i), 1, 0, i) Then ShapeX(i) = ShapeX(i) + 1
+                            DrawShape i, FALSE 'pinta pieza
 
-                Case DownKey$ 'al pulsar CURSOR ABAJO pone el tiempo de descenso a 0
-                    DropRate!(i) = 0
-            End Select
+                        Case DownKey$ 'al pulsar la tecla abajo, pone el tiempo de descenso a 0
+                            DropRate!(i) = 0
+                    End Select
+                End If
+            Next i
         End If
     Loop
 End Sub
+
