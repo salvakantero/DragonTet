@@ -20,6 +20,9 @@ $Debug
 'TETRIS_STEP5:
 '   - 2 jugadores
 '   - 32x16 caracteres en pantalla
+'TETRIS_STEP6:
+'   - presentacion
+'   - tabla de puntuaciones
 
 DefInt A-Z
 
@@ -468,12 +471,12 @@ Sub Main () 'bucle principal
                         RotateKey$ = "o"
                         LeftKey$ = "k"
                         DownKey$ = "l"
-                        RightKey$ = "ñ"
+                        RightKey$ = "ï¿½"
                     End If
                     Select Case Key$
-                        Case RotateKey$ 'al pulsar la tecla de rotación, gira la pieza
+                        Case RotateKey$ 'al pulsar la tecla de rotaciï¿½n, gira la pieza
                             DrawShape i, TRUE 'borra pieza
-                            'cambia el ángulo de la pieza
+                            'cambia el ï¿½ngulo de la pieza
                             If ShapeAngle(i) = 3 Then NewAngle = 0 Else NewAngle = ShapeAngle(i) + 1
                             'modifica la pieza
                             RotatedMap$ = GetRotatedShapeMap(Shape(i), NewAngle)
