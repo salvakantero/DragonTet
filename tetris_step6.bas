@@ -21,7 +21,7 @@ $Debug
 '   - 2 jugadores
 '   - 32x16 caracteres en pantalla
 'TETRIS_STEP6:
-'   - presentacion
+'   - menu de inicio
 '   - tabla de puntuaciones
 
 DefInt A-Z
@@ -96,14 +96,7 @@ End Function
 
 
 Sub DisplayStatus ()
-    Color 7, 8
-    ' Bucle para pintar una columna en el centro
-    For y = 1 To 17
-        For x = 11 To 22
-            Locate y, x
-            Print " "; ' Imprimir un espacio con el color de fondo
-        Next x
-    Next y
+    Color 0, 2
 
     'player 1
     If GameOver(0) = TRUE Then
@@ -238,7 +231,7 @@ Sub DrawNextShape (i)
         For BlockY = 0 To LASTSIDEBLOCK
             'color de la pieza
             BlockColor$ = Mid$(NextShapeMap$(i), ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1)
-            If BlockColor$ = NOBLOCK$ Then BlockColor$ = "8"
+            If BlockColor$ = NOBLOCK$ Then BlockColor$ = "2"
             If i = 0 Then
                 DrawBlock BlockColor$, BlockX + 17, BlockY + 4, i 'pinta el bloque
             Else
@@ -384,19 +377,29 @@ End Sub
 
 
 
+Sub Intro ()
+    Color 0, 2
+    Cls
+    Locate 6, 10: Print "***************"
+    Locate 7, 10: Print "* T E T R I S *"
+    Locate 8, 10: Print "***************"
+    Locate 10, 9: Print "SALVAKANTERO 2024"
+    NumPlayers = 0
+    While NumPlayers < 1 Or NumPlayers > 2
+        Locate 13, 5
+        Input "NUMBER OF PLAYERS (1-2)? ", NumPlayers
+    Wend
+End Sub
+
+
+
+
 Sub Init () 'inicializa sistema y foso
     Randomize Timer 'semilla de aleatoriedad
     Screen 13 '320x200 256 colores MCGA
-    Color 7, 0
+    Intro
     Cls
-
-    NumPlayers = 0
-    While NumPlayers < 1 Or NumPlayers > 2
-        Input "Numero de jugadores (1-2)", NumPlayers
-    Wend
     NumPlayers = NumPlayers - 1
-    Cls
-
     ReDim GameOver(NumPlayers)
     ReDim Level(NumPlayers)
     ReDim Lines(NumPlayers)
@@ -468,10 +471,10 @@ Sub Main () 'bucle principal
                         DownKey$ = "s"
                         RightKey$ = "d"
                     Else
-                        RotateKey$ = "o"
-                        LeftKey$ = "k"
-                        DownKey$ = "l"
-                        RightKey$ = "�"
+                        RotateKey$ = "i"
+                        LeftKey$ = "j"
+                        DownKey$ = "k"
+                        RightKey$ = "l"
                     End If
                     Select Case Key$
                         Case RotateKey$ 'al pulsar la tecla de rotaci�n, gira la pieza
