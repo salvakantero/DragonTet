@@ -81,7 +81,7 @@ Function GetShapeMap$ (Shape) 'formas de las figuras
         Case 3
             Map$ = "00000EE00EE00000" ' cubo
         Case 4
-            Map$ = "0000022022000000" ' S 1
+            Map$ = "00000AA0AA000000" ' S 1
         Case 5
             Map$ = "0000440004400000" ' S 2
         Case 6
@@ -377,18 +377,38 @@ End Sub
 
 
 
-Sub Intro ()
+Sub HighScores ()
+End Sub
+
+
+
+
+Sub Menu ()
     Color 0, 2
     Cls
-    Locate 6, 10: Print "***************"
-    Locate 7, 10: Print "* T E T R I S *"
-    Locate 8, 10: Print "***************"
-    Locate 10, 9: Print "SALVAKANTERO 2024"
-    NumPlayers = 0
-    While NumPlayers < 1 Or NumPlayers > 2
-        Locate 13, 5
-        Input "NUMBER OF PLAYERS (1-2)? ", NumPlayers
+    Locate 2, 10: Print "***************"
+    Locate 3, 10: Print "* T E T R I S *"
+    Locate 4, 10: Print "***************"
+    Locate 6, 9: Print "SALVAKANTERO 2024"
+    Locate 9, 9: Print "1) 1 PLAYER GAME"
+    Locate 10, 9: Print "2) 2 PLAYERS GAME"
+    Locate 11, 9: Print "3) HIGH SCORES"
+    Locate 12, 9: Print "4) EXIT"
+
+    MenuOption = 0
+    While MenuOption < 1 Or MenuOption > 4
+        Locate 14, 8
+        Input "SELECT OPTION (1-4)? ", MenuOption
     Wend
+    If MenuOption = 1 Then
+        NumPlayers = 0
+    ElseIf MenuOption = 2 Then
+        NumPlayers = 1
+    ElseIf MenuOption = 3 Then
+        HighScores
+    ElseIf MenuOption = 4 Then
+        End
+    End If
 End Sub
 
 
@@ -397,9 +417,8 @@ End Sub
 Sub Init () 'inicializa sistema y foso
     Randomize Timer 'semilla de aleatoriedad
     Screen 13 '320x200 256 colores MCGA
-    Intro
+    Menu
     Cls
-    NumPlayers = NumPlayers - 1
     ReDim GameOver(NumPlayers)
     ReDim Level(NumPlayers)
     ReDim Lines(NumPlayers)
@@ -458,8 +477,7 @@ Sub MainLoop () 'bucle principal
             Key$ = InKey$ 'lee pulsaciones del teclado
         Loop
         If Key$ = Chr$(27) Then 'si se pulsa ESC sale
-            Screen 0
-            End
+            Exit Sub
         Else
             For i = 0 To NumPlayers 'bucle para ambos jugadores
                 If GameOver(i) = TRUE Then 'fuera de juego
