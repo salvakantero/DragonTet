@@ -64,9 +64,9 @@ Common Shared NextShape(), NextShapeMap$()
 
 
 
-Init 'inicializa el sistema y el foso
-Main 'bucle principal
-
+While TRUE
+    Init 'inicializa el sistema y los fosos (y arranca el bucle principal)
+Wend
 
 
 
@@ -431,12 +431,13 @@ Sub Init () 'inicializa sistema y foso
     Next i
 
     DisplayStatus 'pinta el marcador comun
+    MainLoop
 End Sub
 
 
 
 
-Sub Main () 'bucle principal
+Sub MainLoop () 'bucle principal
     StartTime!(0) = Timer 'guarda el tiempo de inicio para jugador 0
     If NumPlayers > 0 Then
         StartTime!(1) = Timer 'guarda el tiempo de inicio para jugador 1
@@ -462,7 +463,9 @@ Sub Main () 'bucle principal
         Else
             For i = 0 To NumPlayers 'bucle para ambos jugadores
                 If GameOver(i) = TRUE Then 'fuera de juego
-                    If Key$ = Chr$(13) Then Init 'si se pulsa ENTER inicia juego
+                    If Key$ = Chr$(13) Then
+                        Exit Sub 'si se pulsa ENTER reinicia juego
+                    End If
                 Else
                     ' Asignar teclas para cada jugador
                     If i = 0 Then
