@@ -38,7 +38,9 @@ Const PITWIDTH = 10 'ancho del foso
 Const PITHEIGHT = 16 'alto del foso
 
 'NumPlayers     Jugadores(0-1)
-Common Shared NumPlayers
+'Names          Los 5 mejores jugadores
+'Scores         Las 5 mejores puntuaciones
+Common Shared NumPlayers, Names$(), Scores()
 
 'GameOver       0=juego en curso -1=finalizado
 'DropDate!      1=cayendo 0=parada al fondo del foso
@@ -64,9 +66,18 @@ Common Shared NextShape(), NextShapeMap$()
 
 
 
+'tabla fake de mejores puntuaciones
+ReDim Names$(4)
+ReDim Scores(4)
+For i = 0 To 4
+    Names$(i) = "DRAGON"
+    Scores(i) = 1400 - (i * 100)
+Next i
+
 While TRUE
     Init 'inicializa el sistema y los fosos (y arranca el bucle principal)
 Wend
+
 
 
 
@@ -378,6 +389,19 @@ End Sub
 
 
 Sub HighScores ()
+    For i = 0 To 4
+        Locate 9 + i, 9
+        Print "................"
+        Locate 9 + i, 9
+        Print Names$(i)
+        Locate 9 + i, 21
+        Print Using "#####"; Scores(i)
+    Next i
+    Locate 15, 4
+    Print "Press any key to continue..."
+    While InKey$ = ""
+    Wend
+    Exit Sub
 End Sub
 
 
@@ -391,24 +415,28 @@ Sub Menu ()
     Locate 4, 10: Print "***************"
     Locate 6, 9: Print "SALVAKANTERO 2024"
     Locate 9, 9: Print "1) 1 PLAYER GAME"
-    Locate 10, 9: Print "2) 2 PLAYERS GAME"
+    Locate 10, 9: Print "2) 2 PLAYER GAME"
     Locate 11, 9: Print "3) HIGH SCORES"
     Locate 12, 9: Print "4) EXIT"
-
-    MenuOption = 0
-    While MenuOption < 1 Or MenuOption > 4
-        Locate 14, 8
-        Input "SELECT OPTION (1-4)? ", MenuOption
-    Wend
-    If MenuOption = 1 Then
-        NumPlayers = 0
-    ElseIf MenuOption = 2 Then
-        NumPlayers = 1
-    ElseIf MenuOption = 3 Then
-        HighScores
-    ElseIf MenuOption = 4 Then
-        End
-    End If
+    Locate 15, 8: Print "SELECT OPTION (1-4)"
+    Do
+        Key$ = ""
+        Do While Key$ = "" 'mientras no se pulse una tecla
+            Key$ = InKey$
+        Loop
+        If Key$ = "1" Then
+            NumPlayers = 0
+            Exit Do
+        ElseIf Key$ = "2" Then
+            NumPlayers = 1
+            Exit Do
+        ElseIf Key$ = "3" Then
+            HighScores
+            Menu
+        ElseIf Key$ = "4" Then
+            End
+        End If
+    Loop
 End Sub
 
 
