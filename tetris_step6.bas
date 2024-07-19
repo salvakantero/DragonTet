@@ -39,7 +39,7 @@ Const PITHEIGHT = 16 'alto del foso
 
 'NumPlayers     Jugadores(0-1)
 'Names          Los 5 mejores jugadores
-'Scores         Las 5 mejores puntuaciones
+'Scores         Las 5 mejores puntuaciones + las 2 actuales
 Common Shared NumPlayers, Names$(), Scores()
 
 'GameOver       0=juego en curso -1=finalizado
@@ -48,9 +48,8 @@ Common Shared NumPlayers, Names$(), Scores()
 'Pit$           Contenido de los fosos
 'Level          Niveles de juego (velocidad)
 'Lines          Lineas conseguidas
-'Score          Puntuaciones
 'PITLEFT        pos X del lado izquierdo de cada foso
-Common Shared GameOver(), DropRate!(), StartTime!(), Pit$(), Level(), Lines(), Score(), PITLEFT()
+Common Shared GameOver(), DropRate!(), StartTime!(), Pit$(), Level(), Lines(), PITLEFT()
 
 'Shape          Tipo de pieza (0 a 6)
 'ShapeAngle     Rotacion de la pieza (0 a 3)
@@ -66,16 +65,20 @@ Common Shared NextShape(), NextShapeMap$()
 
 
 
-'tabla fake de mejores puntuaciones
-ReDim Names$(4)
-ReDim Scores(4)
+'tabla fake de las 5 mejores puntuaciones
+'array de 0 a 6. Las dos ultimas son los puntos en juego
+ReDim Names$(6)
+ReDim Scores(6)
 For i = 0 To 4
     Names$(i) = "DRAGON"
-    Scores(i) = 1400 - (i * 100)
+    Scores(i) = 500 - (i * 100) '1400 - (i * 100)
 Next i
 
 While TRUE
     Init 'inicializa el sistema y los fosos (y arranca el bucle principal)
+    For i = 0 To NumPlayers
+        CheckScores i
+    Next i
 Wend
 
 
@@ -117,7 +120,7 @@ Sub DisplayStatus ()
     Locate 2, 12: Print "=PLAYER 1="
     Locate 3, 12: Print "Level:" + Str$(Level(0)) 'pinta el num. de nivel
     Locate 4, 12: Print "Lines:" + Str$(Lines(0)) 'pinta las lineas
-    Locate 5, 12: Print "Sc:" + Str$(Score(0)) 'pinta la puntuacion
+    Locate 5, 12: Print "Sc:" + Str$(Scores(5)) 'pinta la puntuacion
     Locate 6, 12: Print "Next:"
 
     'player 2
@@ -129,7 +132,7 @@ Sub DisplayStatus ()
         Locate 10, 12: Print "=PLAYER 2="
         Locate 11, 12: Print "Level:" + Str$(Level(1)) 'pinta el num. de nivel
         Locate 12, 12: Print "Lines:" + Str$(Lines(1)) 'pinta las lineas
-        Locate 13, 12: Print "Sc:" + Str$(Score(1)) 'pinta la puntuacion
+        Locate 13, 12: Print "Sc:" + Str$(Scores(6)) 'pinta la puntuacion
         Locate 14, 12: Print "Next:"
     End If
 
@@ -374,10 +377,11 @@ Sub CheckForFullRows (i) 'busca filas completas
     Next PitY
     If NumLines > 0 Then
         'puntuacion segun el numero de lineas conseguidas
-        If NumLines = 1 Then Score(i) = Score(i) + (100 * Level(i))
-        If NumLines = 2 Then Score(i) = Score(i) + (300 * Level(i))
-        If NumLines = 3 Then Score(i) = Score(i) + (500 * Level(i))
-        If NumLines = 4 Then Score(i) = Score(i) + (800 * Level(i)) 'tetris!
+        j = i + 5
+        If NumLines = 1 Then Scores(j) = Scores(j) + (100 * Level(i))
+        If NumLines = 2 Then Scores(j) = Scores(j) + (300 * Level(i))
+        If NumLines = 3 Then Scores(j) = Scores(j) + (500 * Level(i))
+        If NumLines = 4 Then Scores(j) = Scores(j) + (800 * Level(i)) 'tetris!
         'actualiza el total de lineas completadas
         Lines(i) = Lines(i) + NumLines
         'calcula el nivel basado en el total de lineas completadas
@@ -442,6 +446,39 @@ End Sub
 
 
 
+Sub CheckScores (i) 'mejores puntuaciones
+    Dim idx As Integer
+    'calcula el indice de la nueva puntuacion basada en el jugador
+    '(5 para player1, 6 para player2)
+    idx = i + 5
+
+    'verifica si la nueva puntuacion es lo suficientemente alta para entrar en el top 5
+    If Scores(idx) > Scores(4) Then
+        Locate 15, 1: Print "BUENA PUNTUACION JUGADOR " + Str$(i + 1)
+        Locate 16, 1: Input "NOMBRE?: ", Names$(idx)
+        If Len(Names$(idx)) > 10 Then Names$(idx) = Left$(Names$(idx), 10)
+
+        'inserta la nueva puntuacion en la lista de high scores
+        For j = 4 To 0 Step -1
+            If Scores(idx) > Scores(j) Then
+                'desplaza puntuaciones y nombres hacia abajo
+                If j < 4 Then
+                    Scores(j + 1) = Scores(j)
+                    Names$(j + 1) = Names$(j)
+                End If
+            Else
+                Exit For
+            End If
+        Next j
+        'coloca la nueva puntuacion en su lugar correcto
+        Scores(j + 1) = Scores(idx)
+        Names$(j + 1) = Names$(idx)
+    End If
+End Sub
+
+
+
+
 Sub Init () 'inicializa sistema y foso
     Randomize Timer 'semilla de aleatoriedad
     Screen 13 '320x200 256 colores MCGA
@@ -450,7 +487,6 @@ Sub Init () 'inicializa sistema y foso
     ReDim GameOver(NumPlayers)
     ReDim Level(NumPlayers)
     ReDim Lines(NumPlayers)
-    ReDim Score(NumPlayers)
     ReDim Pit$(NumPlayers)
     ReDim DropRate!(NumPlayers)
     ReDim StartTime!(NumPlayers)
@@ -470,7 +506,7 @@ Sub Init () 'inicializa sistema y foso
         GameOver(i) = FALSE 'partida en curso
         Level(i) = 1 'nivel inicial
         Lines(i) = 0 'lineas conseguidas
-        Score(i) = 0 'puntuacion actual
+        Scores(i + 5) = 0 'puntuacion actual
         NextShape(i) = -1 'sera necesario generar pieza
         Pit$(i) = String$(PITWIDTH * PITHEIGHT, NOBLOCK$) 'inicializa el foso vacio (tabla de 0)
         CreateShape (i) 'genera pieza (forma, posicion)
