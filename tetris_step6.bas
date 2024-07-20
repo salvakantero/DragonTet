@@ -33,7 +33,7 @@ Const LASTSIDEBLOCK = 3 'para recorrer con bucles la pieza actual (0 a 3)
 Const SIDEBLOCKCOUNT = 4 'tamano del lado de la pieza (4x4)
 Const NOBLOCK$ = "0" 'caracter vacio en el foso
 
-Const PITTOP = 1 'pos Y de la parte de arriba del foso (justo arriba de la pantalla)
+Const PITTOP = 0 'pos Y de la parte de arriba del foso (justo arriba de la pantalla)
 Const PITWIDTH = 10 'ancho del foso
 Const PITHEIGHT = 16 'alto del foso
 
@@ -115,7 +115,7 @@ Sub DisplayStatus ()
 
     'player 1
     If GameOver(0) = TRUE Then
-        Locate 9, PITLEFT(0)
+        Locate 8, PITLEFT(0)
         Print "GAME OVER!"
     End If
     Locate 2, 12: Print "=PLAYER 1="
@@ -127,7 +127,7 @@ Sub DisplayStatus ()
     'player 2
     If NumPlayers = 1 Then
         If GameOver(1) = TRUE Then
-            Locate 9, PITLEFT(1)
+            Locate 8, PITLEFT(1)
             Print "GAME OVER!"
         End If
         Locate 10, 12: Print "=PLAYER 2="
