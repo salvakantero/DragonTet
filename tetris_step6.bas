@@ -16,7 +16,7 @@ $Debug
 '   - se elimina la posicion X inicial aleatoria
 '   - se elimina la rotacion inicial aleatoria
 '   - se cambia el sentido de rotacion a la izquierda
-'   - se implementa la funcion NEXT
+'   - se implementa la funcion NEXT PIECE
 'TETRIS_STEP5:
 '   - 2 jugadores
 '   - 32x16 caracteres en pantalla
@@ -71,11 +71,12 @@ ReDim Names$(6)
 ReDim Scores(6)
 For i = 0 To 4
     Names$(i) = "DRAGON"
-    Scores(i) = 500 - (i * 100) '1400 - (i * 100)
+    Scores(i) = 1400 - (i * 100)
 Next i
 
 While TRUE
-    Init 'inicializa el sistema y los fosos (y arranca el bucle principal)
+    Init 'inicializa el sistema y los fosos, y arranca el bucle principal
+    'finalizado el bucle principal mira si las puntuaciones son de TOP 5
     For i = 0 To NumPlayers
         CheckScores i
     Next i
@@ -114,7 +115,7 @@ Sub DisplayStatus ()
 
     'player 1
     If GameOver(0) = TRUE Then
-        Locate 8, PITLEFT(0)
+        Locate 9, PITLEFT(0)
         Print "GAME OVER!"
     End If
     Locate 2, 12: Print "=PLAYER 1="
@@ -126,7 +127,7 @@ Sub DisplayStatus ()
     'player 2
     If NumPlayers = 1 Then
         If GameOver(1) = TRUE Then
-            Locate 8, PITLEFT(1)
+            Locate 9, PITLEFT(1)
             Print "GAME OVER!"
         End If
         Locate 10, 12: Print "=PLAYER 2="
@@ -411,13 +412,20 @@ End Sub
 
 
 
-Sub Menu ()
+Sub DrawHeader ()
     Color 0, 2
     Cls
     Locate 2, 10: Print "***************"
     Locate 3, 10: Print "* T E T R I S *"
     Locate 4, 10: Print "***************"
     Locate 6, 9: Print "SALVAKANTERO 2024"
+End Sub
+
+
+
+
+Sub Menu ()
+    DrawHeader
     Locate 9, 9: Print "1) 1 PLAYER GAME"
     Locate 10, 9: Print "2) 2 PLAYER GAME"
     Locate 11, 9: Print "3) HIGH SCORES"
@@ -454,8 +462,9 @@ Sub CheckScores (i) 'mejores puntuaciones
 
     'verifica si la nueva puntuacion es lo suficientemente alta para entrar en el top 5
     If Scores(idx) > Scores(4) Then
-        Locate 15, 1: Print "BUENA PUNTUACION JUGADOR " + Str$(i + 1)
-        Locate 16, 1: Input "NOMBRE?: ", Names$(idx)
+        DrawHeader
+        Locate 10, 6: Print "BUENA PUNTUACION JUGADOR " + Str$(i + 1)
+        Locate 11, 6: Input "NOMBRE?: ", Names$(idx)
         If Len(Names$(idx)) > 10 Then Names$(idx) = Left$(Names$(idx), 10)
 
         'inserta la nueva puntuacion en la lista de high scores
