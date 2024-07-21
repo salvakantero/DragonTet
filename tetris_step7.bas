@@ -1,49 +1,19 @@
 $Debug
-
-'TETRIS.BAS:
-'   - codigo original QBasic de Peter Swinkels (QBBlocks v1.0)
-'TETRIS_STEP1:
-'   - comprension y comentarios en el codigo
-'   - se habilita la pieza 7
-'TETRIS_STEP2:
-'   - se convierte a modo texto
-'TETRIS_STEP3:
-'   - se reordenan las funciones
-'   - se anaden niveles
-'   - se usan los cursores
-'   - se amplia el marcador
-'TETRIS_STEP4:
-'   - se elimina la posicion X inicial aleatoria
-'   - se elimina la rotacion inicial aleatoria
-'   - se cambia el sentido de rotacion a la izquierda
-'   - se implementa la funcion NEXT PIECE
-'TETRIS_STEP5:
-'   - 2 jugadores
-'   - 32x16 caracteres en pantalla
-'TETRIS_STEP6:
-'   - menu de inicio
-'   - tabla de puntuaciones
-'TETRIS_STEP7:
-'   - adptacion a basic clasico no procedural
-
-
-DefInt A-Z
-
-Const FALSE = 0
-Const TRUE = -1
-
-Const LASTSIDEBLOCK = 3 'para recorrer con bucles la pieza actual (0 a 3)
-Const SIDEBLOCKCOUNT = 4 'tamano del lado de la pieza (4x4)
-Const NOBLOCK$ = "0" 'caracter vacio en el foso
-
-Const PITTOP = 0 'pos Y de la parte de arriba del foso (justo arriba de la pantalla)
-Const PITWIDTH = 10 'ancho del foso
-Const PITHEIGHT = 16 'alto del foso
-
-'NumPlayers     Jugadores(0-1)
-'Names          Los 5 mejores jugadores
-'Scores         Las 5 mejores puntuaciones + las 2 actuales
-Common Shared NumPlayers, Names$(), Scores()
+10 Rem TETRIS_STEP7:
+20 Rem adptacion a basic clasico no procedural
+25 Rem *** constantes ***
+30 FALSE = 0
+40 TRUE = -1
+50 LASTSIDEBLOCK = 3 'para recorrer con bucles la pieza actual (0 a 3)
+60 SIDEBLOCKCOUNT = 4 'tamano del lado de la pieza (4x4)
+70 NOBLOCK$ = "0" 'caracter vacio en el foso
+80 PITTOP = 0 'pos Y de la parte de arriba del foso (justo arriba de la pantalla)
+90 PITWIDTH = 10 'ancho del foso
+100 PITHEIGHT = 16 'alto del foso
+110 Rem *** VAR GLOBALES ***
+120 NumPlayers = 0 'Jugadores(0-1)
+'130 Dim Names$(0 To 6) 'Los 5 mejores jugadores
+'140 Dim Scores(0 To 6) 'Las 5 mejores puntuaciones + las 2 actuales
 
 'GameOver       0=juego en curso -1=finalizado
 'DropDate!      1=cayendo 0=parada al fondo del foso
@@ -70,8 +40,8 @@ Common Shared NextShape(), NextShapeMap$()
 
 'tabla fake de las 5 mejores puntuaciones
 'array de 0 a 6. Las dos ultimas son los puntos en juego
-ReDim Names$(6)
-ReDim Scores(6)
+ReDim Names$(0 To 6)
+ReDim Scores(0 To 6)
 For i = 0 To 4
     Names$(i) = "DRAGON"
     Scores(i) = 1400 - (i * 100)
