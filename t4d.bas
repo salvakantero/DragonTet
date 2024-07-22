@@ -58,7 +58,26 @@ DefInt A-Z
 1310 Return
 
 2000 Rem ===EVALUACION PUNTOS===
-2010 Return
+2005 PI = I + 5 '(PLAYER1 = 5, PLAYER2 = 6)
+2010 If SCORES(PI) > SCORES(4) Then
+    2020 GoSub 4000 'MENU HEADER
+    2030 Locate 10, 6: Print "BUENA PUNTUACION JUGADOR " + Str$(I + 1)
+    2040 Locate 11, 6: Input "NOMBRE?: ", NAMES$(PI)
+    2050 If Len(NAMES$(PI)) > 10 Then NAMES$(PI) = Left$(NAMES$(PI), 10)
+    2060 For J = 4 To 0 Step -1
+        2070 If SCORES(PI) > SCORES(J) Then
+            2080 If J < 4 Then
+                2090 SCORES(J + 1) = SCORES(J)
+                2100 NAMES$(J + 1) = NAMES$(J)
+            2110 End If
+        2120 Else
+            2130 Exit For
+        2140 End If
+    2150 Next J
+    2160 SCORES(J + 1) = SCORES(PI)
+    2170 NAMES$(J + 1) = NAMES$(PI)
+2180 End If
+2200 Return
 
 3000 Rem ===MENU===
 3010 GoSub 4000 'MENU HEADER
@@ -79,8 +98,8 @@ DefInt A-Z
         3160 NUMPLAYERS = 1
         3170 Exit Do
     3180 ElseIf Key$ = "3" Then
-        '3190 HighScores
-        '3200 Menu
+        3190 GoSub 5000 'HIGH SCORES
+        3200 GoTo 3000 'MENU
     3210 ElseIf Key$ = "4" Then
         3220 End
     3230 End If
@@ -97,4 +116,17 @@ DefInt A-Z
 4070 Return
 
 5000 Rem ===HIGH SCORES===
+5010 For I = 0 To 4
+    5020 Locate 9 + I, 9
+    5030 Print "................"
+    5040 Locate 9 + I, 9
+    5050 Print NAMES$(I)
+    5060 Locate 9 + I, 21
+    5070 Print Using "#####"; SCORES(I)
+5080 Next I
+5090 Locate 15, 4
+5100 Print "Press any key to continue..."
+5110 While InKey$ = ""
+5120 Wend
+5130 Return
 
