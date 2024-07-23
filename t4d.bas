@@ -91,20 +91,31 @@ DefInt A-Z
     3090 Do While Key$ = "" 'mientras no se pulse una tecla
         3100 Key$ = InKey$
     3110 Loop
-    3120 If Key$ = "1" Then
+    3120 If Key$ = "1" Then '1 PLAYER GAME
         3130 NUMPLAYERS = 0
         3140 Exit Do
-    3150 ElseIf Key$ = "2" Then
+    3150 ElseIf Key$ = "2" Then '2 PLAYER GAME
         3160 NUMPLAYERS = 1
         3170 Exit Do
-    3180 ElseIf Key$ = "3" Then
-        3190 GoSub 5000 'HIGHSCORES
-        3200 GoTo 3000 'MENU
-    3210 ElseIf Key$ = "4" Then
-        3220 End
-    3230 End If
-3240 Loop
-3250 Return
+    3180 ElseIf Key$ = "3" Then 'HIGH SCORES
+        3190 For I = 0 To 4
+            3200 Locate 9 + I, 9
+            3210 Print "................"
+            3220 Locate 9 + I, 9
+            3230 Print NAMES$(I)
+            3240 Locate 9 + I, 21
+            3250 Print Using "#####"; SCORES(I)
+        3260 Next I
+        3270 Locate 15, 4
+        3280 Print "PRESS ANY KEY TO CONTINUE..."
+        3290 While InKey$ = ""
+        3300 Wend
+        3310 GoTo 3000 'MENU
+    3320 ElseIf Key$ = "4" Then
+        3330 End
+    3340 End If
+3350 Loop
+3360 Return
 
 4000 Rem ===MENUHEADER===
 4010 Color 0, 2
@@ -115,36 +126,19 @@ DefInt A-Z
 4060 Locate 6, 9: Print "SALVAKANTERO 2024"
 4070 Return
 
-5000 Rem ===HIGHSCORES===
-5010 For I = 0 To 4
-    5020 Locate 9 + I, 9
-    5030 Print "................"
-    5040 Locate 9 + I, 9
-    5050 Print NAMES$(I)
-    5060 Locate 9 + I, 21
-    5070 Print Using "#####"; SCORES(I)
-5080 Next I
-5090 Locate 15, 4
-5100 Print "Press any key to continue..."
-5110 While InKey$ = ""
-5120 Wend
-5130 Return
-
 6000 Rem ===CREATESHAPE===
-6010 DROPRATE!(I) = 1 - (LEVEL(I) * 0.2) 'tiempo de caida variable segun el nivel
-6020 If DROPRATE!(I) <= 0 Then DROPRATE!(I) = .1 'limite de caida de .1
-'si no es la primera pieza la toma de NextShape
-'si es la primera la genera (0 a 6)
+6010 DROPRATE!(I) = 1 - (LEVEL(I) * 0.2)
+6020 If DROPRATE!(I) <= 0 Then DROPRATE!(I) = .1
 6030 If NEXTSHAPE(I) >= 0 Then SHAPE(I) = NEXTSHAPE(I) Else SHAPE(I) = Int(Rnd * 7)
 6040 SHAPEANGLE(I) = 0
-6050 'SHAPEMAP$(I) = GetRotatedShapeMap$(SHAPE(I), SHAPEANGLE(I)) 'composicion de la pieza
-6060 SHAPEX(I) = 3 'posicion X inicial (centro del foso)
-6070 SHAPEY(I) = -4 'posicion Y inicial (totalmente oculta)
-6080 'CreateNextShape (i)
-6090 Return
+6050 'SHAPEMAP$(I) = GetRotatedShapeMap$(SHAPE(I), SHAPEANGLE(I))
+6060 SHAPEX(I) = 3
+6070 SHAPEY(I) = -4 '
+6080 NEXTSHAPE(I) = Int(Rnd * 7)
+6090 'NEXTSHAPEMAP$(I) = GetRotatedShapeMap$(NEXTSHAPE(I), 0)
+6100 Return
 
 7000 Rem ===DRAWPIT===
-'repinta el contenido del foso
 7010 For PitY = 0 To 15
     7020 For PitX = 0 To 9
         7030 BlockColor$ = Mid$(PIT$(I), ((10 * PitY) + PitX) + 1, 1)
@@ -176,9 +170,21 @@ DefInt A-Z
     8200 Locate 14, 12: Print "Next:"
 8210 End If
 8220 For I = 0 To NUMPLAYERS
-    8230 'If GameOver(i) = 0 Then DrawNextShape i
-8240 Next I
-8250 Return
+    8230 If GAMEOVER(I) = 0 Then
+        8240 For BlockX = 0 To 3
+            8250 For BlockY = 0 To 3
+                8260 BlockColor$ = Mid$(NEXTSHAPEMAP$(I), ((4 * BlockY) + BlockX) + 1, 1)
+                8270 If BlockColor$ = NOBLOCK$ Then BlockColor$ = "2"
+                8280 If I = 0 Then
+                    8290 'DrawBlock BlockColor$, BlockX + 17, BlockY + 4, i
+                8300 Else
+                    8310 'DrawBlock BlockColor$, BlockX - 5, BlockY + 12, i
+                8320 End If
+            8330 Next BlockY
+        8340 Next BlockX
+    8350 End If
+8360 Next I
+8370 Return
 
 9000 Rem ===GAMELOOP===
 9010 STARTTIME!(0) = Timer
