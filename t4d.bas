@@ -87,17 +87,17 @@ DefInt A-Z
 3050 Locate 12, 9: Print "4) EXIT"
 3060 Locate 15, 8: Print "SELECT OPTION (1-4)"
 3070 Do
-    3080 Key$ = ""
-    3090 Do While Key$ = ""
-        3100 Key$ = InKey$
+    3080 KEY$ = ""
+    3090 Do While KEY$ = ""
+        3100 KEY$ = InKey$
     3110 Loop
-    3120 If Key$ = "1" Then '1 PLAYER GAME
+    3120 If KEY$ = "1" Then '1 PLAYER GAME
         3130 NUMPLAYERS = 0
         3140 Exit Do
-    3150 ElseIf Key$ = "2" Then '2 PLAYER GAME
+    3150 ElseIf KEY$ = "2" Then '2 PLAYER GAME
         3160 NUMPLAYERS = 1
         3170 Exit Do
-    3180 ElseIf Key$ = "3" Then 'HIGH SCORES
+    3180 ElseIf KEY$ = "3" Then 'HIGH SCORES
         3190 For I = 0 To 4
             3200 Locate 9 + I, 9
             3210 Print "................"
@@ -111,7 +111,7 @@ DefInt A-Z
         3290 While InKey$ = ""
         3300 Wend
         3310 GoTo 3000 'MENU
-    3320 ElseIf Key$ = "4" Then
+    3320 ElseIf KEY$ = "4" Then
         3330 End
     3340 End If
 3350 Loop
@@ -131,21 +131,25 @@ DefInt A-Z
 6020 If DROPRATE!(I) <= 0 Then DROPRATE!(I) = .1
 6030 If NEXTSHAPE(I) >= 0 Then SHAPE(I) = NEXTSHAPE(I) Else SHAPE(I) = Int(Rnd * 7)
 6040 SHAPEANGLE(I) = 0
-6050 'SHAPEMAP$(I) = GetRotatedShapeMap$(SHAPE(I), SHAPEANGLE(I))
+6045 CURRENTSHAPE = SHAPE(I): CURRENTANGLE = SHAPEANGLE(I)
+6050 GoSub 10000 'GETROTATEDSHAPEMAP$
+6055 SHAPEMAP$(I) = CURRENTSHAPEMAP$
 6060 SHAPEX(I) = 3
-6070 SHAPEY(I) = -4 '
+6070 SHAPEY(I) = -4
 6080 NEXTSHAPE(I) = Int(Rnd * 7)
-6090 'NEXTSHAPEMAP$(I) = GetRotatedShapeMap$(NEXTSHAPE(I), 0)
+6085 CURRENTSHAPE = NEXTSHAPE(I): CURRENTANGLE = 0
+6090 GoSub 10000 'GETROTATEDSHAPEMAP$
+6095 NEXTSHAPEMAP$(I) = CURRENTSHAPEMAP$
 6100 Return
 
 7000 Rem ===DRAWPIT===
-7010 For PitY = 0 To 15
-    7020 For PitX = 0 To 9
-        7030 BlockColor$ = Mid$(PIT$(I), ((10 * PitY) + PitX) + 1, 1)
-        7035 BX = PitX: BY = PitY
+7010 For PITY = 0 To 15
+    7020 For PITX = 0 To 9
+        7030 BLOCKCOLOR$ = Mid$(PIT$(I), ((10 * PITY) + PITX) + 1, 1)
+        7035 BX = PITX: BY = PITY
         7040 GoSub 11000 'DRAWBLOCK
-    7050 Next PitX
-7060 Next PitY
+    7050 Next PITX
+7060 Next PITY
 7070 Return
 
 8000 Rem ===DISPLAYSTATUS===
@@ -155,36 +159,36 @@ DefInt A-Z
     8040 Print "GAME OVER!"
 8050 End If
 8060 Locate 2, 12: Print "=PLAYER 1="
-8070 Locate 3, 12: Print "Level:" + Str$(LEVEL(0))
-8080 Locate 4, 12: Print "Lines:" + Str$(LINES(0))
-8090 Locate 5, 12: Print "Sc:" + Str$(SCORES(5))
-8100 Locate 6, 12: Print "Next:"
+8070 Locate 3, 12: Print "LEVEL:" + Str$(LEVEL(0))
+8080 Locate 4, 12: Print "LINES:" + Str$(LINES(0))
+8090 Locate 5, 12: Print "SC:" + Str$(SCORES(5))
+8100 Locate 6, 12: Print "NEXT:"
 8110 If NUMPLAYERS = 1 Then
     8120 If GAMEOVER(1) = -1 Then
         8130 Locate 8, PITLEFT(1)
         8140 Print "GAME OVER!"
     8150 End If
     8160 Locate 10, 12: Print "=PLAYER 2="
-    8170 Locate 11, 12: Print "Level:" + Str$(LEVEL(1))
-    8180 Locate 12, 12: Print "Lines:" + Str$(LINES(1))
-    8190 Locate 13, 12: Print "Sc:" + Str$(SCORES(6))
-    8200 Locate 14, 12: Print "Next:"
+    8170 Locate 11, 12: Print "LEVEL:" + Str$(LEVEL(1))
+    8180 Locate 12, 12: Print "LINES:" + Str$(LINES(1))
+    8190 Locate 13, 12: Print "SC:" + Str$(SCORES(6))
+    8200 Locate 14, 12: Print "NEXT:"
 8210 End If
 8220 For I = 0 To NUMPLAYERS
     8230 If GAMEOVER(I) = 0 Then
-        8240 For BlockX = 0 To 3
-            8250 For BlockY = 0 To 3
-                8260 BlockColor$ = Mid$(NEXTSHAPEMAP$(I), ((4 * BlockY) + BlockX) + 1, 1)
-                8270 If BlockColor$ = NOBLOCK$ Then BlockColor$ = "2"
+        8240 For BLOCKX = 0 To 3
+            8250 For BLOCKY = 0 To 3
+                8260 BLOCKCOLOR$ = Mid$(NEXTSHAPEMAP$(I), ((4 * BLOCKY) + BLOCKX) + 1, 1)
+                8270 If BLOCKCOLOR$ = NOBLOCK$ Then BLOCKCOLOR$ = "2"
                 8280 If I = 0 Then
-                    8285 BX = BlockX + 17: BY = BlockY + 4
+                    8285 BX = BLOCKX + 17: BY = BLOCKY + 4
                     8290 GoSub 11000 'DRAWBLOCK
                 8300 Else
-                    8305 BX = BlockX - 5: BY = BlockY + 12
+                    8305 BX = BLOCKX - 5: BY = BLOCKY + 12
                     8310 GoSub 11000 'DRAWBLOCK
                 8320 End If
-            8330 Next BlockY
-        8340 Next BlockX
+            8330 Next BLOCKY
+        8340 Next BLOCKX
     8350 End If
 8360 Next I
 8370 Return
@@ -193,8 +197,8 @@ DefInt A-Z
 9010 STARTTIME!(0) = Timer
 9020 If NUMPLAYERS > 0 Then STARTTIME!(1) = Timer
 9030 Do
-    9040 Key$ = ""
-    9050 Do While Key$ = ""
+    9040 KEY$ = ""
+    9050 Do While KEY$ = ""
         9060 For I = 0 To NUMPLAYERS
             9070 If GAMEOVER(I) = 0 Then
                 9080 If Timer >= STARTTIME!(I) + DROPRATE!(I) Or STARTTIME!(I) > Timer Then
@@ -203,45 +207,47 @@ DefInt A-Z
                 9110 End If
             9120 End If
         9130 Next I
-        9140 Key$ = InKey$
+        9140 KEY$ = InKey$
     9150 Loop
-    9160 If Key$ = Chr$(27) Then
+    9160 If KEY$ = Chr$(27) Then
         9170 Return
     9180 Else
         9200 For I = 0 To NUMPLAYERS
             9210 If GAMEOVER(I) = -1 Then
-                9220 If Key$ = Chr$(13) Then Return
+                9220 If KEY$ = Chr$(13) Then Return
             9230 Else
                 9240 If I = 0 Then
-                    9250 RotateKey$ = "w"
-                    9260 LeftKey$ = "a"
-                    9270 DownKey$ = "s"
-                    9280 RightKey$ = "d"
+                    9250 ROTATEKEY$ = "w"
+                    9260 LEFTKEY$ = "a"
+                    9270 DOWNKEY$ = "s"
+                    9280 RIGHTKEY$ = "d"
                 9290 Else
-                    9300 RotateKey$ = "i"
-                    9310 LeftKey$ = "j"
-                    9320 DownKey$ = "k"
-                    9330 RightKey$ = "l"
+                    9300 ROTATEKEY$ = "i"
+                    9310 LEFTKEY$ = "j"
+                    9320 DOWNKEY$ = "k"
+                    9330 RIGHTKEY$ = "l"
                 9340 End If
-                9350 Select Case Key$
-                    9360 Case RotateKey$
+                9350 Select Case KEY$
+                    9360 Case ROTATEKEY$
                         9370 'DrawShape i, -1
-                        9380 If SHAPEANGLE(I) = 3 Then NewAngle = 0 Else NewAngle = SHAPEANGLE(I) + 1
-                        9390 'RotatedMap$ = GetRotatedShapeMap(Shape(i), NewAngle)
+                        9380 If SHAPEANGLE(I) = 3 Then NEWANGLE = 0 Else NEWANGLE = SHAPEANGLE(I) + 1
+                        9385 CURRENTSHAPE = SHAPE(I): CURRENTANGLE = NEWANGLE
+                        9390 GoSub 10000 'GETROTATEDSHAPEMAP$
+                        9395 ROTATEDMAP$ = CURRENTSHAPEMAP$
                         9400 'If ShapeCanMove(RotatedMap$, 0, 0, i) Then
-                        9410 SHAPEANGLE(I) = NewAngle
-                        9420 SHAPEMAP$(I) = RotatedMap$
+                        9410 SHAPEANGLE(I) = NEWANGLE
+                        9420 SHAPEMAP$(I) = ROTATEDMAP$
                         9430 'End If
                         9440 'DrawShape i, 0
-                    9450 Case LeftKey$
+                    9450 Case LEFTKEY$
                         9460 'DrawShape i, -1
                         9470 'If ShapeCanMove(ShapeMap$(i), -1, 0, i) Then ShapeX(i) = ShapeX(i) - 1
                         9480 'DrawShape i, 0
-                    9490 Case RightKey$
+                    9490 Case RIGHTKEY$
                         9500 'DrawShape i, -1
                         9510 'If ShapeCanMove(ShapeMap$(i), 1, 0, i) Then ShapeX(i) = ShapeX(i) + 1
                         9520 'DrawShape i, 0
-                    9530 Case DownKey$
+                    9530 Case DOWNKEY$
                         9540 DROPRATE!(I) = 0
                 9550 End Select
             9560 End If
@@ -254,7 +260,7 @@ DefInt A-Z
 10010 Return
 
 11000 Rem ===DRAWBLOCK===
-11010 Color Val("&H" + BlockColor$)
+11010 Color Val("&H" + BLOCKCOLOR$)
 11020 Locate BY + 1, BX + PITLEFT(I)
 11030 Print Chr$(219)
 11040 Return
