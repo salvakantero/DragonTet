@@ -58,7 +58,7 @@ DefInt A-Z
 1310 Return
 
 2000 Rem ===CHECKSCORES===
-2005 PI = I + 5 '(PLAYER1 = 5, PLAYER2 = 6)
+2005 PI = I + 5 'PLAYER1 = 5, PLAYER2 = 6
 2010 If SCORES(PI) > SCORES(4) Then
     2020 GoSub 4000 'MENUHEADER
     2030 Locate 10, 6: Print "BUENA PUNTUACION JUGADOR " + Str$(I + 1)
@@ -88,7 +88,7 @@ DefInt A-Z
 3060 Locate 15, 8: Print "SELECT OPTION (1-4)"
 3070 Do
     3080 Key$ = ""
-    3090 Do While Key$ = "" 'mientras no se pulse una tecla
+    3090 Do While Key$ = ""
         3100 Key$ = InKey$
     3110 Loop
     3120 If Key$ = "1" Then '1 PLAYER GAME
@@ -142,7 +142,8 @@ DefInt A-Z
 7010 For PitY = 0 To 15
     7020 For PitX = 0 To 9
         7030 BlockColor$ = Mid$(PIT$(I), ((10 * PitY) + PitX) + 1, 1)
-        7040 'DrawBlock BlockColor$, PitX, PitY, i
+        7035 BX = PitX: BY = PitY
+        7040 GoSub 11000 'DRAWBLOCK
     7050 Next PitX
 7060 Next PitY
 7070 Return
@@ -176,9 +177,11 @@ DefInt A-Z
                 8260 BlockColor$ = Mid$(NEXTSHAPEMAP$(I), ((4 * BlockY) + BlockX) + 1, 1)
                 8270 If BlockColor$ = NOBLOCK$ Then BlockColor$ = "2"
                 8280 If I = 0 Then
-                    8290 'DrawBlock BlockColor$, BlockX + 17, BlockY + 4, i
+                    8285 BX = BlockX + 17: BY = BlockY + 4
+                    8290 GoSub 11000 'DRAWBLOCK
                 8300 Else
-                    8310 'DrawBlock BlockColor$, BlockX - 5, BlockY + 12, i
+                    8305 BX = BlockX - 5: BY = BlockY + 12
+                    8310 GoSub 11000 'DRAWBLOCK
                 8320 End If
             8330 Next BlockY
         8340 Next BlockX
@@ -246,4 +249,14 @@ DefInt A-Z
     9580 End If
 9590 Loop
 9600 Return
+
+10000 Rem ===GETROTATEDSHAPEMAP$===
+10010 Return
+
+11000 Rem ===DRAWBLOCK===
+11010 Color Val("&H" + BlockColor$)
+11020 Locate BY + 1, BX + PITLEFT(I)
+11030 Print Chr$(219)
+11040 Return
+
 
