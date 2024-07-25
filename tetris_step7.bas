@@ -1,3 +1,31 @@
+$Debug
+
+'TETRIS.BAS:
+'   - codigo original QBasic de Peter Swinkels (QBBlocks v1.0)
+'TETRIS_STEP1:
+'   - comprension y comentarios en el codigo
+'   - se habilita la pieza 7
+'TETRIS_STEP2:
+'   - se convierte a modo texto
+'TETRIS_STEP3:
+'   - se reordenan las funciones
+'   - se anaden niveles
+'   - se usan los cursores
+'   - se amplia el marcador
+'TETRIS_STEP4:
+'   - se elimina la posicion X inicial aleatoria
+'   - se elimina la rotacion inicial aleatoria
+'   - se cambia el sentido de rotacion a la izquierda
+'   - se implementa la funcion NEXT PIECE
+'TETRIS_STEP5:
+'   - 2 jugadores
+'   - 32x16 caracteres en pantalla
+'TETRIS_STEP6:
+'   - menu de inicio
+'   - tabla de puntuaciones
+'TETRIS_STEP7:
+'   - BASIC clasico no precedural
+
 DefInt A-Z
 
 10 Rem ***TETRIS4DRAGON***
@@ -179,7 +207,7 @@ DefInt A-Z
         8240 For BLOCKX = 0 To 3
             8250 For BLOCKY = 0 To 3
                 8260 BLOCKCOLOR$ = Mid$(NEXTSHAPEMAP$(I), ((4 * BLOCKY) + BLOCKX) + 1, 1)
-                8270 If BLOCKCOLOR$ = NOBLOCK$ Then BLOCKCOLOR$ = "2"
+                8270 If BLOCKCOLOR$ = "0" Then BLOCKCOLOR$ = "2"
                 8280 If I = 0 Then
                     8285 BX = BLOCKX + 17: BY = BLOCKY + 4
                     8290 GoSub 11000 'DRAWBLOCK
@@ -229,7 +257,8 @@ DefInt A-Z
                 9340 End If
                 9350 Select Case KEY$
                     9360 Case ROTATEKEY$
-                        9370 'DrawShape i, -1
+                        9365 ERASESHAPE = -1
+                        9370 GoSub 12000 'DRAWSHAPE
                         9380 If SHAPEANGLE(I) = 3 Then NEWANGLE = 0 Else NEWANGLE = SHAPEANGLE(I) + 1
                         9385 CURRENTSHAPE = SHAPE(I): CURRENTANGLE = NEWANGLE
                         9390 GoSub 10000 'GETROTATEDSHAPEMAP$
@@ -238,15 +267,20 @@ DefInt A-Z
                         9410 SHAPEANGLE(I) = NEWANGLE
                         9420 SHAPEMAP$(I) = ROTATEDMAP$
                         9430 'End If
-                        9440 'DrawShape i, 0
+                        9435 ERASESHAPE = 0
+                        9440 GoSub 12000 'DRAWSHAPE
                     9450 Case LEFTKEY$
-                        9460 'DrawShape i, -1
+                        9455 ERASESHAPE = -1
+                        9460 GoSub 12000 'DRAWSHAPE
                         9470 'If ShapeCanMove(ShapeMap$(i), -1, 0, i) Then ShapeX(i) = ShapeX(i) - 1
-                        9480 'DrawShape i, 0
+                        9475 ERASESHAPE = 0
+                        9480 GoSub 12000 'DRAWSHAPE
                     9490 Case RIGHTKEY$
-                        9500 'DrawShape i, -1
+                        9495 ERASESHAPE = -1
+                        9500 GoSub 12000 'DRAWSHAPE
                         9510 'If ShapeCanMove(ShapeMap$(i), 1, 0, i) Then ShapeX(i) = ShapeX(i) + 1
-                        9520 'DrawShape i, 0
+                        9515 ERASESHAPE = 0
+                        9520 GoSub 12000 'DRAWSHAPE
                     9530 Case DOWNKEY$
                         9540 DROPRATE!(I) = 0
                 9550 End Select
@@ -257,7 +291,49 @@ DefInt A-Z
 9600 Return
 
 10000 Rem ===GETROTATEDSHAPEMAP$===
-10010 Return
+10010 NEWBLOCKX = 0
+10020 NEWBLOCKY = 0
+10030 Select Case CURRENTSHAPE
+    10040 Case 0
+        10050 CURRENTSHAPEMAP$ = "0000333300000000" 'I
+    10060 Case 1
+        10070 CURRENTSHAPEMAP$ = "0000111000100000" 'L 1
+    10080 Case 2
+        10090 CURRENTSHAPEMAP$ = "0000666060000000" 'L 2
+    10100 Case 3
+        10110 CURRENTSHAPEMAP$ = "00000EE00EE00000" '[]
+    10120 Case 4
+        10130 CURRENTSHAPEMAP$ = "00000AA0AA000000" 'S 1
+    10140 Case 5
+        10150 CURRENTSHAPEMAP$ = "0000440004400000" 'S 2
+    10160 Case 6
+        10170 CURRENTSHAPEMAP$ = "0000555005000000" 'T
+    10180 Case Else
+        10190 CURRENTSHAPEMAP$ = ""
+10200 End Select
+10210 ROTATEDMAP$ = String$(4 * 4, "0")
+10220 If CURRENTANGLE = 0 Then
+    10230 Return
+10240 Else
+    10250 For BLOCKX = 0 To 3
+        10260 For BLOCKY = 0 To 3
+            10270 Select Case CURRENTANGLE
+                10280 Case 1 '270' grados
+                    10290 NEWBLOCKX = BLOCKY
+                    10300 NEWBLOCKY = 3 - BLOCKX
+                10310 Case 2 '180 grados
+                    10320 NEWBLOCKX = 3 - BLOCKX
+                    10330 NEWBLOCKY = 3 - BLOCKY
+                10340 Case 3 '90 grados
+                    10350 NEWBLOCKX = 3 - BLOCKY
+                    10360 NEWBLOCKY = BLOCKX
+            10370 End Select
+            10380 Mid$(ROTATEDMAP$, ((NEWBLOCKY * 4) + NEWBLOCKX) + 1, 1) = Mid$(CURRENTSHAPEMAP$, ((BLOCKY * 4) + BLOCKX) + 1, 1)
+        10390 Next BLOCKY
+    10400 Next BLOCKX
+10500 End If
+10510 CURRENTSHAPEMAP$ = ROTATEDMAP$
+10520 Return
 
 11000 Rem ===DRAWBLOCK===
 11010 Color Val("&H" + BLOCKCOLOR$)
@@ -265,4 +341,22 @@ DefInt A-Z
 11030 Print Chr$(219)
 11040 Return
 
+12000 Rem ===DRAWSHAPE===
+12010 For BLOCKX = 0 To 3
+    12020 For BLOCKY = 0 To 3
+        12030 PITX = SHAPEX(I) + BLOCKX
+        12040 PITY = SHAPEY(I) + BLOCKY
+        12050 If PITX >= 0 And PITX < 10 And PITY >= 0 And PITY < 16 Then
+            12060 If ERASESHAPE = -1 Then
+                12070 BLOCKCOLOR$ = Mid$(PIT$(I), ((PITY * 10) + PITX) + 1, 1)
+            12080 Else
+                12090 BLOCKCOLOR$ = Mid$(SHAPEMAP$(I), ((BLOCKY * 4) + BLOCKX) + 1, 1)
+                12100 If BLOCKCOLOR$ = "0" Then BLOCKCOLOR$ = Mid$(PIT$(I), ((PITY * 10) + PITX) + 1, 1)
+            12110 End If
+            12120 BX = PITX: BY = PITY
+            12130 GoSub 11000 'DRAWBLOCK
+        12140 End If
+    12150 Next BLOCKY
+12160 Next BLOCKX
+12170 Return
 
