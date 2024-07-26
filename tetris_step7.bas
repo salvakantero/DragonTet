@@ -3,7 +3,7 @@ $Debug
 'TETRIS.BAS:
 '   - codigo original QBasic de Peter Swinkels (QBBlocks v1.0)
 'TETRIS_STEP1:
-'   - comprension y comentarios en el codigo
+'   - comprension y comentarios
 '   - se habilita la pieza 7
 'TETRIS_STEP2:
 '   - se convierte a modo texto
@@ -31,6 +31,7 @@ DefInt A-Z
 10 Rem ***TETRIS4DRAGON***
 20 Rem  SALVAKANTERO 2024
 
+25 Common Shared TRUE, FALSE
 30 Common Shared NUMPLAYERS, NAMES$(), SCORES()
 40 Common Shared GAMEOVER(), DROPRATE!(), STARTTIME!()
 50 Common Shared PIT$(), LEVEL(), LINES(), PITLEFT()
@@ -44,6 +45,7 @@ DefInt A-Z
     130 NAMES$(I) = "DRAGON"
     140 SCORES(I) = 1400 - (I * 100)
 150 Next I
+160 TRUE = -1: FALSE = 0
 
 200 Rem ===MAIN===
 210 GoSub 1000 'INIT
@@ -72,7 +74,7 @@ DefInt A-Z
 1170 PITLEFT(0) = 1
 1180 PITLEFT(1) = 23
 1190 For I = 0 To NUMPLAYERS
-    1200 GAMEOVER(I) = 0
+    1200 GAMEOVER(I) = FALSE
     1210 LEVEL(I) = 1
     1220 LINES(I) = 0
     1230 SCORES(I + 5) = 0
@@ -86,7 +88,7 @@ DefInt A-Z
 1310 Return
 
 2000 Rem ===CHECKSCORES===
-2005 PI = I + 5 'PLAYER1 = 5, PLAYER2 = 6
+2005 PI = I + 5
 2010 If SCORES(PI) > SCORES(4) Then
     2020 GoSub 4000 'MENUHEADER
     2030 Locate 10, 6: Print "BUENA PUNTUACION JUGADOR " + Str$(I + 1)
@@ -182,7 +184,7 @@ DefInt A-Z
 
 8000 Rem ===DISPLAYSTATUS===
 8010 Color 0, 2
-8020 If GAMEOVER(0) = -1 Then
+8020 If GAMEOVER(0) = TRUE Then
     8030 Locate 8, PITLEFT(0)
     8040 Print "GAME OVER!"
 8050 End If
@@ -192,7 +194,7 @@ DefInt A-Z
 8090 Locate 5, 12: Print "SC:" + Str$(SCORES(5))
 8100 Locate 6, 12: Print "NEXT:"
 8110 If NUMPLAYERS = 1 Then
-    8120 If GAMEOVER(1) = -1 Then
+    8120 If GAMEOVER(1) = TRUE Then
         8130 Locate 8, PITLEFT(1)
         8140 Print "GAME OVER!"
     8150 End If
@@ -203,7 +205,7 @@ DefInt A-Z
     8200 Locate 14, 12: Print "NEXT:"
 8210 End If
 8220 For I = 0 To NUMPLAYERS
-    8230 If GAMEOVER(I) = 0 Then
+    8230 If GAMEOVER(I) = FALSE Then
         8240 For BLOCKX = 0 To 3
             8250 For BLOCKY = 0 To 3
                 8260 BLOCKCOLOR$ = Mid$(NEXTSHAPEMAP$(I), ((4 * BLOCKY) + BLOCKX) + 1, 1)
@@ -228,9 +230,9 @@ DefInt A-Z
     9040 KEY$ = ""
     9050 Do While KEY$ = ""
         9060 For I = 0 To NUMPLAYERS
-            9070 If GAMEOVER(I) = 0 Then
+            9070 If GAMEOVER(I) = FALSE Then
                 9080 If Timer >= STARTTIME!(I) + DROPRATE!(I) Or STARTTIME!(I) > Timer Then
-                    9090 'DropShape i
+                    9090 GoSub 14000 'DROPSHAPE
                     9100 STARTTIME!(I) = Timer
                 9110 End If
             9120 End If
@@ -241,7 +243,7 @@ DefInt A-Z
         9170 Return
     9180 Else
         9200 For I = 0 To NUMPLAYERS
-            9210 If GAMEOVER(I) = -1 Then
+            9210 If GAMEOVER(I) = TRUE Then
                 9220 If KEY$ = Chr$(13) Then Return
             9230 Else
                 9240 If I = 0 Then
@@ -257,29 +259,35 @@ DefInt A-Z
                 9340 End If
                 9350 Select Case KEY$
                     9360 Case ROTATEKEY$
-                        9365 ERASESHAPE = -1
+                        9365 ERASESHAPE = TRUE
                         9370 GoSub 12000 'DRAWSHAPE
                         9380 If SHAPEANGLE(I) = 3 Then NEWANGLE = 0 Else NEWANGLE = SHAPEANGLE(I) + 1
                         9385 CURRENTSHAPE = SHAPE(I): CURRENTANGLE = NEWANGLE
                         9390 GoSub 10000 'GETROTATEDSHAPEMAP$
                         9395 ROTATEDMAP$ = CURRENTSHAPEMAP$
-                        9400 'If ShapeCanMove(RotatedMap$, 0, 0, i) Then
-                        9410 SHAPEANGLE(I) = NEWANGLE
-                        9420 SHAPEMAP$(I) = ROTATEDMAP$
-                        9430 'End If
-                        9435 ERASESHAPE = 0
+                        9398 BX = 0: BY = 0
+                        9400 GoSub 13000 'SHAPECANMOVE
+                        9405 If SHAPECANMOVE = TRUEN Then
+                            9410 SHAPEANGLE(I) = NEWANGLE
+                            9420 SHAPEMAP$(I) = ROTATEDMAP$
+                        9430 End If
+                        9435 ERASESHAPE = FALSE
                         9440 GoSub 12000 'DRAWSHAPE
                     9450 Case LEFTKEY$
-                        9455 ERASESHAPE = -1
+                        9455 ERASESHAPE = TRUE
                         9460 GoSub 12000 'DRAWSHAPE
-                        9470 'If ShapeCanMove(ShapeMap$(i), -1, 0, i) Then ShapeX(i) = ShapeX(i) - 1
-                        9475 ERASESHAPE = 0
+                        9465 BX = -1: BY = 0: CURRENTSHAPEMAP$ = SHAPEMAP$(I)
+                        9470 GoSub 13000 'SHAPECANMOVE
+                        9472 If SHAPECANMOVE = TRUE Then SHAPEX(I) = SHAPEX(I) - 1
+                        9475 ERASESHAPE = FALSE
                         9480 GoSub 12000 'DRAWSHAPE
                     9490 Case RIGHTKEY$
-                        9495 ERASESHAPE = -1
+                        9495 ERASESHAPE = TRUE
                         9500 GoSub 12000 'DRAWSHAPE
-                        9510 'If ShapeCanMove(ShapeMap$(i), 1, 0, i) Then ShapeX(i) = ShapeX(i) + 1
-                        9515 ERASESHAPE = 0
+                        9505 BX = 1: BY = 0: CURRENTSHAPEMAP$ = SHAPEMAP$(I)
+                        9510 GoSub 13000 'SHAPECANMOVE
+                        9512 If SHAPECANMOVE = TRUE Then SHAPEX(I) = SHAPEX(I) + 1
+                        9515 ERASESHAPE = FALSE
                         9520 GoSub 12000 'DRAWSHAPE
                     9530 Case DOWNKEY$
                         9540 DROPRATE!(I) = 0
@@ -291,6 +299,7 @@ DefInt A-Z
 9600 Return
 
 10000 Rem ===GETROTATEDSHAPEMAP$===
+10005 Rem PARAMS: CURRENTSHAPE, CURRENTANGLE / CURRENTSHAPEMAP$
 10010 NEWBLOCKX = 0
 10020 NEWBLOCKY = 0
 10030 Select Case CURRENTSHAPE
@@ -336,18 +345,20 @@ DefInt A-Z
 10520 Return
 
 11000 Rem ===DRAWBLOCK===
+11005 Rem PARAMS: BX, BY
 11010 Color Val("&H" + BLOCKCOLOR$)
 11020 Locate BY + 1, BX + PITLEFT(I)
 11030 Print Chr$(219)
 11040 Return
 
 12000 Rem ===DRAWSHAPE===
+12005 Rem PARAMS: ERASESHAPE
 12010 For BLOCKX = 0 To 3
     12020 For BLOCKY = 0 To 3
         12030 PITX = SHAPEX(I) + BLOCKX
         12040 PITY = SHAPEY(I) + BLOCKY
         12050 If PITX >= 0 And PITX < 10 And PITY >= 0 And PITY < 16 Then
-            12060 If ERASESHAPE = -1 Then
+            12060 If ERASESHAPE = TRUE Then
                 12070 BLOCKCOLOR$ = Mid$(PIT$(I), ((PITY * 10) + PITX) + 1, 1)
             12080 Else
                 12090 BLOCKCOLOR$ = Mid$(SHAPEMAP$(I), ((BLOCKY * 4) + BLOCKX) + 1, 1)
@@ -359,4 +370,98 @@ DefInt A-Z
     12150 Next BLOCKY
 12160 Next BLOCKX
 12170 Return
+
+13000 Rem ===SHAPECANMOVE===
+13010 Rem PARAMS: CURRENTSHAPEMAP$, BX, BY / SHAPECANMOVE
+13020 For BLOCKY = 0 To 3
+    13030 For BLOCKX = 0 To 3
+        13040 If Not Mid$(CURRENTSHAPEMAP$, ((BLOCKY * 4) + BLOCKX) + 1, 1) = "0" Then
+            13050 PITX = (SHAPEX(I) + BLOCKX) + BX
+            13060 PITY = (SHAPEY(I) + BLOCKY) + BY
+            13070 If PITX >= 0 And PITX < 10 And PITY >= 0 And PITY < 16 Then
+                13080 If Not Mid$(PIT$(I), (((PITY * 10) + PITX) + 1), 1) = "0" Then
+                    13090 SHAPECANMOVE = FALSE
+                    13100 Return
+                13110 End If
+            13120 ElseIf PITX < 0 Or PITX >= 10 Or PITY >= 16 Then
+                13130 SHAPECANMOVE = FALSE
+                13140 Return
+            13150 End If
+        13160 End If
+    13170 Next BLOCKX
+13180 Next BLOCKY
+13190 SHAPECANMOVE = TRUE
+13200 Return
+
+14000 Rem ===DROPSHAPE===
+14010 BX = 0: BY = 1: CURRENTSHAPEMAP$ = SHAPEMAP$(I)
+14020 GoSub 13000 'SHAPECANMOVE
+14030 If SHAPECANMOVE = TRUE Then
+    14040 ERASESHAPE = TRUE
+    14050 GoSub 12000 'DRAWSHAPE
+    14060 SHAPEY(I) = SHAPEY(I) + 1
+    14070 ERASESHAPE = FALSE
+    14080 GoSub 12000 'DRAWSHAPE
+Else
+    '===SETTLEACTIVESHAPEINPIT===
+    For BLOCKY = 0 To 3
+        For BLOCKX = 0 To 3
+            PITX = SHAPEX(I) + BLOCKX
+            PITY = SHAPEY(I) + BLOCKY
+            If PITX >= 0 And PITX < 10 And PITY >= 0 And PITY < 16 Then
+                If Not Mid$(SHAPEMAP$(I), ((BLOCKY * 4) + BLOCKX) + 1, 1) = "0" Then
+                    Mid$(PIT$(I), ((PITY * 10) + PITX) + 1, 1) = Mid$(SHAPEMAP$(I), ((BLOCKY * 4) + BLOCKX) + 1, 1)
+                End If
+            End If
+        Next BLOCKX
+    Next BLOCKY
+
+    GAMEOVER(I) = (SHAPEY(I) < 0)
+    '===CHECKFORFULLROWS===
+    FULLROW = FALSE
+    NUMLINES = 0
+    For PITY = 0 To 15
+        FULLROW = TRUE
+        For PITX = 0 To 9
+            If Mid$(PIT$(I), ((PITY * 10) + PITX) + 1, 1) = "0" Then
+                FULLROW = FALSE
+                Exit For
+            End If
+        Next PITX
+        If FULLROW = TRUE Then
+            '===REMOVEFULLROW===
+            REMOVEDROW = PITY
+            For PITYY = REMOVEDROW To 0 Step -1
+                For PITXX = 0 To 9
+                    If PITYY = 0 Then
+                        BLOCKCOLOR$ = "0"
+                    Else
+                        BLOCKCOLOR$ = Mid$(PIT$(I), (((PITYY - 1) * 10) + PITXX) + 1, 1)
+                    End If
+                    Mid$(PIT$(I), ((PITYY * 10) + PITXX) + 1, 1) = BLOCKCOLOR$
+                Next PITXX
+            Next PITYY
+
+            NUMLINES = NUMLINES + 1
+        End If
+    Next PITY
+    If NUMLINES > 0 Then
+        J = I + 5
+        If NUMLINES = 1 Then SCORES(J) = SCORES(J) + (100 * LEVEL(I))
+        If NUMLINES = 2 Then SCORES(J) = SCORES(J) + (300 * LEVEL(I))
+        If NUMLINES = 3 Then SCORES(J) = SCORES(J) + (500 * LEVEL(I))
+        If NUMLINES = 4 Then SCORES(J) = SCORES(J) + (800 * LEVEL(I)) 'TETRIS!
+        LINES(I) = LINES(I) + NUMLINES
+        LEVEL(I) = (LINES(I) \ 10) + 1
+    End If
+
+    GoSub 7000 'DRAWPIT
+    If GAMEOVER(I) = FALSE Then
+        GoSub 6000 'CREATESHAPE
+        ERASESHAPE = FALSE
+        GoSub 12000 'DRAWSHAPE
+    End If
+    GoSub 8000 'DISPLAYSTATUS
+End If
+Return
 
