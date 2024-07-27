@@ -221,6 +221,7 @@ DefInt A-Z
         8340 Next BLOCKX
     8350 End If
 8360 Next I
+8365 I = I - 1
 8370 Return
 
 9000 Rem ===GAMELOOP===
@@ -267,7 +268,7 @@ DefInt A-Z
                         9395 ROTATEDMAP$ = CURRENTSHAPEMAP$
                         9398 BX = 0: BY = 0
                         9400 GoSub 13000 'SHAPECANMOVE
-                        9405 If SHAPECANMOVE = TRUEN Then
+                        9405 If SHAPECANMOVE = TRUE Then
                             9410 SHAPEANGLE(I) = NEWANGLE
                             9420 SHAPEMAP$(I) = ROTATEDMAP$
                         9430 End If
