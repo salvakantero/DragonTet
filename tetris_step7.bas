@@ -183,46 +183,46 @@ DefInt A-Z
 7070 Return
 
 8000 Rem ===DISPLAYSTATUS===
-8010 Color 0, 2
-8020 If GAMEOVER(0) = TRUE Then
-    8030 Locate 8, PITLEFT(0)
-    8040 Print "GAME OVER!"
-8050 End If
-8060 Locate 2, 12: Print "=PLAYER 1="
-8070 Locate 3, 12: Print "LEVEL:" + Str$(LEVEL(0))
-8080 Locate 4, 12: Print "LINES:" + Str$(LINES(0))
-8090 Locate 5, 12: Print "SC:" + Str$(SCORES(5))
-8100 Locate 6, 12: Print "NEXT:"
-8110 If NUMPLAYERS = 1 Then
-    8120 If GAMEOVER(1) = TRUE Then
-        8130 Locate 8, PITLEFT(1)
-        8140 Print "GAME OVER!"
-    8150 End If
-    8160 Locate 10, 12: Print "=PLAYER 2="
-    8170 Locate 11, 12: Print "LEVEL:" + Str$(LEVEL(1))
-    8180 Locate 12, 12: Print "LINES:" + Str$(LINES(1))
-    8190 Locate 13, 12: Print "SC:" + Str$(SCORES(6))
-    8200 Locate 14, 12: Print "NEXT:"
-8210 End If
-8220 For I = 0 To NUMPLAYERS
-    8230 If GAMEOVER(I) = FALSE Then
-        8240 For BLOCKX = 0 To 3
-            8250 For BLOCKY = 0 To 3
-                8260 BLOCKCOLOR$ = Mid$(NEXTSHAPEMAP$(I), ((4 * BLOCKY) + BLOCKX) + 1, 1)
-                8270 If BLOCKCOLOR$ = "0" Then BLOCKCOLOR$ = "2"
-                8280 If I = 0 Then
-                    8285 BX = BLOCKX + 17: BY = BLOCKY + 4
-                    8290 GoSub 11000 'DRAWBLOCK
-                8300 Else
-                    8305 BX = BLOCKX - 5: BY = BLOCKY + 12
-                    8310 GoSub 11000 'DRAWBLOCK
-                8320 End If
-            8330 Next BLOCKY
-        8340 Next BLOCKX
-    8350 End If
-8360 Next I
-8365 I = I - 1
-8370 Return
+8010 For I = 0 To NUMPLAYERS
+    8020 If GAMEOVER(I) = FALSE Then
+        8030 For BLOCKX = 0 To 3
+            8040 For BLOCKY = 0 To 3
+                8050 BLOCKCOLOR$ = Mid$(NEXTSHAPEMAP$(I), ((4 * BLOCKY) + BLOCKX) + 1, 1)
+                8060 If BLOCKCOLOR$ = "0" Then BLOCKCOLOR$ = "2"
+                8070 If I = 0 Then
+                    8080 BX = BLOCKX + 17: BY = BLOCKY + 4
+                    8090 GoSub 11000 'DRAWBLOCK
+                8100 Else
+                    8110 BX = BLOCKX - 5: BY = BLOCKY + 12
+                    8120 GoSub 11000 'DRAWBLOCK
+                8130 End If
+            8140 Next BLOCKY
+        8150 Next BLOCKX
+    8160 End If
+8170 Next I
+8180 I = I - 1
+8200 Color 0, 2
+8210 If GAMEOVER(0) = TRUE Then
+    8220 Locate 8, PITLEFT(0)
+    8230 Print "GAME OVER!"
+8240 End If
+8250 Locate 2, 12: Print "=PLAYER 1="
+8260 Locate 3, 12: Print "LEVEL:" + Str$(LEVEL(0))
+8270 Locate 4, 12: Print "LINES:" + Str$(LINES(0))
+8280 Locate 5, 12: Print "SC:" + Str$(SCORES(5))
+8290 Locate 6, 12: Print "NEXT:"
+8300 If NUMPLAYERS = 1 Then
+    8310 If GAMEOVER(1) = TRUE Then
+        8320 Locate 8, PITLEFT(1)
+        8330 Print "GAME OVER!"
+    8340 End If
+    8350 Locate 10, 12: Print "=PLAYER 2="
+    8360 Locate 11, 12: Print "LEVEL:" + Str$(LEVEL(1))
+    8370 Locate 12, 12: Print "LINES:" + Str$(LINES(1))
+    8380 Locate 13, 12: Print "SC:" + Str$(SCORES(6))
+    8390 Locate 14, 12: Print "NEXT:"
+8400 End If
+8410 Return
 
 9000 Rem ===GAMELOOP===
 9010 STARTTIME!(0) = Timer
