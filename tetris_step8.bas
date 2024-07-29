@@ -46,13 +46,19 @@ $Debug
 '       NS() = NEXTSHAPE()
 '       NS$() = NEXTSHAPEMAP$()
 '       BC$ = BLOCKCOLOR$
+'       K$ = KEY$
+'       UK$ = ROTATEKEY$ = UP KEY
+'       LK$ = LEFTKEY$
+'       DK$ = DOWNKEY$
+'       RK$ = RIGHTKEY$
+'
 '------------------------------------------
 '       PS = PARAMETER SHAPE
 '       PA = PARAMETER ANGLE
-'       PSM$ = PARAMETER SHAPEMAP$
+'       PS$ = PARAMETER SHAPEMAP$
 '       PX = PARAMETER X
 '       PY = PARAMETER Y
-
+'       PE = PARAMETER ERASESHAPE
 
 DefInt A-Z
 
@@ -189,14 +195,14 @@ DefInt A-Z
 6030 If NS(I) >= 0 Then SP(I) = NS(I) Else SP(I) = Int(Rnd * 7)
 6040 SA(I) = 0
 6045 PS = SP(I): PA = SA(I)
-6050 GoSub 10000 'GETROTATEDSHAPEMAP$
-6055 SM$(I) = PSM$
+6050 GoSub 1000 'GETROTATEDSHAPEMAP$
+6055 SM$(I) = PS$
 6060 SX(I) = 3
 6070 SY(I) = -4
 6080 NS(I) = Int(Rnd * 7)
 6085 PS = NS(I): PA = 0
 6090 GoSub 10000 'GETROTATEDSHAPEMAP$
-6095 NS$(I) = PSM$
+6095 NS$(I) = PS$
 6100 Return
 
 7000 Rem ===DRAWPIT===
@@ -253,41 +259,41 @@ DefInt A-Z
 8410 Return
 
 9000 Rem ===GAMELOOP===
-9010 ReDim ROTATEKEY$(NP), LEFTKEY$(NP), DOWNKEY$(NP), RIGHTKEY$(NP)
+9010 ReDim UK$(NP), LK$(NP), DK$(NP), RK$(NP)
 9020 ST!(0) = Timer
-9022 ROTATEKEY$(0) = "w": LEFTKEY$(0) = "a": DOWNKEY$(0) = "s": RIGHTKEY$(0) = "d"
+9022 UK$(0) = "w": LK$(0) = "a": DK$(0) = "s": RK$(0) = "d"
 9024 If NP > 0 Then
     9026 ST!(1) = Timer
-    9028 ROTATEKEY$(1) = "i": LEFTKEY$(1) = "j": DOWNKEY$(1) = "k": RIGHTKEY$(1) = "l"
+    9028 UK$(1) = "i": LK$(1) = "j": DK$(1) = "k": RK$(1) = "l"
 9029 End If
 
 9030 Do
-    9040 KEY$ = ""
-    9050 Do While KEY$ = ""
+    9040 K$ = ""
+    9050 Do While K$ = ""
         9060 For I = 0 To NP
             9070 If GO(I) = FALSE Then
                 9080 If Timer >= ST!(I) + DR!(I) Or ST!(I) > Timer Then
-                    9090 GoSub 14000 'DROPSP
+                    9090 GoSub 14000 'DROPSHAPE
                     9100 ST!(I) = Timer
                 9110 End If
             9120 End If
         9130 Next I
-        9140 KEY$ = InKey$
+        9140 K$ = InKey$
     9150 Loop
 
-    9160 If KEY$ = Chr$(27) Then
+    9160 If K$ = Chr$(27) Then
         9170 Return
     9180 Else
         9200 For I = 0 To NP
             9210 If GO(I) = TRUE Then
-                9220 If KEY$ = Chr$(13) Then Return
+                9220 If K$ = Chr$(13) Then Return
             9230 Else
-                9350 Select Case KEY$
-                    9360 Case ROTATEKEY$(I)
-                        9365 ERASESP = TRUE
-                        9370 GoSub 12000 'DRAWSP
+                9350 Select Case K$
+                    9360 Case UK$(I)
+                        9365 ERASESHAPE = TRUE
+                        9370 GoSub 12000 'DRAWSHAPE
                         9380 If SA(I) = 3 Then NEWANGLE = 0 Else NEWANGLE = SA(I) + 1
-                        9385 CURRENTSP = SP(I): CURRENTANGLE = NEWANGLE
+                        9385 CURRENTSHAPE = SP(I): CURRENTANGLE = NEWANGLE
                         9390 GoSub 10000 'GETROTATEDSM$
                         9395 ROTATEDMAP$ = CURRENTSM$
                         9398 BX = 0: BY = 0
@@ -323,8 +329,8 @@ DefInt A-Z
 9590 Loop
 9600 Return
 
-10000 Rem ===GETROTATEDSM$===
-10005 Rem PARAMS: CURRENTSP, CURRENTANGLE / CURRENTSM$
+10000 Rem ===GETROTATEDSHAPEMAP$===
+10005 Rem PARAMS: CURRENTSHAPE, CURRENTANGLE / CURRENTSHAPEMAP$
 10010 NEWBLOCKX = 0
 10020 NEWBLOCKY = 0
 10030 Select Case CURRENTSP
@@ -370,14 +376,14 @@ DefInt A-Z
 10520 Return
 
 11000 Rem ===DRAWBLOCK===
-11005 Rem PARAMS: BX, BY
+11005 Rem PARAMS: PX, PY
 11010 Color Val("&H" + BC$)
-11020 Locate BY + 1, BX + PL(I)
+11020 Locate PY + 1, PX + PL(I)
 11030 Print Chr$(219)
 11040 Return
 
 12000 Rem ===DRAWSP===
-12005 Rem PARAMS: ERASESP
+12005 Rem PARAMS: ERASESHAPE
 12010 For BLOCKX = 0 To 3
     12020 For BLOCKY = 0 To 3
         12030 PITX = SX(I) + BLOCKX
@@ -396,8 +402,8 @@ DefInt A-Z
 12160 Next BLOCKX
 12170 Return
 
-13000 Rem ===SPCANMOVE===
-13010 Rem PARAMS: CURRENTSM$, BX, BY / SPCANMOVE
+13000 Rem ===SHAPECANMOVE===
+13010 Rem PARAMS: CURRENTSHAPEMAP$, PX, PY / SHAPECANMOVE
 13020 For BLOCKY = 0 To 3
     13030 For BLOCKX = 0 To 3
         13040 If Not Mid$(CURRENTSM$, ((BLOCKY * 4) + BLOCKX) + 1, 1) = "0" Then
