@@ -1,33 +1,31 @@
 $Debug
 
 'TETRIS.BAS:
-'   - codigo original QBasic de Peter Swinkels (QBBlocks v1.0)
+'   - original QBasic code by Peter Swinkels (QBBlocks v1.0)
 'TETRIS_STEP1:
-'   - comprension y comentarios
-'   - se habilita la pieza 7
+'   - understanding and comments
+'   - shape 7 is enabled
 'TETRIS_STEP2:
-'   - se convierte a modo texto
+'   - converts to text mode
 'TETRIS_STEP3:
-'   - se reordenan las funciones
-'   - se anaden niveles
-'   - se usan los cursores
-'   - se amplia el marcador
+'   - levels are added
+'   - the score is widened
 'TETRIS_STEP4:
-'   - se elimina la posicion X inicial aleatoria
-'   - se elimina la rotacion inicial aleatoria
-'   - se cambia el sentido de rotacion a la izquierda
-'   - se implementa la funcion NEXT PIECE
+'   - the random initial X position is deleted
+'   - the initial random rotation is eliminated
+'   - the direction of rotation is changed to the left
+'   - the NEXT PIECE function is implemented.
 'TETRIS_STEP5:
-'   - 2 jugadores
-'   - 32x16 caracteres en pantalla, compatible con DRAGON 32/64
+'   - 2 players
+'   - 32x16 characters on screen, compatible with DRAGON 32/64
 'TETRIS_STEP6:
-'   - menu de inicio
-'   - tabla de puntuaciones
+'   - menu
+'   - score table
 'TETRIS_STEP7:
-'   - BASIC clasico no precedural
+'   - BASIC classic no precedural
 'TETRIS STEP8:
-'   - optimizacion y simplificacion
-'   - nombres de variables compatibles con DRAGON 32/64
+'   - optimisation and simplification
+'   - variable names supported by DRAGON 32/64
 '       NP = NUMPLAYERS
 '       NM$() = NAMES$()
 '       SC() = SCORES()
@@ -51,7 +49,11 @@ $Debug
 '       LK$ = LEFTKEY$
 '       DK$ = DOWNKEY$
 '       RK$ = RIGHTKEY$
-'
+'       NA = NEWANGLE
+'       RM$ = ROTATEDMAP$
+'       FR = FULLROW
+'       RR = REMOVEDROW
+'       NL = NUMLINES
 '------------------------------------------
 '       PS = PARAMETER SHAPE
 '       PA = PARAMETER ANGLE
@@ -59,16 +61,15 @@ $Debug
 '       PX = PARAMETER X
 '       PY = PARAMETER Y
 '       PE = PARAMETER ERASESHAPE
+'       PM = PARAMETER SHAPECANMOVE
 
 DefInt A-Z
 
 10 Rem ***TETRIS4DRAGON***
 20 Rem  SALVAKANTERO 2024
 
-30 Common Shared TRUE, FALSE, NP, NM$(), SC()
-40 Common Shared GO(), DR!(), ST!()
-50 Common Shared PT$(), PL(), LV(), LN()
-60 Common Shared SP(), SA(), SM$(), SX(), SY()
+30 Common Shared TRUE, FALSE, NP, NM$(), SC(), GO(), DR!(), ST!()
+50 Common Shared PT$(), PL(), LV(), LN(), SP(), SA(), SM$(), SX(), SY()
 70 Common Shared NS(), NS$()
 
 80 Randomize Timer
@@ -84,14 +85,14 @@ DefInt A-Z
 170 Next I
 
 200 Rem ===MAIN===
-210 GoSub 1000 'INIT
+210 GoSub 1000 'INIT SUB
 230 For I = 0 To NP
-    240 GoSub 2000 'CHECKSCORES
+    240 GoSub 2000 'CHECKSCORES SUB
 250 Next I
 260 GoTo 200
 
 1000 Rem ===INIT===
-1010 GoSub 3000 'MENU
+1010 GoSub 3000 'MENU SUB
 1020 Cls
 1030 ReDim GO(NP)
 1040 ReDim LV(NP)
@@ -113,19 +114,19 @@ DefInt A-Z
     1230 SC(I + 5) = 0
     1240 NS(I) = -1
     1250 PT$(I) = String$(10 * 16, "0")
-    1260 GoSub 6000 'CREATESHAPE
-    1270 GoSub 7000 'DRAWPIT
+    1260 GoSub 6000 'CREATESHAPE SUB
+    1270 GoSub 7000 'DRAWPIT SUB
 1280 Next I
-1290 GoSub 8000 'DISPLAYSTATUS
-1300 GoSub 9000 'GAMELOOP
+1290 GoSub 8000 'DISPLAYSTATUS SUB
+1300 GoSub 9000 'GAMELOOP SUB
 1310 Return
 
 2000 Rem ===CHECKSCORES===
 2005 ID = I + 5
 2010 If SC(ID) > SC(4) Then
-    2020 GoSub 4000 'MENUHEADER
-    2030 Locate 10, 6: Print "BUENA PUNTUACION JUGADOR " + Str$(I + 1)
-    2040 Locate 11, 6: Input "NOMBRE?: ", NM$(ID)
+    2020 GoSub 4000 'MENUHEADER SUB
+    2030 Locate 10, 8: Print "GREAT SCORE PLAYER " + Str$(I + 1)
+    2040 Locate 11, 8: Input "NAME?: ", NM$(ID)
     2050 If Len(NM$(ID)) > 10 Then NM$(ID) = Left$(NM$(ID), 10)
     2060 For J = 4 To 0 Step -1
         2070 If SC(ID) > SC(J) Then
@@ -143,7 +144,7 @@ DefInt A-Z
 2200 Return
 
 3000 Rem ===MENU===
-3010 GoSub 4000 'MENU HEADER
+3010 GoSub 4000 'MENUHEADER SUB
 3020 Locate 9, 9: Print "1) 1 PLAYER GAME"
 3030 Locate 10, 9: Print "2) 2 PLAYER GAME"
 3040 Locate 11, 9: Print "3) HIGH SCORES"
@@ -173,7 +174,7 @@ DefInt A-Z
         3280 Print "PRESS ANY KEY TO CONTINUE..."
         3290 While InKey$ = ""
         3300 Wend
-        3310 GoTo 3000 'MENU
+        3310 GoTo 3000 'MENU SUB
     3320 ElseIf K$ = "4" Then
         3330 End
     3340 End If
@@ -195,13 +196,13 @@ DefInt A-Z
 6030 If NS(I) >= 0 Then SP(I) = NS(I) Else SP(I) = Int(Rnd * 7)
 6040 SA(I) = 0
 6045 PS = SP(I): PA = SA(I)
-6050 GoSub 1000 'GETROTATEDSHAPEMAP$
+6050 GoSub 10000 'GETROTATEDSHAPEMAP$ SUB
 6055 SM$(I) = PS$
 6060 SX(I) = 3
 6070 SY(I) = -4
 6080 NS(I) = Int(Rnd * 7)
 6085 PS = NS(I): PA = 0
-6090 GoSub 10000 'GETROTATEDSHAPEMAP$
+6090 GoSub 10000 'GETROTATEDSHAPEMAP$ SUB
 6095 NS$(I) = PS$
 6100 Return
 
@@ -210,7 +211,7 @@ DefInt A-Z
     7020 For X = 0 To 9
         7030 BC$ = Mid$(PT$(I), ((10 * Y) + X) + 1, 1)
         7035 PX = X: PY = Y
-        7040 GoSub 11000 'DRAWBLOCK
+        7040 GoSub 11000 'DRAWBLOCK SUB
     7050 Next X
 7060 Next Y
 7070 Return
@@ -224,10 +225,10 @@ DefInt A-Z
                 8060 If BC$ = "0" Then BC$ = "2"
                 8070 If I = 0 Then
                     8080 PX = X + 17: PY = Y + 4
-                    8090 GoSub 11000 'DRAWBLOCK
+                    8090 GoSub 11000 'DRAWBLOCK SUB
                 8100 Else
                     8110 PX = X - 5: PY = Y + 12
-                    8120 GoSub 11000 'DRAWBLOCK
+                    8120 GoSub 11000 'DRAWBLOCK SUB
                 8130 End If
             8140 Next Y
         8150 Next X
@@ -273,7 +274,7 @@ DefInt A-Z
         9060 For I = 0 To NP
             9070 If GO(I) = FALSE Then
                 9080 If Timer >= ST!(I) + DR!(I) Or ST!(I) > Timer Then
-                    9090 GoSub 14000 'DROPSHAPE
+                    9090 GoSub 14000 'DROPSHAPE SUB
                     9100 ST!(I) = Timer
                 9110 End If
             9120 End If
@@ -290,37 +291,40 @@ DefInt A-Z
             9230 Else
                 9350 Select Case K$
                     9360 Case UK$(I)
-                        9365 ERASESHAPE = TRUE
-                        9370 GoSub 12000 'DRAWSHAPE
-                        9380 If SA(I) = 3 Then NEWANGLE = 0 Else NEWANGLE = SA(I) + 1
-                        9385 CURRENTSHAPE = SP(I): CURRENTANGLE = NEWANGLE
-                        9390 GoSub 10000 'GETROTATEDSM$
-                        9395 ROTATEDMAP$ = CURRENTSM$
-                        9398 BX = 0: BY = 0
-                        9400 GoSub 13000 'SPCANMOVE
-                        9405 If SPCANMOVE = TRUE Then
-                            9410 SA(I) = NEWANGLE
-                            9420 SM$(I) = ROTATEDMAP$
+                        9365 PE = TRUE
+                        9370 GoSub 12000 'DRAWSHAPE SUB
+                        9380 If SA(I) = 3 Then NA = 0 Else NA = SA(I) + 1
+                        9385 PS = SP(I): PA = NA
+                        9390 GoSub 10000 'GETROTATEDSHAPEMAP$ SUB
+                        9395 RM$ = PS$
+                        9398 PX = 0: PY = 0
+                        9400 GoSub 13000 'SHAPECANMOVE SUB
+                        9405 If PM = TRUE Then
+                            9410 SA(I) = NA
+                            9420 SM$(I) = RM$
                         9430 End If
-                        9435 ERASESP = FALSE
-                        9440 GoSub 12000 'DRAWSP
-                    9450 Case LEFTKEY$(I)
-                        9455 ERASESP = TRUE
-                        9460 GoSub 12000 'DRAWSP
-                        9465 BX = -1: BY = 0: CURRENTSM$ = SM$(I)
-                        9470 GoSub 13000 'SPCANMOVE
-                        9472 If SPCANMOVE = TRUE Then SX(I) = SX(I) - 1
-                        9475 ERASESP = FALSE
-                        9480 GoSub 12000 'DRAWSP
-                    9490 Case RIGHTKEY$(I)
-                        9495 ERASESP = TRUE
-                        9500 GoSub 12000 'DRAWSP
-                        9505 BX = 1: BY = 0: CURRENTSM$ = SM$(I)
-                        9510 GoSub 13000 'SPCANMOVE
-                        9512 If SPCANMOVE = TRUE Then SX(I) = SX(I) + 1
-                        9515 ERASESP = FALSE
-                        9520 GoSub 12000 'DRAWSP
-                    9530 Case DOWNKEY$(I)
+                        9435 PE = FALSE
+                        9440 GoSub 12000 'DRAWSHAPE SUB
+
+                    9450 Case LK$(I)
+                        9455 PE = TRUE
+                        9460 GoSub 12000 'DRAWSHAPE SUB
+                        9465 PX = -1: PY = 0: PS$ = SM$(I)
+                        9470 GoSub 13000 'SHAPECANMOVE SUB
+                        9472 If PM = TRUE Then SX(I) = SX(I) - 1
+                        9475 PE = FALSE
+                        9480 GoSub 12000 'DRAWSHAPE SUB
+
+                    9490 Case RK$(I)
+                        9495 PE = TRUE
+                        9500 GoSub 12000 'DRAWSHAPE SUB
+                        9505 PX = 1: PY = 0: PS$ = SM$(I)
+                        9510 GoSub 13000 'SHAPECANMOVE SUB
+                        9512 If PM = TRUE Then SX(I) = SX(I) + 1
+                        9515 PE = FALSE
+                        9520 GoSub 12000 'DRAWSHAPE SUB
+
+                    9530 Case DK$(I)
                         9540 DR!(I) = 0
                 9550 End Select
             9560 End If
@@ -330,49 +334,49 @@ DefInt A-Z
 9600 Return
 
 10000 Rem ===GETROTATEDSHAPEMAP$===
-10005 Rem PARAMS: CURRENTSHAPE, CURRENTANGLE / CURRENTSHAPEMAP$
-10010 NEWBLOCKX = 0
-10020 NEWBLOCKY = 0
-10030 Select Case CURRENTSP
+10005 Rem PARAMS: PS, PA / PS$
+10010 X2 = 0
+10020 Y2 = 0
+10030 Select Case PS
     10040 Case 0
-        10050 CURRENTSM$ = "0000333300000000" 'I
+        10050 PS$ = "0000333300000000" 'I
     10060 Case 1
-        10070 CURRENTSM$ = "0000111000100000" 'L 1
+        10070 PS$ = "0000111000100000" 'L 1
     10080 Case 2
-        10090 CURRENTSM$ = "0000666060000000" 'L 2
+        10090 PS$ = "0000666060000000" 'L 2
     10100 Case 3
-        10110 CURRENTSM$ = "00000EE00EE00000" '[]
+        10110 PS$ = "00000EE00EE00000" '[]
     10120 Case 4
-        10130 CURRENTSM$ = "00000AA0AA000000" 'S 1
+        10130 PS$ = "00000AA0AA000000" 'S 1
     10140 Case 5
-        10150 CURRENTSM$ = "0000440004400000" 'S 2
+        10150 PS$ = "0000440004400000" 'S 2
     10160 Case 6
-        10170 CURRENTSM$ = "0000555005000000" 'T
+        10170 PS$ = "0000555005000000" 'T
     10180 Case Else
-        10190 CURRENTSM$ = ""
+        10190 PS$ = ""
 10200 End Select
-10210 ROTATEDMAP$ = String$(4 * 4, "0")
-10220 If CURRENTANGLE = 0 Then
+10210 RM$ = String$(4 * 4, "0")
+10220 If PA = 0 Then '0
     10230 Return
 10240 Else
-    10250 For BLOCKX = 0 To 3
-        10260 For BLOCKY = 0 To 3
-            10270 Select Case CURRENTANGLE
-                10280 Case 1 '270' grados
-                    10290 NEWBLOCKX = BLOCKY
-                    10300 NEWBLOCKY = 3 - BLOCKX
-                10310 Case 2 '180 grados
-                    10320 NEWBLOCKX = 3 - BLOCKX
-                    10330 NEWBLOCKY = 3 - BLOCKY
-                10340 Case 3 '90 grados
-                    10350 NEWBLOCKX = 3 - BLOCKY
-                    10360 NEWBLOCKY = BLOCKX
+    10250 For X = 0 To 3
+        10260 For Y = 0 To 3
+            10270 Select Case PA
+                10280 Case 1 '270
+                    10290 X2 = Y
+                    10300 Y2 = 3 - X
+                10310 Case 2 '180
+                    10320 X2 = 3 - X
+                    10330 Y2 = 3 - Y
+                10340 Case 3 '90
+                    10350 X2 = 3 - Y
+                    10360 Y2 = X
             10370 End Select
-            10380 Mid$(ROTATEDMAP$, ((NEWBLOCKY * 4) + NEWBLOCKX) + 1, 1) = Mid$(CURRENTSM$, ((BLOCKY * 4) + BLOCKX) + 1, 1)
-        10390 Next BLOCKY
-    10400 Next BLOCKX
+            10380 Mid$(RM$, ((Y2 * 4) + X2) + 1, 1) = Mid$(PS$, ((Y * 4) + X) + 1, 1)
+        10390 Next Y
+    10400 Next X
 10500 End If
-10510 CURRENTSM$ = ROTATEDMAP$
+10510 PS$ = RM$
 10520 Return
 
 11000 Rem ===DRAWBLOCK===
@@ -382,117 +386,114 @@ DefInt A-Z
 11030 Print Chr$(219)
 11040 Return
 
-12000 Rem ===DRAWSP===
-12005 Rem PARAMS: ERASESHAPE
-12010 For BLOCKX = 0 To 3
-    12020 For BLOCKY = 0 To 3
-        12030 PITX = SX(I) + BLOCKX
-        12040 PITY = SY(I) + BLOCKY
-        12050 If PITX >= 0 And PITX < 10 And PITY >= 0 And PITY < 16 Then
-            12060 If ERASESP = TRUE Then
-                12070 BC$ = Mid$(PT$(I), ((PITY * 10) + PITX) + 1, 1)
+12000 Rem ===DRAWSHAPE===
+12005 Rem PARAMS: PE
+12010 For X = 0 To 3
+    12020 For Y = 0 To 3
+        12030 X2 = SX(I) + X
+        12040 Y2 = SY(I) + Y
+        12050 If X2 >= 0 And X2 < 10 And Y2 >= 0 And Y2 < 16 Then
+            12060 If PE = TRUE Then
+                12070 BC$ = Mid$(PT$(I), ((Y2 * 10) + X2) + 1, 1)
             12080 Else
-                12090 BC$ = Mid$(SM$(I), ((BLOCKY * 4) + BLOCKX) + 1, 1)
-                12100 If BC$ = "0" Then BC$ = Mid$(PT$(I), ((PITY * 10) + PITX) + 1, 1)
+                12090 BC$ = Mid$(SM$(I), ((Y * 4) + X) + 1, 1)
+                12100 If BC$ = "0" Then BC$ = Mid$(PT$(I), ((Y2 * 10) + X2) + 1, 1)
             12110 End If
-            12120 BX = PITX: BY = PITY
-            12130 GoSub 11000 'DRAWBLOCK
+            12120 PX = X2: PY = Y2
+            12130 GoSub 11000 'DRAWBLOCK SUB
         12140 End If
-    12150 Next BLOCKY
-12160 Next BLOCKX
+    12150 Next Y
+12160 Next X
 12170 Return
 
 13000 Rem ===SHAPECANMOVE===
-13010 Rem PARAMS: CURRENTSHAPEMAP$, PX, PY / SHAPECANMOVE
-13020 For BLOCKY = 0 To 3
-    13030 For BLOCKX = 0 To 3
-        13040 If Not Mid$(CURRENTSM$, ((BLOCKY * 4) + BLOCKX) + 1, 1) = "0" Then
-            13050 PITX = (SX(I) + BLOCKX) + BX
-            13060 PITY = (SY(I) + BLOCKY) + BY
-            13070 If PITX >= 0 And PITX < 10 And PITY >= 0 And PITY < 16 Then
-                13080 If Not Mid$(PT$(I), (((PITY * 10) + PITX) + 1), 1) = "0" Then
-                    13090 SPCANMOVE = FALSE
+13010 Rem PARAMS: PS$, PX, PY / PM
+13020 For Y = 0 To 3
+    13030 For X = 0 To 3
+        13040 If Not Mid$(PS$, ((Y * 4) + X) + 1, 1) = "0" Then
+            13050 X2 = (SX(I) + X) + PX
+            13060 Y2 = (SY(I) + Y) + PY
+            13070 If X2 >= 0 And X2 < 10 And Y2 >= 0 And Y2 < 16 Then
+                13080 If Not Mid$(PT$(I), (((Y2 * 10) + X2) + 1), 1) = "0" Then
+                    13090 PM = FALSE
                     13100 Return
                 13110 End If
-            13120 ElseIf PITX < 0 Or PITX >= 10 Or PITY >= 16 Then
-                13130 SPCANMOVE = FALSE
+            13120 ElseIf X2 < 0 Or X2 >= 10 Or Y2 >= 16 Then
+                13130 PM = FALSE
                 13140 Return
             13150 End If
         13160 End If
-    13170 Next BLOCKX
-13180 Next BLOCKY
-13190 SPCANMOVE = TRUE
+    13170 Next X
+13180 Next Y
+13190 PM = TRUE
 13200 Return
 
-14000 Rem ===DROPSP===
-14010 BX = 0: BY = 1: CURRENTSM$ = SM$(I)
-14020 GoSub 13000 'SPCANMOVE
-14030 If SPCANMOVE = TRUE Then
-    14040 ERASESP = TRUE
-    14050 GoSub 12000 'DRAWSP
+14000 Rem ===DROPSHAPE===
+14010 PX = 0: PY = 1: PS$ = SM$(I)
+14020 GoSub 13000 'SHAPECANMOVE SUB
+14030 If PM = TRUE Then
+    14040 PE = TRUE
+    14050 GoSub 12000 'DRAWSHAPE SUB
     14060 SY(I) = SY(I) + 1
-    14070 ERASESP = FALSE
-    14080 GoSub 12000 'DRAWSP
+    14070 PE = FALSE
+    14080 GoSub 12000 'DRAWSHAPE SUB
 Else
-    '===SETTLEACTIVESPINPIT===
-    For BLOCKY = 0 To 3
-        For BLOCKX = 0 To 3
-            PITX = SX(I) + BLOCKX
-            PITY = SY(I) + BLOCKY
-            If PITX >= 0 And PITX < 10 And PITY >= 0 And PITY < 16 Then
-                If Not Mid$(SM$(I), ((BLOCKY * 4) + BLOCKX) + 1, 1) = "0" Then
-                    Mid$(PT$(I), ((PITY * 10) + PITX) + 1, 1) = Mid$(SM$(I), ((BLOCKY * 4) + BLOCKX) + 1, 1)
+    '===SETTLEACTIVESHAPEINPIT===
+    For Y = 0 To 3
+        For X = 0 To 3
+            X2 = SX(I) + X
+            Y2 = SY(I) + Y
+            If X2 >= 0 And X2 < 10 And Y2 >= 0 And Y2 < 16 Then
+                If Not Mid$(SM$(I), ((Y * 4) + X) + 1, 1) = "0" Then
+                    Mid$(PT$(I), ((Y2 * 10) + X2) + 1, 1) = Mid$(SM$(I), ((Y * 4) + X) + 1, 1)
                 End If
             End If
-        Next BLOCKX
-    Next BLOCKY
-
+        Next X
+    Next Y
     GO(I) = (SY(I) < 0)
     '===CHECKFORFULLROWS===
-    FULLROW = FALSE
-    NUMLN = 0
-    For PITY = 0 To 15
-        FULLROW = TRUE
-        For PITX = 0 To 9
-            If Mid$(PT$(I), ((PITY * 10) + PITX) + 1, 1) = "0" Then
-                FULLROW = FALSE
+    FR = FALSE
+    NL = 0
+    For Y = 0 To 15
+        FR = TRUE
+        For X = 0 To 9
+            If Mid$(PT$(I), ((Y * 10) + X) + 1, 1) = "0" Then
+                FR = FALSE
                 Exit For
             End If
-        Next PITX
-        If FULLROW = TRUE Then
+        Next X
+        If FR = TRUE Then
             '===REMOVEFULLROW===
-            REMOVEDROW = PITY
-            For PITYY = REMOVEDROW To 0 Step -1
-                For PITXX = 0 To 9
-                    If PITYY = 0 Then
+            RR = Y
+            For Y2 = RR To 0 Step -1
+                For X2 = 0 To 9
+                    If Y2 = 0 Then
                         BC$ = "0"
                     Else
-                        BC$ = Mid$(PT$(I), (((PITYY - 1) * 10) + PITXX) + 1, 1)
+                        BC$ = Mid$(PT$(I), (((Y2 - 1) * 10) + X2) + 1, 1)
                     End If
-                    Mid$(PT$(I), ((PITYY * 10) + PITXX) + 1, 1) = BC$
-                Next PITXX
-            Next PITYY
-
-            NUMLN = NUMLN + 1
+                    Mid$(PT$(I), ((Y2 * 10) + X2) + 1, 1) = BC$
+                Next X2
+            Next Y2
+            NL = NL + 1
         End If
-    Next PITY
-    If NUMLN > 0 Then
+    Next Y
+    If NL > 0 Then
         J = I + 5
-        If NUMLN = 1 Then SC(J) = SC(J) + (100 * LV(I))
-        If NUMLN = 2 Then SC(J) = SC(J) + (300 * LV(I))
-        If NUMLN = 3 Then SC(J) = SC(J) + (500 * LV(I))
-        If NUMLN = 4 Then SC(J) = SC(J) + (800 * LV(I)) 'TETRIS!
-        LN(I) = LN(I) + NUMLN
+        If NL = 1 Then SC(J) = SC(J) + (100 * LV(I))
+        If NL = 2 Then SC(J) = SC(J) + (300 * LV(I))
+        If NL = 3 Then SC(J) = SC(J) + (500 * LV(I))
+        If NL = 4 Then SC(J) = SC(J) + (800 * LV(I)) 'TETRIS!
+        LN(I) = LN(I) + NL
         LV(I) = (LN(I) \ 10) + 1
     End If
-
-    GoSub 7000 'DRAWPIT
+    GoSub 7000 'DRAWPIT SUB
     If GO(I) = FALSE Then
-        GoSub 6000 'CREATESP
-        ERASESP = FALSE
-        GoSub 12000 'DRAWSP
+        GoSub 6000 'CREATESHAPE SUB
+        PE = FALSE
+        GoSub 12000 'DRAWSHAPE SUB
     End If
-    GoSub 8000 'DISPLAYSTATUS
+    GoSub 8000 'DISPLAYSTATUS SUB
 End If
 Return
 
