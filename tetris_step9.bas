@@ -62,6 +62,9 @@ $Debug
 '       PY = PARAMETER Y
 '       PE = PARAMETER ERASESHAPE
 '       PM = PARAMETER SHAPECANMOVE
+'TETRIS STEP9 AND LAST:
+'   - adapt to DRAGON 32/64 BASIC
+
 
 DefInt A-Z
 
