@@ -24,6 +24,7 @@ $Debug
 'TETRIS_STEP7:
 '   - BASIC classic no precedural
 'TETRIS STEP8:
+'   - ENDIF/DO/WHILE are deleted
 '   - optimisation and simplification
 '   - variable names supported by DRAGON 32/64
 '       NP = NUMPLAYERS
@@ -123,25 +124,24 @@ DefInt A-Z
 
 2000 Rem ===CHECKSCORES===
 2005 ID = I + 5
-2010 If SC(ID) > SC(4) Then
-    2020 GoSub 4000 'MENUHEADER SUB
-    2030 Locate 10, 8: Print "GREAT SCORE PLAYER " + Str$(I + 1)
-    2040 Locate 11, 8: Input "NAME?: ", NM$(ID)
-    2050 If Len(NM$(ID)) > 10 Then NM$(ID) = Left$(NM$(ID), 10)
-    2055 NM$(ID) = UCase$(NM$(ID))
-    2060 For J = 4 To 0 Step -1
-        2070 If SC(ID) > SC(J) Then
-            2080 If J < 4 Then
-                2090 SC(J + 1) = SC(J)
-                2100 NM$(J + 1) = NM$(J)
-            2110 End If
-        2120 Else
-            2130 Exit For
-        2140 End If
-    2150 Next J
-    2160 SC(J + 1) = SC(ID)
-    2170 NM$(J + 1) = NM$(ID)
-2180 End If
+2010 If SC(ID) <= SC(4) Then 2200
+2020 GoSub 4000 'MENUHEADER SUB
+2030 Locate 10, 8: Print "GREAT SCORE PLAYER " + Str$(I + 1)
+2040 Locate 11, 8: Input "NAME?: ", NM$(ID)
+2050 If Len(NM$(ID)) > 10 Then NM$(ID) = Left$(NM$(ID), 10)
+2055 NM$(ID) = UCase$(NM$(ID))
+2060 For J = 4 To 0 Step -1
+    2070 If SC(ID) > SC(J) Then 2080
+    2075 GoTo 2140
+    2080 If J < 4 Then 2090
+    2085 GoTo 2150
+    2090 SC(J + 1) = SC(J)
+    2100 NM$(J + 1) = NM$(J)
+    2110 GoTo 2150
+    2140 Exit For
+2150 Next J
+2160 SC(J + 1) = SC(ID)
+2170 NM$(J + 1) = NM$(ID)
 2200 Return
 
 3000 Rem ===MENU===
@@ -151,35 +151,28 @@ DefInt A-Z
 3040 Locate 11, 9: Print "3) HIGH SCORES"
 3050 Locate 12, 9: Print "4) EXIT"
 3060 Locate 15, 8: Print "SELECT OPTION (1-4)"
-3070 Do
-    3080 K$ = ""
-    3090 Do While K$ = ""
-        3100 K$ = InKey$
-    3110 Loop
-    3120 If K$ = "1" Then '1 PLAYER GAME
-        3130 NP = 0
-        3140 Exit Do
-    3150 ElseIf K$ = "2" Then '2 PLAYER GAME
-        3160 NP = 1
-        3170 Exit Do
-    3180 ElseIf K$ = "3" Then 'HIGH SCORES
-        3190 For I = 0 To 4
-            3200 Locate 9 + I, 9
-            3210 Print "................"
-            3220 Locate 9 + I, 9
-            3230 Print NM$(I)
-            3240 Locate 9 + I, 21
-            3250 Print Using "#####"; SC(I)
-        3260 Next I
-        3270 Locate 15, 4
-        3280 Print "PRESS ANY KEY TO CONTINUE..."
-        3290 While InKey$ = ""
-        3300 Wend
-        3310 GoTo 3000 'MENU SUB
-    3320 ElseIf K$ = "4" Then
-        3330 End
-    3340 End If
-3350 Loop
+3090 K$ = ""
+3100 K$ = InKey$
+3110 If K$ = "" Then 3100
+3120 If K$ = "1" Then NP = 0: Return
+3150 If K$ = "2" Then NP = 1: Return
+3180 If K$ = "3" Then 3190
+3185 GoTo 3320
+3190 For I = 0 To 4
+    3200 Locate 9 + I, 9
+    3210 Print "................"
+    3220 Locate 9 + I, 9
+    3230 Print NM$(I)
+    3240 Locate 9 + I, 21
+    3250 Print Using "#####"; SC(I)
+3260 Next I
+3270 Locate 15, 4
+3280 Print "PRESS ANY KEY TO CONTINUE..."
+3285 K$ = ""
+3290 K$ = InKey$
+3300 If K$ = "" Then 3290
+3310 GoTo 3000 'MENU SUB
+3320 If K$ = "4" Then End
 3360 Return
 
 4000 Rem ===MENUHEADER===

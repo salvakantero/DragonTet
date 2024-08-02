@@ -113,11 +113,11 @@ $Debug
 2005 ID=I+5
 2010 If SC(ID)<=SC(4) THEN 2200
 2020 GOSUB 4000 'MENUHEADER
-2030 PRINT @32*10+8, "GREAT SCORE PLAYER"+STR$(I+1)
-2040 PRINT @32*11+8, "NAME:";
+2030 PRINT @32*10+8,"GREAT SCORE PLAYER"+STR$(I+1)
+2040 PRINT @32*11+8,"NAME:";
 2045 INPUT NM$(ID)
 2050 IF LEN(NM$(ID))>10 THEN NM$(ID)=LEFT$(NM$(ID),10)
-2060 For J=4 TO 0 STEP -1
+2060 FOR J=4 TO 0 STEP -1
 2070 IF SC(ID) > SC(J) THEN 2080
 2075 GOTO 2140
 2080 IF J<4 THEN 2090
@@ -133,76 +133,64 @@ $Debug
 
 3000 '***MENU***
 3010 GOSUB 4000 'MENUHEADER
-3020 PRINT @32*9+9, "1) 1 PLAYER GAME"
-3030 PRINT @32*10+9, "2) 2 PLAYER GAME"
-3040 PRINT @32*11+9, "3) HIGH SCORES"
-3050 PRINT @32*12+9, "4) EXIT"
-3060 PRINT @32*15+8, "SELECT OPTION (1-4)"
-3070 Do
-    3080 K$ = ""
-    3090 Do While K$ = ""
-        3100 K$ = InKey$
-    3110 Loop
-    3120 If K$ = "1" Then '1 PLAYER GAME
-        3130 NP = 0
-        3140 Exit Do
-    3150 ElseIf K$ = "2" Then '2 PLAYER GAME
-        3160 NP = 1
-        3170 Exit Do
-    3180 ElseIf K$ = "3" Then 'HIGH SCORES
-        3190 For I = 0 To 4
-            3200 Locate 9 + I, 9
-            3210 Print "................"
-            3220 Locate 9 + I, 9
-            3230 Print NM$(I)
-            3240 Locate 9 + I, 21
-            3250 Print Using "#####"; SC(I)
-        3260 Next I
-        3270 Locate 15, 4
-        3280 Print "PRESS ANY KEY TO CONTINUE..."
-        3290 While InKey$ = ""
-        3300 Wend
-        3310 GoTo 3000 'MENU SUB
-    3320 ElseIf K$ = "4" Then
-        3330 End
-    3340 End If
-3350 Loop
-3360 Return
+3020 PRINT @32*8+8,"1) 1 PLAYER GAME"
+3030 PRINT @32*9+8,"2) 2 PLAYER GAME"
+3040 PRINT @32*10+8,"3) HIGH SCORES"
+3050 PRINT @32*11+8,"4) EXIT"
+3060 PRINT @32*14+7,"SELECT OPTION(1-4)"
+3090 K$=""
+3100 K$=INKEY$
+3110 IF K$="" THEN 3100
+3120 IF K$="1" THEN NP=0: RETURN
+3150 IF K$="2" THEN NP=1: RETURN
+3180 IF K$="3" THEN 3190
+3185 GOTO 3320
+3190 FOR I=0 TO 4
+3200 PRINT @(32*(7+I))+8,"................"
+3220 PRINT @(32*(7+I))+8,NM$(I)
+3240 PRINT @(32*(7+I))+20,USING "#####"; SC(I)
+3260 NEXT I
+3270 PRINT @32*14+4,"PRESS ANY KEY TO CONTINUE"
+3285 K$=""
+3290 K$=INKEY$
+3300 IF K$="" THEN 3290
+3310 GOTO 3000 'MENU
+3320 IF K$="4" THEN CLS: END
+3360 RETURN
 
-4000 Rem ===MENUHEADER===
-4010 Color 0, 2
-4020 Cls
-4030 Locate 2, 10: Print "***************"
-4040 Locate 3, 10: Print "* T E T R I S *"
-4050 Locate 4, 10: Print "***************"
-4060 Locate 6, 9: Print "SALVAKANTERO 2024"
-4070 Return
+4000 '***MENUHEADER***
+4020 CLS
+4030 PRINT @3+9,"***************"
+4040 PRINT @32*2+9,"* T E T R I S *"
+4050 PRINT @32*3+9,"***************"
+4060 PRINT @32*5+8,"SALVAKANTERO 2024"
+4070 RETURN
 
-6000 Rem ===CREATESHAPE===
-6010 DR!(I) = 1 - (LV(I) * 0.2)
-6020 If DR!(I) <= 0 Then DR!(I) = .1
-6030 If NS(I) >= 0 Then SP(I) = NS(I) Else SP(I) = Int(Rnd * 7)
-6040 SA(I) = 0
-6045 PS = SP(I): PA = SA(I)
-6050 GoSub 10000 'GETROTATEDSHAPEMAP$ SUB
-6055 SM$(I) = PS$
-6060 SX(I) = 3
-6070 SY(I) = -4
-6080 NS(I) = Int(Rnd * 7)
-6085 PS = NS(I): PA = 0
-6090 GoSub 10000 'GETROTATEDSHAPEMAP$ SUB
-6095 NS$(I) = PS$
-6100 Return
+6000 '***CREATESHAPE***
+6010 DR(I)=1-(LV(I)*0.2)
+6020 IF DR(I)<=0 THEN DR(I)=0.1
+6030 IF NS(I)>=0 THEN SP(I)=NS(I) ELSE SP(I)=RND(7)
+6040 SA(I)=0
+6045 PS=SP(I): PA=SA(I)
+6050 GOSUB 10000 'GETROTATEDSM$
+6055 SM$(I)=PS$
+6060 SX(I)=3
+6070 SY(I)=-4
+6080 NS(I)=RND(7)
+6085 PS=NS(I): PA=0
+6090 GOSUB 10000 'GETROTATEDSM$
+6095 NS$(I)=PS$
+6100 RETURN
 
-7000 Rem ===DRAWPIT===
-7010 For Y = 0 To 15
-    7020 For X = 0 To 9
-        7030 BC$ = Mid$(PT$(I), ((10 * Y) + X) + 1, 1)
-        7035 PX = X: PY = Y
-        7040 GoSub 11000 'DRAWBLOCK SUB
-    7050 Next X
-7060 Next Y
-7070 Return
+7000 '***DRAWPIT***
+7010 For Y=0 To 15
+7020 For X=0 To 9
+7030 BC$=MID$(PT$(I),((10*Y)+X)+1,1)
+7035 PX=X: PY=Y
+7040 GOSUB 11000 'DRAWBLOCK
+7050 NEXT X
+7060 NEXT Y
+7070 RETURN
 
 8000 Rem ===DISPLAYSTATUS===
 8010 For I = 0 To NP
@@ -367,32 +355,29 @@ $Debug
 10510 PS$ = RM$
 10520 Return
 
-11000 Rem ===DRAWBLOCK===
-11005 Rem PARAMS: PX, PY
-11010 Color Val("&H" + BC$)
-11020 Locate PY + 1, PX + PL(I)
-11030 Print Chr$(219)
-11040 Return
+11000 '***DRAWBLOCK***
+11005 'PARAMS: PX, PY
+11010 'Color Val("&H" + BC$)
+11020 PRINT @(32*(PY+1))+PX+PL(I),Chr$(128)
+11040 RETURN
 
-12000 Rem ===DRAWSHAPE===
-12005 Rem PARAMS: PE
-12010 For X = 0 To 3
-    12020 For Y = 0 To 3
-        12030 X2 = SX(I) + X
-        12040 Y2 = SY(I) + Y
-        12050 If X2 >= 0 And X2 < 10 And Y2 >= 0 And Y2 < 16 Then
-            12060 If PE = TRUE Then
-                12070 BC$ = Mid$(PT$(I), ((Y2 * 10) + X2) + 1, 1)
-            12080 Else
-                12090 BC$ = Mid$(SM$(I), ((Y * 4) + X) + 1, 1)
-                12100 If BC$ = "0" Then BC$ = Mid$(PT$(I), ((Y2 * 10) + X2) + 1, 1)
-            12110 End If
-            12120 PX = X2: PY = Y2
-            12130 GoSub 11000 'DRAWBLOCK SUB
-        12140 End If
-    12150 Next Y
-12160 Next X
-12170 Return
+12000 '***DRAWSHAPE***
+12005 'PARAMS: PE
+12010 FOR X=0 TO 3
+12020 FOR Y=0 TO 3
+12030 X2=SX(I)+X
+12040 Y2=SY(I)+Y
+12050 IF X2>=0 AND X2<10 AND Y2>=0 AND Y2<16 THEN 12060
+12055 GOTO 12150
+12060 IF PE=TRUE THEN BC$=MID$(PT$(I),((Y2*10)+X2)+1,1) ELSE 12090
+12070 GOTO 12120
+12090 BC$=MID$(SM$(I),((Y*4)+X)+1,1)
+12100 IF BC$="0" THEN BC$=MID$(PT$(I),((Y2*10)+X2)+1,1)
+12120 PX=X2: PY=Y2
+12130 GOSUB 11000 'DRAWBLOCK
+12150 NEXT Y
+12160 NEXT X
+12170 RETURN
 
 13000 Rem ===SHAPECANMOVE===
 13010 Rem PARAMS: PS$, PX, PY / PM
