@@ -24,7 +24,6 @@ $Debug
 'TETRIS_STEP7:
 '   - BASIC classic no precedural
 'TETRIS STEP8:
-'   - ENDIF/DO/WHILE are deleted
 '   - optimisation and simplification
 '   - variable names supported by DRAGON 32/64
 '       NP = NUMPLAYERS
@@ -124,24 +123,25 @@ DefInt A-Z
 
 2000 Rem ===CHECKSCORES===
 2005 ID = I + 5
-2010 If SC(ID) <= SC(4) Then 2200
-2020 GoSub 4000 'MENUHEADER SUB
-2030 Locate 10, 8: Print "GREAT SCORE PLAYER " + Str$(I + 1)
-2040 Locate 11, 8: Input "NAME?: ", NM$(ID)
-2050 If Len(NM$(ID)) > 10 Then NM$(ID) = Left$(NM$(ID), 10)
-2055 NM$(ID) = UCase$(NM$(ID))
-2060 For J = 4 To 0 Step -1
-    2070 If SC(ID) > SC(J) Then 2080
-    2075 GoTo 2140
-    2080 If J < 4 Then 2090
-    2085 GoTo 2150
-    2090 SC(J + 1) = SC(J)
-    2100 NM$(J + 1) = NM$(J)
-    2110 GoTo 2150
-    2140 Exit For
-2150 Next J
-2160 SC(J + 1) = SC(ID)
-2170 NM$(J + 1) = NM$(ID)
+2010 If SC(ID) > SC(4) Then
+    2020 GoSub 4000 'MENUHEADER SUB
+    2030 Locate 10, 8: Print "GREAT SCORE PLAYER " + Str$(I + 1)
+    2040 Locate 11, 8: Input "NAME?: ", NM$(ID)
+    2050 If Len(NM$(ID)) > 10 Then NM$(ID) = Left$(NM$(ID), 10)
+    2055 NM$(ID) = UCase$(NM$(ID))
+    2060 For J = 4 To 0 Step -1
+        2070 If SC(ID) > SC(J) Then
+            2080 If J < 4 Then
+                2090 SC(J + 1) = SC(J)
+                2100 NM$(J + 1) = NM$(J)
+            2110 End if
+        2120 Else
+            2130 Exit For
+        2140 End If
+    2150 Next J
+    2160 SC(J + 1) = SC(ID)
+    2170 NM$(J + 1) = NM$(ID)
+2180 End If
 2200 Return
 
 3000 Rem ===MENU===
