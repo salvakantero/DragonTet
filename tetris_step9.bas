@@ -24,7 +24,7 @@
 'TETRIS STEP8:
 '   - optimisation and simplification
 'TETRIS STEP9:
-'   - converting to ugBASIC (last step)
+'   - converting ugBASIC (last step)
 
 DefInt A-Z
 
