@@ -92,8 +92,8 @@ checkScore:
 pi = i+5
 IF scores(pi) > scores(4) THEN
     GOSUB menuHeader
-    LOCATE 10, 6: PRINT "GREAT SCORE PLAYER " + STR$(i+1)
-    LOCATE 11, 6: PRINT "NAME?: ";: names$(pi) = INPUT$(10)
+    LOCATE 6, 10: PRINT "GREAT SCORE PLAYER " + STR$(i+1)
+    LOCATE 6, 11: PRINT "NAME?: ";: names$(pi) = INPUT$(10)
     names$(pi) = UPPER$(names$(pi))
     DIM continue AS SIGNED BYTE
     continue = true
@@ -117,6 +117,39 @@ RETURN
 
 '=== MENU ===
 menu:
+GOSUB menuHeader
+LOCATE 9, 9: PRINT "1) 1 PLAYER GAME"
+LOCATE 9, 10: PRINT "2) 2 PLAYER GAME"
+LOCATE 9, 11: PRINT "3) HIGH SCORES"
+LOCATE 9, 12: PRINT "4) EXIT"
+LOCATE 8, 15: PRINT "SELECT OPTION (1-4)"
+
+loop:
+key$ = ""
+key$ = INKEY$
+IF key$ = "" THEN GOTO loop
+IF key$ = "1" THEN numPlayers = 0: RETURN
+IF key$ = "2" THEN numPlayers = 1: RETURN
+IF key$ = "3" THEN GOTO jump1
+GOTO jump2
+
+jump1:
+FOR i = 0 TO 4
+    LOCATE 9, 9+i: PRINT "................"
+    LOCATE 9, 9+i: PRINT names$(i)
+    LOCATE 21, 9+i: PRINT scores(i)
+NEXT
+LOCATE 4, 15
+PRINT "PRESS ANY KEY TO CONTINUE..."
+
+key$ = ""
+loop2:
+key$ = INKEY$
+IF key$ = "" THEN GOTO loop2
+GOTO menu
+
+jump2:
+IF key$ = "4" THEN END
 RETURN
 
 
