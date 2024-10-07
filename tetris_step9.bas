@@ -93,22 +93,25 @@ pi = i+5
 IF scores(pi) > scores(4) THEN
     GOSUB menuHeader
     LOCATE 10, 6: PRINT "GREAT SCORE PLAYER " + STR$(i+1)
-    LOCATE 11, 6: INPUT "NAME?: ", names$(pi)
-    IF LEN(names$(pi)) > 10 Then names$(pi) = LEFT$(name$(pi), 10)
-    2055 NAMES$(PI) = UCase$(NAMES$(PI))
-    2060 For J = 4 To 0 Step -1
-        2070 If SCORES(PI) > SCORES(J) Then
-            2080 If J < 4 Then
-                2090 SCORES(J + 1) = SCORES(J)
-                2100 NAMES$(J + 1) = NAMES$(J)
-            2110 End If
-        2120 Else
-            2130 Exit For
-        2140 End If
-    2150 Next J
-    2160 SCORES(J + 1) = SCORES(PI)
-    2170 NAMES$(J + 1) = NAMES$(PI)
-2180 End If
+    LOCATE 11, 6: PRINT "NAME?: ";: names$(pi) = INPUT$(10)
+    names$(pi) = UPPER$(names$(pi))
+    DIM continue AS SIGNED BYTE
+    continue = true
+    FOR j = 4 TO 0 STEP -1
+    	IF continue = true THEN
+	        IF scores(pi) > scores(j) THEN
+	            IF j < 4 THEN
+	                scores(j+1) = scores(j)
+	                names$(j+1) = names$(j)
+	            ENDIF
+	        ELSE
+	            continue = false
+	        ENDIF
+	    ENDIF
+    NEXT
+    scores(j+1) = scores(pi)
+    names$(j+1) = names$(pi)
+ENDIF
 RETURN
 
 
