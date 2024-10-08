@@ -123,17 +123,15 @@ LOCATE 9, 10: PRINT "2) 2 PLAYER GAME"
 LOCATE 9, 11: PRINT "3) HIGH SCORES"
 LOCATE 9, 12: PRINT "4) EXIT"
 LOCATE 8, 15: PRINT "SELECT OPTION (1-4)"
-
 loop:
 key$ = ""
 key$ = INKEY$
 IF key$ = "" THEN GOTO loop
 IF key$ = "1" THEN numPlayers = 0: RETURN
 IF key$ = "2" THEN numPlayers = 1: RETURN
-IF key$ = "3" THEN GOTO jump1
+IF key$ = "3" THEN GOTO jump
 GOTO jump2
-
-jump1:
+jump:
 FOR i = 0 TO 4
     LOCATE 9, 9+i: PRINT "................"
     LOCATE 9, 9+i: PRINT names$(i)
@@ -141,13 +139,11 @@ FOR i = 0 TO 4
 NEXT
 LOCATE 4, 15
 PRINT "PRESS ANY KEY TO CONTINUE..."
-
 key$ = ""
 loop2:
 key$ = INKEY$
 IF key$ = "" THEN GOTO loop2
 GOTO menu
-
 jump2:
 IF key$ = "4" THEN END
 RETURN
@@ -155,11 +151,30 @@ RETURN
 
 '=== MENUHEADER ===
 menuHeader:
+CLS RED
+INK WHITE
+LOCATE 10, 2: PRINT "***************"
+LOCATE 10, 3: PRINT "* T E T R I S *"
+LOCATE 10, 4: PRINT "***************"
+LOCATE 10, 6: PRINT "SALVAKANTERO 2024"
 RETURN
 
 
 '=== CREATESHAPE ===
 createShape:
+dropRate(i) = 1-(level(i)*0.2)
+IF dropRate(i) <= 0 THEN dropRate(i) = 0.1
+IF nextShape(i) >= 0 THEN shape(i) = nextShape(i) ELSE shape(i) = RND(7)
+shapeAngle(i) = 0
+currentShape = shape(i): currentAngle = shapeAngle(i)
+GOSUB getRotatedShapeMap
+shapeMap$(i) = currentShapeMap$
+shapeX(i) = 3
+shapeY(i) = -4
+nextShape(i) = RND(7)
+currentShape = nextShape(i): currentAngle = 0
+GOSUB getRotatedShapeMap
+nextShapeMap$(i) = currentShapeMap$
 RETURN
 
 
