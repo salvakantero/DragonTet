@@ -118,11 +118,11 @@ RETURN
 '=== MENU ===
 menu:
 GOSUB menuHeader
-LOCATE 9, 9: PRINT "1) 1 PLAYER GAME"
-LOCATE 9, 10: PRINT "2) 2 PLAYER GAME"
-LOCATE 9, 11: PRINT "3) HIGH SCORES"
-LOCATE 9, 12: PRINT "4) EXIT"
-LOCATE 8, 15: PRINT "SELECT OPTION (1-4)"
+LOCATE 8, 9: PRINT "1) 1 PLAYER GAME"
+LOCATE 8, 10: PRINT "2) 2 PLAYER GAME"
+LOCATE 8, 11: PRINT "3) HIGH SCORES"
+LOCATE 8, 12: PRINT "4) EXIT"
+LOCATE 7, 15: PRINT "SELECT OPTION (1-4)"
 loop:
 key$ = ""
 key$ = INKEY$
@@ -133,11 +133,11 @@ IF key$ = "3" THEN GOTO jump
 GOTO jump2
 jump:
 FOR i = 0 TO 4
-    LOCATE 9, 9+i: PRINT "................"
-    LOCATE 9, 9+i: PRINT names$(i)
-    LOCATE 21, 9+i: PRINT scores(i)
+    LOCATE 8, 9+i: PRINT "................"
+    LOCATE 8, 9+i: PRINT names$(i)
+    LOCATE 20, 9+i: PRINT scores(i)
 NEXT
-LOCATE 4, 15
+LOCATE 3, 15
 PRINT "PRESS ANY KEY TO CONTINUE..."
 key$ = ""
 loop2:
@@ -151,20 +151,23 @@ RETURN
 
 '=== MENUHEADER ===
 menuHeader:
-CLS RED
-INK WHITE
-LOCATE 10, 2: PRINT "***************"
-LOCATE 10, 3: PRINT "* T E T R I S *"
-LOCATE 10, 4: PRINT "***************"
-LOCATE 10, 6: PRINT "SALVAKANTERO 2024"
+CLS
+LOCATE 9, 2: PRINT "***************"
+LOCATE 9, 3: PRINT "* T E T R I S *"
+LOCATE 9, 4: PRINT "***************"
+LOCATE 8, 6: PRINT "SALVAKANTERO 2024"
 RETURN
 
 
 '=== CREATESHAPE ===
 createShape:
 dropRate(i) = 1-(level(i)*0.2)
-IF dropRate(i) <= 0 THEN dropRate(i) = 0.1
-IF nextShape(i) >= 0 THEN shape(i) = nextShape(i) ELSE shape(i) = RND(7)
+IF dropRate(i) <= 0.0 THEN dropRate(i) = 0.1
+IF nextShape(i) >= 0 THEN 
+	shape(i) = nextShape(i) 
+ELSE 
+	shape(i) = RND(7)
+ENDIF
 shapeAngle(i) = 0
 currentShape = shape(i): currentAngle = shapeAngle(i)
 GOSUB getRotatedShapeMap
@@ -180,11 +183,59 @@ RETURN
 
 '=== DRAWPIT ===
 drawPit:
+FOR pitY = 0 TO 15
+	FOR pitX = 0 TO 9
+        blockColor$ = MID$(pit$(i), ((10*pitY)+pitX)+1, 1)
+        bX = pitX: bY = pitY
+        GOSUB drawBlock
+    NEXT
+NEXT
 RETURN
 
 
 '=== DISPLAYSTATUS ===
 displayStatus:
+FOR i = 0 TO numPlayers
+    IF gameOver(i) = false THEN
+        FOR blockX = 0 TO 3
+            FOR blockY = 0 TO 3
+                blockColor$ = MID$(nextShapeMap$(i), ((4*blockY)+blockX)+1, 1)
+                IF blockColor$ = "0" THEN blockColor$ = "2"
+                IF i = 0 THEN
+                    bX = blockX+17
+                    bY = blockY+4
+                    GOSUB drawBlock
+                ELSE
+                    bX = blockX-5
+                    bY = blockY+12
+                    GOSUB drawBlock
+                ENDIF
+            NEXT
+        NEXT
+    ENDIF
+NEXT
+i = i-1
+'8200 Color 0, 2
+IF gameOver(0) = true THEN
+    LOCATE 8, pitLeft(0)
+    PRINT "GAME OVER!"
+ENDIF
+LOCATE 2, 12: PRINT "=PLAYER 1="
+LOCATE 3, 12: PRINT "LEVEL:" + STR$(level(0))
+LOCATE 4, 12: PRINT "LINES:" + STR$(lines(0))
+LOCATE 5, 12: PRINT "SC:" + STR$(scores(5))
+LOCATE 6, 12: PRINT "NEXT:"
+IF numPlayers = 1 THEN
+    IF gameOver(1) = true THEN
+        LOCATE 8, pitLeft(1)
+        PRINT "GAME OVER!"
+    ENDIF
+    LOCATE 10, 12: PRINT "=PLAYER 2="
+    LOCATE 11, 12: PRINT "LEVEL:" + STR$(level(1))
+    LOCATE 12, 12: PRINT "LINES:" + STR$(lines(1))
+    LOCATE 13, 12: PRINT "SC:" + STR$(scores(6))
+    LOCATE 14, 12: PRINT "NEXT:"
+ENDIF
 RETURN
 
 
