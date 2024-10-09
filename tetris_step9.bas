@@ -24,7 +24,7 @@
 'TETRIS STEP8:
 '   - optimisation and simplification
 'TETRIS STEP9:
-'   - converting ugBASIC (last step)
+'   - converting generic ugBASIC
 
 ' ***TETRIS4DRAGON***
 '  SALVAKANTERO 2024
@@ -251,11 +251,32 @@ RETURN
 
 '=== DRAWBLOCK ===
 drawBlock:
+' PARAMS: bX, bY
+'Color Val("&H" + BLOCKCOLOR$)
+LOCATE bY+1, bX+pitLeft(i)
+PRINT CHR$(219)
 RETURN
 
 
 '=== DRAWSHAPE ===
 drawShape:
+' PARAMS: eraseShape
+FOR blockX = 0 TO 3
+    FOR blockY = 0 TO 3
+        pitX = shapeX(i)+blockX
+        pitY = shapeY(i)+blockY
+        IF pitX >= 0 AND pitX < 10 AND pitY >= 0 AND pitY < 16 THEN
+            IF eraseShape = true THEN
+                blockColor$ = MID$(pit$(i), ((pitY*10)+pitX)+1, 1)
+            ELSE
+                blockColor$ = MID$(shapeMap$(i), ((blockY*4)+blockX)+1, 1)
+                If blockColor$ = "0" THEN blockColor$ = MID$(pit$(i), ((pitY*10)+pitX)+1, 1)
+            ENDIF
+            bX = pitX: bY = pitY
+            GOSUB drawBlock
+        ENDIF
+    NEXT
+NEXT
 RETURN
 
 
