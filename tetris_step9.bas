@@ -314,49 +314,49 @@ RETURN
 
 '===GETROTATEDSHAPEMAP$===
 getRotatedShapeMap:
-10005 REM PARAMS: CURRENTSHAPE, CURRENTANGLE / CURRENTSHAPEMAP$
-10010 NEWBLOCKX = 0
-10020 NEWBLOCKY = 0
-10030 Select Case CURRENTSHAPE
-    10040 Case 0
-        10050 CURRENTSHAPEMAP$ = "0000333300000000" 'I
-    10060 Case 1
-        10070 CURRENTSHAPEMAP$ = "0000111000100000" 'L 1
-    10080 Case 2
-        10090 CURRENTSHAPEMAP$ = "0000666060000000" 'L 2
-    10100 Case 3
-        10110 CURRENTSHAPEMAP$ = "00000EE00EE00000" '[]
-    10120 Case 4
-        10130 CURRENTSHAPEMAP$ = "00000AA0AA000000" 'S 1
-    10140 Case 5
-        10150 CURRENTSHAPEMAP$ = "0000440004400000" 'S 2
-    10160 Case 6
-        10170 CURRENTSHAPEMAP$ = "0000555005000000" 'T
-    10180 Case Else
-        10190 CURRENTSHAPEMAP$ = ""
-10200 End Select
-10210 ROTATEDMAP$ = String$(4 * 4, "0")
-10220 If CURRENTANGLE = 0 Then '0
-    10230 Return
-10240 Else
-    10250 For BLOCKX = 0 To 3
-        10260 For BLOCKY = 0 To 3
-            10270 Select Case CURRENTANGLE
-                10280 Case 1 '270
-                    10290 NEWBLOCKX = BLOCKY
-                    10300 NEWBLOCKY = 3 - BLOCKX
-                10310 Case 2 '180
-                    10320 NEWBLOCKX = 3 - BLOCKX
-                    10330 NEWBLOCKY = 3 - BLOCKY
-                10340 Case 3 '90
-                    10350 NEWBLOCKX = 3 - BLOCKY
-                    10360 NEWBLOCKY = BLOCKX
-            10370 End Select
-            10380 Mid$(ROTATEDMAP$, ((NEWBLOCKY * 4) + NEWBLOCKX) + 1, 1) = Mid$(CURRENTSHAPEMAP$, ((BLOCKY * 4) + BLOCKX) + 1, 1)
-        10390 Next BLOCKY
-    10400 Next BLOCKX
-10500 End If
-10510 CURRENTSHAPEMAP$ = ROTATEDMAP$
+' PARAMS: currentShape, currentAngle / currentShapeMap$
+newBlockX = 0
+newBlockY = 0
+SELECT CASE currentShape
+    CASE 0
+        currentShapeMap$ = "0000333300000000" 'I
+    CASE 1
+        currentShapeMap$ = "0000111000100000" 'L 1
+    CASE 2
+        currentShapeMap$ = "0000666060000000" 'L 2
+    CASE 3
+        currentShapeMap$ = "00000EE00EE00000" '[]
+    CASE 4
+        currentShapeMap$ = "00000AA0AA000000" 'S 1
+    CASE 5
+        currentShapeMap$ = "0000440004400000" 'S 2
+    CASE 6
+        currentShapeMap$ = "0000555005000000" 'T
+    CASE ELSE
+        currentShapeMap$ = ""
+END SELECT
+rotatedMap$ = STRING("0", 4*4)
+IF currentAngle = 0 THEN '0
+    RETURN
+ELSE
+    FOR blockX = 0 TO 3
+        FOR blockY = 0 TO 3
+            SELECT CASE currentAngle
+                CASE 1 '270
+                    newBlockX = blockX
+                    newBlockY = 3-blockY
+                CASE 2 '180
+                    newBlockX = 3-blockX
+                    newBlockY = 3-blockY
+                CASE 3 '90
+                    newBlockX = 3-blockX
+                    newBlockY = blockY
+            END SELECT
+            MID$(rotatedMap$, ((newBlockY*4)+newBlockX)+1, 1) = MID$(currentShapeMap$, ((blockY*4)+blockX)+1, 1)
+        NEXT
+    NEXT
+ENDIF
+currentShapeMap$ = rotatedMap$
 RETURN
 
 
@@ -417,14 +417,14 @@ RETURN
 
 '=== DROPSHAPE ===
 dropShape:
-14010 BX = 0: BY = 1: CURRENTSHAPEMAP$ = SHAPEMAP$(I)
-14020 GoSub 13000 'SHAPECANMOVE SUB
-14030 If SHAPECANMOVE = TRUE Then
-    14040 ERASESHAPE = TRUE
-    14050 GoSub 12000 'DRAWSHAPE SUB
-    14060 SHAPEY(I) = SHAPEY(I) + 1
-    14070 ERASESHAPE = FALSE
-    14080 GoSub 12000 'DRAWSHAPE SUB
+BX = 0: BY = 1: CURRENTSHAPEMAP$ = SHAPEMAP$(I)
+GoSub 13000 'SHAPECANMOVE SUB
+If SHAPECANMOVE = TRUE Then
+    ERASESHAPE = TRUE
+    GoSub 12000 'DRAWSHAPE SUB
+    SHAPEY(I) = SHAPEY(I) + 1
+    ERASESHAPE = FALSE
+    GoSub 12000 'DRAWSHAPE SUB
 Else
     '===SETTLEACTIVESHAPEINPIT===
     For BLOCKY = 0 To 3
@@ -475,7 +475,6 @@ Else
         LINES(I) = LINES(I) + NUMLINES
         LEVEL(I) = (LINES(I) \ 10) + 1
     End If
-
     GoSub 7000 'DRAWPIT
     If GAMEOVER(I) = FALSE Then
         GoSub 6000 'CREATESHAPE SUB
