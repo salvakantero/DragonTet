@@ -50,6 +50,10 @@ DIM shapeX(2) AS BYTE
 DIM shapeY(2) AS BYTE
 DIM nextShape(2) AS SIGNED BYTE
 DIM nextShapeMap$(2) AS STRING
+DIM rotateKey(2) AS BYTE
+DIM downKey(2) AS BYTE
+DIM leftKey(2) AS BYTE
+DIM rightKey(2) AS BYTE
 
 RANDOMIZE TIMER
 pitLeft(0) = 1: pitLeft(1) = 23
@@ -241,10 +245,8 @@ RETURN
 
 '=== GAMELOOP ===
 gameLoop:
-'9010 ReDim ROTATEKEY$(NUMPLAYERS), DOWNKEY$(NUMPLAYERS)
-'9015 ReDim LEFTKEY$(NUMPLAYERS), RIGHTKEY$(NUMPLAYERS)
 startTime(0) = TIMER
-rotateKey$(0) = "w": downKey$(0) = "s": leftKey$(0) = "a": rightKey$(0) = "d"
+rotateKey(0) = "w": downKey(0) = "s": leftKey(0) = "a": rightKey(0) = "d"
 IF numPlayers > 0 THEN
     startTime(1) = TIMER
     rotateKey$(1) = "i": downKey$(1) = "k": leftKey$(1) = "j": rightKey$(1) = "l"
@@ -276,7 +278,7 @@ DO
                         IF shapeAngle(i) = 3 THEN newAngle = 0 ELSE newAngle = shapeAngle(i)+1
                         currentShape = shape(i)
                         currentAngle = newAngle
-                        GoSub getRotatedShapeMap
+                        GOSUB getRotatedShapeMap
                         rotatedMap$ = currentShapeMap$
                         bX = 0: bY = 0
                         GOSUB shapeCanMove
@@ -417,72 +419,73 @@ RETURN
 
 '=== DROPSHAPE ===
 dropShape:
-BX = 0: BY = 1: CURRENTSHAPEMAP$ = SHAPEMAP$(I)
-GoSub 13000 'SHAPECANMOVE SUB
-If SHAPECANMOVE = TRUE Then
-    ERASESHAPE = TRUE
-    GoSub 12000 'DRAWSHAPE SUB
-    SHAPEY(I) = SHAPEY(I) + 1
-    ERASESHAPE = FALSE
-    GoSub 12000 'DRAWSHAPE SUB
-Else
+bX = 0: bY = 1
+currentShapeMap$ = shapeMap$(i)
+GOSUB shapeCanMove
+IF shapeCanMove = true THEN
+    eraseShape = true
+    GOSUB drawShape
+    shapeY(i) = shapeY(i)+1
+    eraseShape = false
+    GOSUB drawShape
+ELSE
     '===SETTLEACTIVESHAPEINPIT===
-    For BLOCKY = 0 To 3
-        For BLOCKX = 0 To 3
-            PITX = SHAPEX(I) + BLOCKX
-            PITY = SHAPEY(I) + BLOCKY
-            If PITX >= 0 And PITX < 10 And PITY >= 0 And PITY < 16 Then
-                If Not Mid$(SHAPEMAP$(I), ((BLOCKY * 4) + BLOCKX) + 1, 1) = "0" Then
-                    Mid$(PIT$(I), ((PITY * 10) + PITX) + 1, 1) = Mid$(SHAPEMAP$(I), ((BLOCKY * 4) + BLOCKX) + 1, 1)
-                End If
-            End If
-        Next BLOCKX
-    Next BLOCKY
-    GAMEOVER(I) = (SHAPEY(I) < 0)
+    FOR blockY = 0 TO 3
+        FOR blockX = 0 TO 3
+            pitX = shapeX(i)+blockX
+            pitY = shapeY(i)+blockY
+            IF pitX >= 0 AND pitX < 10 AND pitY >= 0 AND pitY < 16 THEN
+                IF NOT MID$(shapeMap$(i), ((blockY*4)+blockX)+1, 1) = "0" THEN
+                    MID$(pit$(i), ((pitY*10)+pitX)+1, 1) = MID$(shapeMap$(i), ((blockY*4)+blockX)+1, 1)
+                ENDIF
+            ENDIF
+        NEXT
+    NEXT
+    gameOver(i) = (shapeY(i) < 0)
     '===CHECKFORFULLROWS===
-    FULLROW = FALSE
-    NUMLINES = 0
-    For PITY = 0 To 15
-        FULLROW = TRUE
-        For PITX = 0 To 9
-            If Mid$(PIT$(I), ((PITY * 10) + PITX) + 1, 1) = "0" Then
-                FULLROW = FALSE
-                Exit For
-            End If
-        Next PITX
-        If FULLROW = TRUE Then
+    fullRow = false
+    numLines = 0
+    FOR pitY = 0 TO 15
+        fullRow = true
+        FOR pitX = 0 TO 9
+            IF MID$(pit$(i), ((pitY*10)+pitX)+1, 1) = "0" THEN
+                fullRow = false
+                'Exit For
+            ENDIF
+        NEXT
+        IF fullRow = true THEN
             '===REMOVEFULLROW===
-            REMOVEDROW = PITY
-            For PITYY = REMOVEDROW To 0 Step -1
-                For PITXX = 0 To 9
-                    If PITYY = 0 Then
-                        BLOCKCOLOR$ = "0"
-                    Else
-                        BLOCKCOLOR$ = Mid$(PIT$(I), (((PITYY - 1) * 10) + PITXX) + 1, 1)
-                    End If
-                    Mid$(PIT$(I), ((PITYY * 10) + PITXX) + 1, 1) = BLOCKCOLOR$
-                Next PITXX
-            Next PITYY
-            NUMLINES = NUMLINES + 1
-        End If
-    Next PITY
-    If NUMLINES > 0 Then
-        J = I + 5
-        If NUMLINES = 1 Then SCORES(J) = SCORES(J) + (100 * LEVEL(I))
-        If NUMLINES = 2 Then SCORES(J) = SCORES(J) + (300 * LEVEL(I))
-        If NUMLINES = 3 Then SCORES(J) = SCORES(J) + (500 * LEVEL(I))
-        If NUMLINES = 4 Then SCORES(J) = SCORES(J) + (800 * LEVEL(I)) 'TETRIS!
-        LINES(I) = LINES(I) + NUMLINES
-        LEVEL(I) = (LINES(I) \ 10) + 1
-    End If
-    GoSub 7000 'DRAWPIT
-    If GAMEOVER(I) = FALSE Then
-        GoSub 6000 'CREATESHAPE SUB
-        ERASESHAPE = FALSE
-        GoSub 12000 'DRAWSHAPE SUB
-    End If
-    GoSub 8000 'DISPLAYSTATUS SUB
-End If
+            removedRow = pitY
+            FOR pitYY = removedRow TO 0 STEP -1
+                FOR pitXX = 0 TO 9
+                    IF pitYY = 0 THEN
+                        blockColor$ = "0"
+                    ELSE
+                        blockColor$ = MID$(pit$(i), (((pitYY-1)*10)+pitXX)+1, 1)
+                    ENDIF
+                    MID$(pit$(i), ((pitYY*10)+pitXX)+1, 1) = blockColor$
+                NEXT
+            NEXT
+            numLines = numLines+1
+        ENDIF
+    NEXT
+    IF numLines > 0 THEN
+        j = i+5
+        IF numLines = 1 Then scores(j) = scores(j)+(100*level(i))
+        IF numLines = 2 Then scores(j) = scores(j)+(300*level(i))
+        IF numLines = 3 Then scores(j) = scores(j)+(500*level(i))
+        IF numLines = 4 Then scores(j) = scores(j)+(800*level(i)) 'TETRIS!
+        lines(i) = lines(i)+numLines
+        level(i) = (lines(i)\10)+1
+    ENDIF
+    GOSUB drawPit
+    IF gameOver(i) = false THEN
+        GOSUB createShape
+        eraseShape = false
+        GOSUB drawShape
+    ENDIF
+    GOSUB displayStatus
+ENDIF
 RETURN
 
 
