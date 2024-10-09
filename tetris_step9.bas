@@ -241,11 +241,122 @@ RETURN
 
 '=== GAMELOOP ===
 gameLoop:
+'9010 ReDim ROTATEKEY$(NUMPLAYERS), DOWNKEY$(NUMPLAYERS)
+'9015 ReDim LEFTKEY$(NUMPLAYERS), RIGHTKEY$(NUMPLAYERS)
+startTime(0) = TIMER
+rotateKey$(0) = "w": downKey$(0) = "s": leftKey$(0) = "a": rightKey$(0) = "d"
+IF numPlayers > 0 THEN
+    startTime(1) = TIMER
+    rotateKey$(1) = "i": downKey$(1) = "k": leftKey$(1) = "j": rightKey$(1) = "l"
+ENDIF
+DO
+    key$ = ""
+    DO WHILE key$ = ""
+        FOR i = 0 TO numPlayers
+            IF gameOver(i) = false THEN
+                IF TIMER >= startTime(i)+dropRate(i) OR startTime(i) > TIMER THEN
+                    GOSUB dropShape
+                    startTime(i) = TIMER
+                ENDIF
+            ENDIF
+        NEXT
+        key$ = INKEY$
+    LOOP
+    IF key$ = CHR$(27) THEN
+        RETURN
+    ELSE
+        FOR i = 0 TO numPlayers
+            IF gameOver(i) = true THEN
+                IF key$ = CHR$(13) THEN RETURN
+            ELSE
+                SELECT CASE key$
+                    CASE rotateKey$(i)
+                        eraseShape = true
+                        GOSUB drawShape
+                        IF shapeAngle(i) = 3 THEN newAngle = 0 ELSE newAngle = shapeAngle(i)+1
+                        currentShape = shape(i)
+                        currentAngle = newAngle
+                        GoSub getRotatedShapeMap
+                        rotatedMap$ = currentShapeMap$
+                        bX = 0: bY = 0
+                        GOSUB shapeCanMove
+                        IF shapeCanMove = true THEN
+                            shapeAngle(i) = newAngle
+                            shapeMap$(i) = rotatedMap$
+                        ENDIF
+                        eraseShape = false
+                        GOSUB drawShape
+                    CASE leftKey$(i)
+                        eraseShape = true
+                        GOSUB drawShape
+                        bX = -1: bY = 0: currentShapeMap$ = shapeMap$(i)
+                        GOSUB shapeCanMove
+                        IF shapeCanMove = true THEN shapeX(i) = shapeX(i)-1
+                        eraseShape = false
+                        GOSUB drawShape
+                    CASE rightKey$(i)
+                        eraseShape = true
+                        GOSUB drawShape
+                        bX = 1: bY = 0: currentShapeMap$ = shapeMap$(i)
+                        GOSUB shapeCanMove
+                        IF shapeCanMove = true THEN shapeX(i) = shapeX(i)+1
+                        eraseShape = false
+                        GOSUB drawShape
+                    CASE downKey$(i)
+                        dropRate(i) = 0
+                END SELECT
+            ENDIF
+        NEXT
+    ENDIF
+LOOP
 RETURN
 
 
 '===GETROTATEDSHAPEMAP$===
 getRotatedShapeMap:
+10005 REM PARAMS: CURRENTSHAPE, CURRENTANGLE / CURRENTSHAPEMAP$
+10010 NEWBLOCKX = 0
+10020 NEWBLOCKY = 0
+10030 Select Case CURRENTSHAPE
+    10040 Case 0
+        10050 CURRENTSHAPEMAP$ = "0000333300000000" 'I
+    10060 Case 1
+        10070 CURRENTSHAPEMAP$ = "0000111000100000" 'L 1
+    10080 Case 2
+        10090 CURRENTSHAPEMAP$ = "0000666060000000" 'L 2
+    10100 Case 3
+        10110 CURRENTSHAPEMAP$ = "00000EE00EE00000" '[]
+    10120 Case 4
+        10130 CURRENTSHAPEMAP$ = "00000AA0AA000000" 'S 1
+    10140 Case 5
+        10150 CURRENTSHAPEMAP$ = "0000440004400000" 'S 2
+    10160 Case 6
+        10170 CURRENTSHAPEMAP$ = "0000555005000000" 'T
+    10180 Case Else
+        10190 CURRENTSHAPEMAP$ = ""
+10200 End Select
+10210 ROTATEDMAP$ = String$(4 * 4, "0")
+10220 If CURRENTANGLE = 0 Then '0
+    10230 Return
+10240 Else
+    10250 For BLOCKX = 0 To 3
+        10260 For BLOCKY = 0 To 3
+            10270 Select Case CURRENTANGLE
+                10280 Case 1 '270
+                    10290 NEWBLOCKX = BLOCKY
+                    10300 NEWBLOCKY = 3 - BLOCKX
+                10310 Case 2 '180
+                    10320 NEWBLOCKX = 3 - BLOCKX
+                    10330 NEWBLOCKY = 3 - BLOCKY
+                10340 Case 3 '90
+                    10350 NEWBLOCKX = 3 - BLOCKY
+                    10360 NEWBLOCKY = BLOCKX
+            10370 End Select
+            10380 Mid$(ROTATEDMAP$, ((NEWBLOCKY * 4) + NEWBLOCKX) + 1, 1) = Mid$(CURRENTSHAPEMAP$, ((BLOCKY * 4) + BLOCKX) + 1, 1)
+        10390 Next BLOCKY
+    10400 Next BLOCKX
+10500 End If
+10510 CURRENTSHAPEMAP$ = ROTATEDMAP$
 RETURN
 
 
@@ -282,11 +393,97 @@ RETURN
 
 '=== SHAPECANMOVE ===
 shapeCanMove:
+' PARAMS: currentShapeMap$, bX, bY / shapeCanMove
+FOR blockY = 0 TO 3
+    FOR blockX = 0 TO 3
+        IF NOT MID$(currentShapeMap$, ((blockY*4)+blockX)+1, 1) = "0" THEN
+            pitX = (shapeX(i)+blockX)+bX
+            pitY = (shapeY(i)+blockY)+bY
+            IF pitX >= 0 AND pitX < 10 AND pitY >= 0 AND pitY < 16 THEN
+                IF NOT MID$(pit$(i), (((pitY*10)+pitX)+1), 1) = "0" THEN
+                    shapeCanMove = false
+                    RETURN
+                ENDIF
+            ELSE IF pitX < 0 OR pitX >= 10 OR pitY >= 16 THEN
+                shapeCanMove = false
+                RETURN
+            ENDIF
+        ENDIF
+    NEXT
+NEXT
+shapeCanMove = true
 RETURN
 
 
 '=== DROPSHAPE ===
 dropShape:
+14010 BX = 0: BY = 1: CURRENTSHAPEMAP$ = SHAPEMAP$(I)
+14020 GoSub 13000 'SHAPECANMOVE SUB
+14030 If SHAPECANMOVE = TRUE Then
+    14040 ERASESHAPE = TRUE
+    14050 GoSub 12000 'DRAWSHAPE SUB
+    14060 SHAPEY(I) = SHAPEY(I) + 1
+    14070 ERASESHAPE = FALSE
+    14080 GoSub 12000 'DRAWSHAPE SUB
+Else
+    '===SETTLEACTIVESHAPEINPIT===
+    For BLOCKY = 0 To 3
+        For BLOCKX = 0 To 3
+            PITX = SHAPEX(I) + BLOCKX
+            PITY = SHAPEY(I) + BLOCKY
+            If PITX >= 0 And PITX < 10 And PITY >= 0 And PITY < 16 Then
+                If Not Mid$(SHAPEMAP$(I), ((BLOCKY * 4) + BLOCKX) + 1, 1) = "0" Then
+                    Mid$(PIT$(I), ((PITY * 10) + PITX) + 1, 1) = Mid$(SHAPEMAP$(I), ((BLOCKY * 4) + BLOCKX) + 1, 1)
+                End If
+            End If
+        Next BLOCKX
+    Next BLOCKY
+    GAMEOVER(I) = (SHAPEY(I) < 0)
+    '===CHECKFORFULLROWS===
+    FULLROW = FALSE
+    NUMLINES = 0
+    For PITY = 0 To 15
+        FULLROW = TRUE
+        For PITX = 0 To 9
+            If Mid$(PIT$(I), ((PITY * 10) + PITX) + 1, 1) = "0" Then
+                FULLROW = FALSE
+                Exit For
+            End If
+        Next PITX
+        If FULLROW = TRUE Then
+            '===REMOVEFULLROW===
+            REMOVEDROW = PITY
+            For PITYY = REMOVEDROW To 0 Step -1
+                For PITXX = 0 To 9
+                    If PITYY = 0 Then
+                        BLOCKCOLOR$ = "0"
+                    Else
+                        BLOCKCOLOR$ = Mid$(PIT$(I), (((PITYY - 1) * 10) + PITXX) + 1, 1)
+                    End If
+                    Mid$(PIT$(I), ((PITYY * 10) + PITXX) + 1, 1) = BLOCKCOLOR$
+                Next PITXX
+            Next PITYY
+            NUMLINES = NUMLINES + 1
+        End If
+    Next PITY
+    If NUMLINES > 0 Then
+        J = I + 5
+        If NUMLINES = 1 Then SCORES(J) = SCORES(J) + (100 * LEVEL(I))
+        If NUMLINES = 2 Then SCORES(J) = SCORES(J) + (300 * LEVEL(I))
+        If NUMLINES = 3 Then SCORES(J) = SCORES(J) + (500 * LEVEL(I))
+        If NUMLINES = 4 Then SCORES(J) = SCORES(J) + (800 * LEVEL(I)) 'TETRIS!
+        LINES(I) = LINES(I) + NUMLINES
+        LEVEL(I) = (LINES(I) \ 10) + 1
+    End If
+
+    GoSub 7000 'DRAWPIT
+    If GAMEOVER(I) = FALSE Then
+        GoSub 6000 'CREATESHAPE SUB
+        ERASESHAPE = FALSE
+        GoSub 12000 'DRAWSHAPE SUB
+    End If
+    GoSub 8000 'DISPLAYSTATUS SUB
+End If
 RETURN
 
 
