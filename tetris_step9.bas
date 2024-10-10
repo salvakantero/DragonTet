@@ -30,6 +30,7 @@
 '  SALVAKANTERO 2024
 
 DEFINE FLOAT PRECISION SINGLE
+'DEFINE SCREEN MODE UNIQUE
 
 DIM true AS SIGNED BYTE = -1
 DIM false AS SIGNED BYTE = 0
@@ -50,10 +51,10 @@ DIM shapeX(2) AS BYTE
 DIM shapeY(2) AS BYTE
 DIM nextShape(2) AS SIGNED BYTE
 DIM nextShapeMap$(2) AS STRING
-DIM rotateKey(2) AS BYTE
-DIM downKey(2) AS BYTE
-DIM leftKey(2) AS BYTE
-DIM rightKey(2) AS BYTE
+DIM rotateKey$(2) AS STRING
+DIM downKey$(2) AS STRING
+DIM leftKey$(2) AS STRING
+DIM rightKey$(2) AS STRING
 
 RANDOMIZE TIMER
 pitLeft(0) = 1: pitLeft(1) = 23
@@ -246,14 +247,14 @@ RETURN
 '=== GAMELOOP ===
 gameLoop:
 startTime(0) = TIMER
-rotateKey(0) = "w": downKey(0) = "s": leftKey(0) = "a": rightKey(0) = "d"
+rotateKey$(0) = "W": downKey$(0) = "S": leftKey$(0) = "A": rightKey$(0) = "D"
 IF numPlayers > 0 THEN
     startTime(1) = TIMER
-    rotateKey$(1) = "i": downKey$(1) = "k": leftKey$(1) = "j": rightKey$(1) = "l"
+    rotateKey$(1) = "I": downKey$(1) = "K": leftKey$(1) = "J": rightKey$(1) = "L"
 ENDIF
 DO
     key$ = ""
-    DO WHILE key$ = ""
+    WHILE key$ = ""
         FOR i = 0 TO numPlayers
             IF gameOver(i) = false THEN
                 IF TIMER >= startTime(i)+dropRate(i) OR startTime(i) > TIMER THEN
@@ -263,19 +264,25 @@ DO
             ENDIF
         NEXT
         key$ = INKEY$
-    LOOP
+    WEND
     IF key$ = CHR$(27) THEN
         RETURN
     ELSE
         FOR i = 0 TO numPlayers
             IF gameOver(i) = true THEN
-                IF key$ = CHR$(13) THEN RETURN
+                IF key$ = CHR$(13) THEN 
+                	RETURN
+                ENDIF
             ELSE
                 SELECT CASE key$
                     CASE rotateKey$(i)
                         eraseShape = true
                         GOSUB drawShape
-                        IF shapeAngle(i) = 3 THEN newAngle = 0 ELSE newAngle = shapeAngle(i)+1
+                        IF shapeAngle(i) = 3 THEN 
+                        	newAngle = 0 
+                        ELSE 
+                        	newAngle = shapeAngle(i)+1
+                        ENDIF
                         currentShape = shape(i)
                         currentAngle = newAngle
                         GOSUB getRotatedShapeMap
@@ -293,7 +300,9 @@ DO
                         GOSUB drawShape
                         bX = -1: bY = 0: currentShapeMap$ = shapeMap$(i)
                         GOSUB shapeCanMove
-                        IF shapeCanMove = true THEN shapeX(i) = shapeX(i)-1
+                        IF shapeCanMove = true THEN 
+                        	shapeX(i) = shapeX(i)-1
+                        ENDIF
                         eraseShape = false
                         GOSUB drawShape
                     CASE rightKey$(i)
@@ -301,12 +310,14 @@ DO
                         GOSUB drawShape
                         bX = 1: bY = 0: currentShapeMap$ = shapeMap$(i)
                         GOSUB shapeCanMove
-                        IF shapeCanMove = true THEN shapeX(i) = shapeX(i)+1
+                        IF shapeCanMove = true THEN 
+                        	shapeX(i) = shapeX(i)+1
+                        ENDIF
                         eraseShape = false
                         GOSUB drawShape
                     CASE downKey$(i)
                         dropRate(i) = 0
-                END SELECT
+                ENDSELECT
             ENDIF
         NEXT
     ENDIF
@@ -321,39 +332,43 @@ newBlockX = 0
 newBlockY = 0
 SELECT CASE currentShape
     CASE 0
-        currentShapeMap$ = "0000333300000000" 'I
+        currentShapeMap$ = "0000333300000000": 'I
     CASE 1
-        currentShapeMap$ = "0000111000100000" 'L 1
+        currentShapeMap$ = "0000111000100000": 'L 1
     CASE 2
-        currentShapeMap$ = "0000666060000000" 'L 2
+        currentShapeMap$ = "0000666060000000": 'L 2
     CASE 3
-        currentShapeMap$ = "00000EE00EE00000" '[]
+        currentShapeMap$ = "00000EE00EE00000": '[]
     CASE 4
-        currentShapeMap$ = "00000AA0AA000000" 'S 1
+        currentShapeMap$ = "00000AA0AA000000": 'S 1
     CASE 5
-        currentShapeMap$ = "0000440004400000" 'S 2
+        currentShapeMap$ = "0000440004400000": 'S 2
     CASE 6
-        currentShapeMap$ = "0000555005000000" 'T
+        currentShapeMap$ = "0000555005000000": 'T
     CASE ELSE
         currentShapeMap$ = ""
-END SELECT
+ENDSELECT
 rotatedMap$ = STRING("0", 4*4)
-IF currentAngle = 0 THEN '0
+'0 degrees
+IF currentAngle = 0 THEN
     RETURN
 ELSE
     FOR blockX = 0 TO 3
         FOR blockY = 0 TO 3
             SELECT CASE currentAngle
-                CASE 1 '270
+            	'270 degrees
+                CASE 1
                     newBlockX = blockX
                     newBlockY = 3-blockY
-                CASE 2 '180
+                '180 degrees
+                CASE 2
                     newBlockX = 3-blockX
                     newBlockY = 3-blockY
-                CASE 3 '90
+                '90 degrees
+                CASE 3
                     newBlockX = 3-blockX
                     newBlockY = blockY
-            END SELECT
+            ENDSELECT
             MID$(rotatedMap$, ((newBlockY*4)+newBlockX)+1, 1) = MID$(currentShapeMap$, ((blockY*4)+blockX)+1, 1)
         NEXT
     NEXT
@@ -471,12 +486,12 @@ ELSE
     NEXT
     IF numLines > 0 THEN
         j = i+5
-        IF numLines = 1 Then scores(j) = scores(j)+(100*level(i))
-        IF numLines = 2 Then scores(j) = scores(j)+(300*level(i))
-        IF numLines = 3 Then scores(j) = scores(j)+(500*level(i))
-        IF numLines = 4 Then scores(j) = scores(j)+(800*level(i)) 'TETRIS!
+        IF numLines = 1 THEN scores(j) = scores(j)+(100*level(i))
+        IF numLines = 2 THEN scores(j) = scores(j)+(300*level(i))
+        IF numLines = 3 THEN scores(j) = scores(j)+(500*level(i))
+        IF numLines = 4 THEN scores(j) = scores(j)+(800*level(i))
         lines(i) = lines(i)+numLines
-        level(i) = (lines(i)\10)+1
+        level(i) = (lines(i)/10)+1
     ENDIF
     GOSUB drawPit
     IF gameOver(i) = false THEN
@@ -487,5 +502,3 @@ ELSE
     GOSUB displayStatus
 ENDIF
 RETURN
-
-
