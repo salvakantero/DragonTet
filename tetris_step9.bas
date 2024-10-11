@@ -35,8 +35,8 @@ DEFINE FLOAT PRECISION SINGLE
 DIM true AS SIGNED BYTE = -1
 DIM false AS SIGNED BYTE = 0
 DIM numPlayers AS BYTE = 2
-DIM names$(6) AS STRING
-DIM scores(6) AS WORD
+DIM names$(7) AS STRING
+DIM scores(7) AS WORD
 DIM gameOver(2) AS BYTE
 DIM dropRate(2) AS FLOAT
 DIM startTime(2) AS FLOAT
