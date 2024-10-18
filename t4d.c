@@ -7,28 +7,41 @@
 #define KEYBOARD_STATUS 0xFF02 // dirección de registro de estado del teclado
 #define KEYBOARD_DATA 0xFF00 // dirección de registro de datos del teclado
 
-char key;
-unsigned char i;
-unsigned char numPlayers;
-unsigned char pitLeft[2];
-char names[7][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","",""};
-int scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
+/*
+unsigned char:	byte
+signed char:	char/sbyte
+unsigned int:	word
+signed int:		int/sword
+unsigned long:	dword
+signed long:	sdword
+*/
 
-void drawString(int x, int y, const char *str) {
+byte key;
+byte i;
+byte numPlayers;
+byte pitLeft[2];
+char names[7][11] = {"DRAGON1","DRAGON2","DRAGON3","DRAGON4","DRAGON5","",""};
+word scores[7] = {1400, 1300, 1200, 1100, 100, 0, 0};
+
+void drawString(word x, word y, const char *str) {
     char *screenPos = (char *) (SCREEN_BASE_ADDR + x + y * SCREEN_WIDTH);
     memcpy(screenPos, str, strlen(str));
 }
 
 void drawHighScores() {
+	char strScore[20];
     for(i = 0; i < 5; i++) {
-        drawString(9, 9 + i, "................");
-        drawString(9, 9 + i, names[i]);
-        drawString(21, 9 + i, "1000");
+        drawString(8, 8 + i, "................");
+        drawString(8, 8 + i, names[i]);
+		sprintf(strScore, "%5d", scores[i]);
+        drawString(20, 8 + i, strScore);
 	}
-    drawString(4, 15, "Press any key to continue...");
+    drawString(2, 14, "PRESS ANY KEY TO CONTINUE...");
+	waitkey(0);
 }
 
 void drawHeader() {
+	cls(1);
     drawString(9, 1, "***************");
     drawString(9, 2, "* T E T R I S *");
     drawString(9, 3, "***************");
@@ -36,31 +49,35 @@ void drawHeader() {
 }
 
 void drawMenu() {
-	drawString(8, 8, "1) 1 PLAYER GAME");
-    drawString(8, 9, "2) 2 PLAYER GAME");
-    drawString(8, 10, "3) HIGH SCORES");
-    drawString(8, 11, "4) EXIT");
+	drawHeader();
+	drawString(8, 8, "1)  1 PLAYER GAME");
+    drawString(8, 9, "2)  2 PLAYER GAME");
+    drawString(8, 10, "3)  HIGH SCORES");
+    drawString(8, 11, "4)  EXIT");
     drawString(7, 14, "SELECT OPTION (1-4)");	
 }
 
 void Menu() {
-	cls(1);
-	drawHeader();
 	drawMenu();
     do {
-        key = getch();
-        if (key == '1') {
+        key = inkey();		
+        if (key == '1')	{
             numPlayers = 1;
             break;
-        } else if (key == '2') {
+        } 
+		else if (key == '2') {
             numPlayers = 2;
             break;
-        } else if (key == '3') {
+        } 
+		else if (key == '3') {			
             drawHighScores();
 			drawMenu();
-        } else if (key == '4')
-            exit(0);     
-    } while (1);
+        } 
+		else if (key == '4') {
+			cls(1);
+            exit(0);
+		}
+    } while (TRUE);
 }
 
 void Init() {
@@ -70,7 +87,7 @@ void Init() {
     pitLeft[1] = 23;
 }
 
-void CheckScores(unsigned char player) {
+void CheckScores(byte player) {
     // Lógica para verificar si las puntuaciones son de TOP 5
 }
 
