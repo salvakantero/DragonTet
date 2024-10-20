@@ -39,40 +39,54 @@ void drawString(word x, word y, const char *str) {
     memcpy(screenPos, str, strlen(str));
 }*/
 
-void displayStatus() {
-	/*
-    Color 0, 2
-
-    'player 1
-    If GameOver(0) = TRUE Then
-        Locate 8, PITLEFT(0)
-        Print "GAME OVER!"
-    End If
-    Locate 2, 12: Print "=PLAYER 1="
-    Locate 3, 12: Print "Level:" + Str$(Level(0)) 'pinta el num. de nivel
-    Locate 4, 12: Print "Lines:" + Str$(Lines(0)) 'pinta las lineas
-    Locate 5, 12: Print "Sc:" + Str$(Scores(5)) 'pinta la puntuacion
-    Locate 6, 12: Print "Next:"
-
-    'player 2
-    If NumPlayers = 1 Then
-        If GameOver(1) = TRUE Then
-            Locate 8, PITLEFT(1)
-            Print "GAME OVER!"
-        End If
-        Locate 10, 12: Print "=PLAYER 2="
-        Locate 11, 12: Print "Level:" + Str$(Level(1)) 'pinta el num. de nivel
-        Locate 12, 12: Print "Lines:" + Str$(Lines(1)) 'pinta las lineas
-        Locate 13, 12: Print "Sc:" + Str$(Scores(6)) 'pinta la puntuacion
-        Locate 14, 12: Print "Next:"
-    End If
-
-    For i = 0 To NumPlayers
-        If GameOver(i) = FALSE Then DrawNextShape i
-    Next i */
+void drawNextShape(byte player) {
+/*
+    'para todos los bloques de la pieza
+    For BlockX = 0 To LASTSIDEBLOCK
+        For BlockY = 0 To LASTSIDEBLOCK
+            'color de la pieza
+            BlockColor$ = Mid$(NextShapeMap$(i), ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1)
+            If BlockColor$ = NOBLOCK$ Then BlockColor$ = "2"
+            If i = 0 Then
+                DrawBlock BlockColor$, BlockX + 17, BlockY + 4, i 'pinta el bloque
+            Else
+                DrawBlock BlockColor$, BlockX - 5, BlockY + 12, i 'pinta el bloque
+            End If
+        Next BlockY
+    Next BlockX */
 }
 
-void drawPit(i) {
+void displayStatus(void) {
+    // player 1
+    if (gameOver[0] == TRUE) {
+        locate(8, pitLeft[0]);
+        printf("GAME OVER!");
+    }
+    locate(2, 12); printf("=PLAYER 1=");
+    locate(3, 12); printf("Level: %u", level[0]); // pinta el num. de nivel
+    locate(4, 12); printf("Lines: %u", lines[0]); // pinta las lineas
+    locate(5, 12); printf("Sc: %d", scores[5]); // pinta la puntuacion
+    locate(6, 12); printf("Next:");
+
+    // player 2
+    if (numPlayers == 2) {
+        if (gameOver[1] == TRUE) {
+			locate(8, pitLeft[1]);
+			printf("GAME OVER!");
+        }
+        locate(10, 12); printf("=PLAYER 2=");
+        locate(11, 12); printf("Level: %u", level[1]); // pinta el num. de nivel
+        locate(12, 12); printf("Lines: %u", lines[1]); // pinta las lineas
+        locate(13, 12); printf("Sc: %d", scores[6]); // pinta la puntuacion
+        locate(14, 12); printf("Next:");
+    }
+
+    for (i=0; i<=numPlayers; i++)
+        if (gameOver[i] == FALSE)
+			drawNextShape(i);
+}
+
+void drawPit(byte player) {
 	/*
     'repinta el contenido del foso
     For PitY = 0 To PITHEIGHT - 1
@@ -83,7 +97,7 @@ void drawPit(i) {
     Next PitY */
 }
 
-void createShape(i) {
+void createShape(byte player) {
 	/*
     DropRate!(i) = 1 - (Level(i) * 0.2) 'tiempo de caida variable segun el nivel
     If DropRate!(i) <= 0 Then DropRate!(i) = .1 'limite de caida de .1
@@ -97,7 +111,7 @@ void createShape(i) {
     CreateNextShape (i) */
 }
 
-void drawHighScores() {
+void drawHighScores(void) {
     for(i = 0; i < 5; i++) {
         locate(7, 8 + i);  printf("................");
         locate(7, 8 + i);  printf("%s", names[i]);
@@ -107,14 +121,14 @@ void drawHighScores() {
 	waitkey(0);
 }
 
-void drawHeader() {
+void drawHeader(void) {
     locate(8, 1); printf("***************");
     locate(8, 2); printf("* T E T R I S *");
     locate(8, 3); printf("***************");
     locate(7, 5); printf("SALVAKANTERO 2024");
 }
 
-void drawMenu() {
+void drawMenu(void) {
 	cls(1);
 	drawHeader();
 	locate(7, 8);  printf("1)  1 PLAYER GAME");
@@ -124,7 +138,7 @@ void drawMenu() {
     locate(6, 14); printf("SELECT OPTION (1-4)");	
 }
 
-void menu() {
+void menu(void) {
 	drawMenu();
     do {
         key = inkey();		
@@ -148,8 +162,9 @@ void menu() {
 }
 
 // lógica para inicializar el sistema y los fosos
-void init() {
+void init(void) {
     menu();
+	cls(1);
     pitLeft[0] = 1;
     pitLeft[1] = 23;
 	for(i = 0; i <= numPlayers; i++) {
@@ -165,15 +180,119 @@ void init() {
     displayStatus();
 }
 
+void mainLoop(void) { // bucle principal
+/*
+    StartTime!(0) = Timer 'guarda el tiempo de inicio para jugador 0
+    If NumPlayers > 0 Then
+        StartTime!(1) = Timer 'guarda el tiempo de inicio para jugador 1
+    End If
+
+    Do
+        Key$ = ""
+        Do While Key$ = "" 'mientras no se pulse una tecla
+            For i = 0 To NumPlayers 'bucle para ambos jugadores
+                If Not GameOver(i) Then 'juego en curso
+                    'Si ha sido superado el tiempo de caida
+                    If Timer >= StartTime!(i) + DropRate!(i) Or StartTime!(i) > Timer Then
+                        DropShape i 'la pieza avanza hacia abajo
+                        StartTime!(i) = Timer 'reinicia el temporizador de caida
+                    End If
+                End If
+            Next i
+            Key$ = InKey$ 'lee pulsaciones del teclado
+        Loop
+        If Key$ = Chr$(27) Then 'si se pulsa ESC sale
+            Exit Sub
+        Else
+            For i = 0 To NumPlayers 'bucle para ambos jugadores
+                If GameOver(i) = TRUE Then 'fuera de juego
+                    If Key$ = Chr$(13) Then
+                        Exit Sub 'si se pulsa ENTER reinicia juego
+                    End If
+                Else
+                    ' Asignar teclas para cada jugador
+                    If i = 0 Then
+                        RotateKey$ = "w"
+                        LeftKey$ = "a"
+                        DownKey$ = "s"
+                        RightKey$ = "d"
+                    Else
+                        RotateKey$ = "i"
+                        LeftKey$ = "j"
+                        DownKey$ = "k"
+                        RightKey$ = "l"
+                    End If
+                    Select Case Key$
+                        Case RotateKey$ 'al pulsar la tecla de rotaci�n, gira la pieza
+                            DrawShape i, TRUE 'borra pieza
+                            'cambia el �ngulo de la pieza
+                            If ShapeAngle(i) = 3 Then NewAngle = 0 Else NewAngle = ShapeAngle(i) + 1
+                            'modifica la pieza
+                            RotatedMap$ = GetRotatedShapeMap(Shape(i), NewAngle)
+                            If ShapeCanMove(RotatedMap$, 0, 0, i) Then 'si se puede mover...
+                                ShapeAngle(i) = NewAngle
+                                ShapeMap$(i) = RotatedMap$
+                            End If
+                            DrawShape i, FALSE 'pinta pieza
+
+                        Case LeftKey$ 'al pulsar la tecla izquierda, mueve a la izquierda si puede
+                            DrawShape i, TRUE 'borra pieza
+                            If ShapeCanMove(ShapeMap$(i), -1, 0, i) Then ShapeX(i) = ShapeX(i) - 1
+                            DrawShape i, FALSE 'pinta pieza
+
+                        Case RightKey$ 'al pulsar la tecla derecha, mueve a la derecha si puede
+                            DrawShape i, TRUE 'borra pieza
+                            If ShapeCanMove(ShapeMap$(i), 1, 0, i) Then ShapeX(i) = ShapeX(i) + 1
+                            DrawShape i, FALSE 'pinta pieza
+
+                        Case DownKey$ 'al pulsar la tecla abajo, pone el tiempo de descenso a 0
+                            DropRate!(i) = 0
+                    End Select
+                End If
+            Next i
+        End If
+    Loop */
+}
+
 // lógica para verificar si las puntuaciones son de TOP 5
 void checkScores(byte player) {
+	/*
+	Dim idx As Integer
+    'calcula el indice de la nueva puntuacion basada en el jugador
+    '(5 para player1, 6 para player2)
+    idx = i + 5
+
+    'verifica si la nueva puntuacion es lo suficientemente alta para entrar en el top 5
+    If Scores(idx) > Scores(4) Then
+        DrawHeader
+        Locate 10, 6: Print "BUENA PUNTUACION JUGADOR " + Str$(i + 1)
+        Locate 11, 6: Input "NOMBRE?: ", Names$(idx)
+        If Len(Names$(idx)) > 10 Then Names$(idx) = Left$(Names$(idx), 10)
+
+        'inserta la nueva puntuacion en la lista de high scores
+        For j = 4 To 0 Step -1
+            If Scores(idx) > Scores(j) Then
+                'desplaza puntuaciones y nombres hacia abajo
+                If j < 4 Then
+                    Scores(j + 1) = Scores(j)
+                    Names$(j + 1) = Names$(j)
+                End If
+            Else
+                Exit For
+            End If
+        Next j
+        'coloca la nueva puntuacion en su lugar correcto
+        Scores(j + 1) = Scores(idx)
+        Names$(j + 1) = Names$(idx)
+    End If */
 }
 
 int main(void) {
-    //while (1) {
+    while(TRUE) {
         init();
+		mainLoop();
         for (i = 0; i <= numPlayers; i++)
             checkScores(i);
-    //}
+    }
     return 0;
 }
