@@ -59,28 +59,26 @@ void drawNextShape(byte player) {
 void displayStatus(void) {
     // player 1
     if (gameOver[0] == TRUE) {
-        locate(8, pitLeft[0]);
+        locate(pitLeft[0], 8);
         printf("GAME OVER!");
     }
-    locate(2, 12); printf("=PLAYER 1=");
-    locate(3, 12); printf("Level: %u", level[0]); // pinta el num. de nivel
-    locate(4, 12); printf("Lines: %u", lines[0]); // pinta las lineas
-    locate(5, 12); printf("Sc: %d", scores[5]); // pinta la puntuacion
-    locate(6, 12); printf("Next:");
-
+    locate(12, 2); printf("=PLAYER 1=");
+    locate(12, 3); printf("Level: %u", level[0]); // pinta el num. de nivel
+    locate(12, 4); printf("Lines: %u", lines[0]); // pinta las lineas
+    locate(12, 5); printf("Sc: %d", scores[5]); // pinta la puntuacion
+    locate(12, 6); printf("Next:");
     // player 2
     if (numPlayers == 2) {
         if (gameOver[1] == TRUE) {
-			locate(8, pitLeft[1]);
+			locate(pitLeft[1], 8);
 			printf("GAME OVER!");
         }
-        locate(10, 12); printf("=PLAYER 2=");
-        locate(11, 12); printf("Level: %u", level[1]); // pinta el num. de nivel
+        locate(12, 10); printf("=PLAYER 2=");
+        locate(12, 11); printf("Level: %u", level[1]); // pinta el num. de nivel
         locate(12, 12); printf("Lines: %u", lines[1]); // pinta las lineas
-        locate(13, 12); printf("Sc: %d", scores[6]); // pinta la puntuacion
-        locate(14, 12); printf("Next:");
+        locate(12, 12); printf("Sc: %d", scores[6]); // pinta la puntuacion
+        locate(12, 12); printf("Next:");
     }
-
     for (i=0; i<=numPlayers; i++)
         if (gameOver[i] == FALSE)
 			drawNextShape(i);
@@ -256,35 +254,30 @@ void mainLoop(void) { // bucle principal
 
 // lógica para verificar si las puntuaciones son de TOP 5
 void checkScores(byte player) {
-	/*
-	Dim idx As Integer
-    'calcula el indice de la nueva puntuacion basada en el jugador
-    '(5 para player1, 6 para player2)
-    idx = i + 5
-
-    'verifica si la nueva puntuacion es lo suficientemente alta para entrar en el top 5
-    If Scores(idx) > Scores(4) Then
-        DrawHeader
-        Locate 10, 6: Print "BUENA PUNTUACION JUGADOR " + Str$(i + 1)
-        Locate 11, 6: Input "NOMBRE?: ", Names$(idx)
-        If Len(Names$(idx)) > 10 Then Names$(idx) = Left$(Names$(idx), 10)
-
-        'inserta la nueva puntuacion en la lista de high scores
-        For j = 4 To 0 Step -1
-            If Scores(idx) > Scores(j) Then
-                'desplaza puntuaciones y nombres hacia abajo
-                If j < 4 Then
-                    Scores(j + 1) = Scores(j)
-                    Names$(j + 1) = Names$(j)
-                End If
-            Else
-                Exit For
-            End If
-        Next j
-        'coloca la nueva puntuacion en su lugar correcto
-        Scores(j + 1) = Scores(idx)
-        Names$(j + 1) = Names$(idx)
-    End If */
+    // calcula el índice de la nueva puntuación basada en el jugador
+    // (5 para player1, 6 para player2)
+    byte idx = player + 5;
+    // verifica si la nueva puntuación es lo suficientemente alta para entrar en el top 5
+    if (scores[idx] > scores[4]) {
+        drawHeader();
+        locate(6, 10); printf("BUENA PUNTUACION JUGADOR %d", player + 1);
+        locate(6, 11); scanf("NOMBRE?: ", names[idx]);
+        // inserta la nueva puntuación en la lista de high scores
+        for (j=4; j<=0; j--) {
+            if (scores[idx] > scores[j]) {
+                // desplaza puntuaciones y nombres hacia abajo
+                if (j<4) {
+                    scores[j+1] = scores[j]
+					strcpy(names[j+1], names[j]);
+                }
+            }
+			else
+                break;
+        }
+        // coloca la nueva puntuación en su lugar correcto
+		scores[j+1] = scores[idx];
+        strcpy(names[j+1], names[idx]);
+    }
 }
 
 int main(void) {
