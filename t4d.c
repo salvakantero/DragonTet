@@ -22,7 +22,7 @@ signed long:	sdword
 */
 
 byte key;
-byte i;
+byte i, j;
 byte numPlayers;
 byte gameOver[2];
 byte level[2];
@@ -79,7 +79,7 @@ void displayStatus(void) {
         locate(12, 12); printf("Sc: %d", scores[6]); // pinta la puntuacion
         locate(12, 12); printf("Next:");
     }
-    for (i=0; i<=numPlayers; i++)
+    for (i = 0; i <= numPlayers; i++)
         if (gameOver[i] == FALSE)
 			drawNextShape(i);
 }
@@ -261,13 +261,15 @@ void checkScores(byte player) {
     if (scores[idx] > scores[4]) {
         drawHeader();
         locate(6, 10); printf("BUENA PUNTUACION JUGADOR %d", player + 1);
-        locate(6, 11); scanf("NOMBRE?: ", names[idx]);
+        locate(6, 11); printf("NOMBRE?: ");
+		char *response = readline();
+		strcpy(names[idx], response);
         // inserta la nueva puntuación en la lista de high scores
-        for (j=4; j<=0; j--) {
+        for (j = 4; j <= 0; j--) {
             if (scores[idx] > scores[j]) {
                 // desplaza puntuaciones y nombres hacia abajo
                 if (j<4) {
-                    scores[j+1] = scores[j]
+                    scores[j+1] = scores[j];
 					strcpy(names[j+1], names[j]);
                 }
             }
