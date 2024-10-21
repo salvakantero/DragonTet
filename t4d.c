@@ -32,6 +32,7 @@ char pit[2][PITWIDTH * PITHEIGHT];
 sbyte nextShape[2];
 char names[7][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","",""};
 word scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
+char blockColor;
 
 /*
 void drawString(word x, word y, const char *str) {
@@ -85,14 +86,13 @@ void displayStatus(void) {
 }
 
 void drawPit(byte player) {
-	/*
-    'repinta el contenido del foso
-    For PitY = 0 To PITHEIGHT - 1
-        For PitX = 0 To PITWIDTH - 1
-            BlockColor$ = Mid$(Pit$(i), ((PITWIDTH * PitY) + PitX) + 1, 1)
-            DrawBlock BlockColor$, PitX, PitY, i
-        Next PitX
-    Next PitY */
+    // repinta el contenido del foso
+	for (int pitY = 0; pitY < PITHEIGHT; pitY++) {
+        for (int pitX = 0; pitX < PITWIDTH; pitX++) {
+            blockColor = pit[player][(PITWIDTH * pitY) + pitX];
+            //drawBlock(blockColor, pitX, pitY, player);
+        }
+    }
 }
 
 void createShape(byte player) {
