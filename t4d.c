@@ -85,12 +85,18 @@ void displayStatus(void) {
 			drawNextShape(i);
 }
 
+void drawBlock(char blockColor, word pitX, word pitY, byte player) { // pinta bloque de pieza
+    // int color = strtol(&blockColor, NULL, 16);
+    locate(pitX + pitLeft(player), pitY + 1);
+    printf("%c", 219);
+}
+
 void drawPit(byte player) {
     // repinta el contenido del foso
-	for (int pitY = 0; pitY < PITHEIGHT; pitY++) {
-        for (int pitX = 0; pitX < PITWIDTH; pitX++) {
+	for (word pitY = 0; pitY < PITHEIGHT; pitY++) {
+        for (word pitX = 0; pitX < PITWIDTH; pitX++) {
             blockColor = pit[player][(PITWIDTH * pitY) + pitX];
-            //drawBlock(blockColor, pitX, pitY, player);
+            drawBlock(blockColor, pitX, pitY, player);
         }
     }
 }
