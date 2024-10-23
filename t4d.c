@@ -17,13 +17,10 @@ unsigned char:	byte
 signed char:	char/sbyte
 unsigned int:	word
 signed int:		int/sword
-unsigned long:	dword
-signed long:	sdword
 */
 
 char key;
-byte i, j;
-int numPlayers;
+unsigned char numPlayers;
 int gameOver[2];
 int level[2];
 int lines[2];
@@ -33,7 +30,7 @@ int nextShape[2];
 char names[7][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","",""};
 int scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
 
-void drawNextShape(int player) {
+void drawNextShape(unsigned char player) {
 /*
     'para todos los bloques de la pieza
     For BlockX = 0 To LASTSIDEBLOCK
@@ -87,7 +84,7 @@ void drawBlock(char blockColor, word pitX, word pitY, byte player) { // pinta bl
     printf("%c", 219); */
 }
 
-void drawPit(byte player) {
+void drawPit(unsigned char player) {
 	/*
     // repinta el contenido del foso
 	for (word pitY = 0; pitY < PITHEIGHT; pitY++) {
@@ -98,7 +95,7 @@ void drawPit(byte player) {
     }*/
 }
 
-void createShape(byte player) {
+void createShape(unsigned char player) {
 	/*
     DropRate!(i) = 1 - (Level(i) * 0.2) 'tiempo de caida variable segun el nivel
     If DropRate!(i) <= 0 Then DropRate!(i) = .1 'limite de caida de .1
@@ -113,8 +110,8 @@ void createShape(byte player) {
 }
 
 void drawHighScores(void) {
-    for(i = 0; i < 5; i++) {
-        locate(7, 8 + i);  printf("................");
+    for(byte i = 0; i < 5; i++) {
+        locate(7, 8 + i);  printf("...............");
         locate(7, 8 + i);  printf("%s", names[i]);
         locate(19, 8 + i); printf("%5d", scores[i]);
 	}
@@ -144,11 +141,11 @@ void menu(void) {
     do {
         key = inkey();		
         if (key == '1')	{
-            numPlayers = 1;
+            numPlayers = 0;
             break;
         } 
 		else if (key == '2') {
-            numPlayers = 2;
+            numPlayers = 1;
             break;
         } 
 		else if (key == '3') {			
@@ -157,7 +154,6 @@ void menu(void) {
         } 
 		else if (key == '4') {
 			cls(1);
-			printf("%d", numPlayers);
             exit(0);
 		}
     } while (TRUE);
@@ -257,49 +253,58 @@ void mainLoop(void) { // bucle principal
     Loop */
 }
 
-void checkScores(byte player) {
-    // calcula el índice de la nueva puntuación basada en el jugador
-    byte idx = player + 5;
+// verifica si la nueva puntuación es lo suficientemente alta para entrar en el top 5
+void checkScores(unsigned char player) {
+    unsigned char i = player + 5;
+	unsigned char j;
 
-	scores[idx] = 1250;
-	
-    // verifica si la nueva puntuación es lo suficientemente alta para entrar en el top 5
-    if (scores[idx] > scores[4]) {
+    if (scores[i] > scores[4]) {
         drawHeader();
-        locate(6, 10);
+        locate(3, 10);
         printf("BUENA PUNTUACION JUGADOR %d", player + 1);
         locate(6, 11);
         printf("NOMBRE?: ");
         char *response = readline();
 
         // Limitar la longitud del nombre para evitar problemas
-        strncpy(names[idx], response, 10 - 1);
-        names[idx][10 - 1] = '\0';  // Asegurarse de terminar en '\0'
+        strncpy(names[i], response, 10);
+        names[i][10] = '\0';  // Asegurarse de terminar en '\0'
 
         // inserta la nueva puntuación en la lista de high scores
-        for (int j = 4; j >= 0; j--) {
-            if (scores[idx] > scores[j]) {
+        for (j = 4; j >= 0; j--) {
+            if (scores[i] > scores[j]) {
                 // desplaza puntuaciones y nombres hacia abajo
                 if (j < 4) {
-                    scores[j + 1] = scores[j];
-                    strncpy(names[j + 1], names[j], 10);
+                    scores[j+1] = scores[j];
+                    strncpy(names[j+1], names[j], 10);
                 }
-            } else {
+            } 
+			else {
                 break;
             }
         }
         // coloca la nueva puntuación en su lugar correcto
-        scores[j + 1] = scores[idx];
-        strncpy(names[j + 1], names[idx], 10);
+        scores[j+1] = scores[i];
+        strncpy(names[j+1], names[i], 10);
     }
 }
 
 int main(void) {
+	unsigned char i;
+	
     while(TRUE) {
         init();		
 		mainLoop();
-        for (i = 0; i <= numPlayers; i++)
-            checkScores(i);		
+		
+		scores[5] = 1250;
+		scores[6] = 1320;
+		
+        for (byte i = 0; i <= numPlayers; i++) {
+            checkScores(i);
+		}
+		cls(1);
+		drawHeader();
+		drawHighScores();
     }
     return 0;
 }
