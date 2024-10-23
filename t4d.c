@@ -21,26 +21,19 @@ unsigned long:	dword
 signed long:	sdword
 */
 
-byte key;
+char key;
 byte i, j;
-byte numPlayers;
-byte gameOver[2];
-byte level[2];
-byte lines[2];
-byte pitLeft[2];
+int numPlayers;
+int gameOver[2];
+int level[2];
+int lines[2];
+int pitLeft[2];
 char pit[2][PITWIDTH * PITHEIGHT];
-sbyte nextShape[2];
+int nextShape[2];
 char names[7][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","",""};
-word scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
-char blockColor;
+int scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
 
-/*
-void drawString(word x, word y, const char *str) {
-    char *screenPos = (char *) (SCREEN_BASE_ADDR + x + y * SCREEN_WIDTH);
-    memcpy(screenPos, str, strlen(str));
-}*/
-
-void drawNextShape(byte player) {
+void drawNextShape(int player) {
 /*
     'para todos los bloques de la pieza
     For BlockX = 0 To LASTSIDEBLOCK
@@ -58,6 +51,7 @@ void drawNextShape(byte player) {
 }
 
 void displayStatus(void) {
+	/*
     // player 1
     if (gameOver[0] == TRUE) {
         locate(pitLeft[0], 8);
@@ -83,22 +77,25 @@ void displayStatus(void) {
     for (i = 0; i <= numPlayers; i++)
         if (gameOver[i] == FALSE)
 			drawNextShape(i);
+		*/
 }
 
 void drawBlock(char blockColor, word pitX, word pitY, byte player) { // pinta bloque de pieza
-    // int color = strtol(&blockColor, NULL, 16);
+    /*
+	int color = strtol(&blockColor, NULL, 16);
     locate(pitX + pitLeft(player), pitY + 1);
-    printf("%c", 219);
+    printf("%c", 219); */
 }
 
 void drawPit(byte player) {
+	/*
     // repinta el contenido del foso
 	for (word pitY = 0; pitY < PITHEIGHT; pitY++) {
         for (word pitX = 0; pitX < PITWIDTH; pitX++) {
             blockColor = pit[player][(PITWIDTH * pitY) + pitX];
             drawBlock(blockColor, pitX, pitY, player);
         }
-    }
+    }*/
 }
 
 void createShape(byte player) {
@@ -160,6 +157,7 @@ void menu(void) {
         } 
 		else if (key == '4') {
 			cls(1);
+			printf("%d", numPlayers);
             exit(0);
 		}
     } while (TRUE);
@@ -168,6 +166,7 @@ void menu(void) {
 // lógica para inicializar el sistema y los fosos
 void init(void) {
     menu();
+	/*
 	cls(1);
     pitLeft[0] = 1;
     pitLeft[1] = 23;
@@ -181,7 +180,7 @@ void init(void) {
         createShape(i); // genera pieza (forma, posición)
         drawPit(i); //pinta foso
     }
-    displayStatus();
+    displayStatus();*/
 }
 
 void mainLoop(void) { // bucle principal
@@ -258,42 +257,49 @@ void mainLoop(void) { // bucle principal
     Loop */
 }
 
-// lógica para verificar si las puntuaciones son de TOP 5
 void checkScores(byte player) {
     // calcula el índice de la nueva puntuación basada en el jugador
-    // (5 para player1, 6 para player2)
     byte idx = player + 5;
+
+	scores[idx] = 1250;
+	
     // verifica si la nueva puntuación es lo suficientemente alta para entrar en el top 5
     if (scores[idx] > scores[4]) {
         drawHeader();
-        locate(6, 10); printf("BUENA PUNTUACION JUGADOR %d", player + 1);
-        locate(6, 11); printf("NOMBRE?: ");
-		char *response = readline();
-		strcpy(names[idx], response);
+        locate(6, 10);
+        printf("BUENA PUNTUACION JUGADOR %d", player + 1);
+        locate(6, 11);
+        printf("NOMBRE?: ");
+        char *response = readline();
+
+        // Limitar la longitud del nombre para evitar problemas
+        strncpy(names[idx], response, 10 - 1);
+        names[idx][10 - 1] = '\0';  // Asegurarse de terminar en '\0'
+
         // inserta la nueva puntuación en la lista de high scores
-        for (j = 4; j <= 0; j--) {
+        for (int j = 4; j >= 0; j--) {
             if (scores[idx] > scores[j]) {
                 // desplaza puntuaciones y nombres hacia abajo
-                if (j<4) {
-                    scores[j+1] = scores[j];
-					strcpy(names[j+1], names[j]);
+                if (j < 4) {
+                    scores[j + 1] = scores[j];
+                    strncpy(names[j + 1], names[j], 10);
                 }
-            }
-			else
+            } else {
                 break;
+            }
         }
         // coloca la nueva puntuación en su lugar correcto
-		scores[j+1] = scores[idx];
-        strcpy(names[j+1], names[idx]);
+        scores[j + 1] = scores[idx];
+        strncpy(names[j + 1], names[idx], 10);
     }
 }
 
 int main(void) {
     while(TRUE) {
-        init();
+        init();		
 		mainLoop();
         for (i = 0; i <= numPlayers; i++)
-            checkScores(i);
+            checkScores(i);		
     }
     return 0;
 }
