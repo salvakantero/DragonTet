@@ -21,14 +21,14 @@ signed int:		int/sword
 
 char key;
 unsigned char numPlayers;
-int gameOver[2];
-int level[2];
-int lines[2];
+unsigned char gameOver[2];
+unsigned char level[2];
+unsigned int lines[2];
 unsigned char pitLeft[2];
 char pit[2][PITWIDTH * PITHEIGHT];
 int nextShape[2];
 char names[7][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","",""};
-int scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
+unsigned int scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
 
 void drawNextShape(unsigned char player) {
 /*
@@ -48,7 +48,6 @@ void drawNextShape(unsigned char player) {
 }
 
 void displayStatus(void) {
-	/*
     // player 1
     if (gameOver[0] == TRUE) {
         locate(pitLeft[0], 8);
@@ -59,6 +58,7 @@ void displayStatus(void) {
     locate(12, 4); printf("Lines: %u", lines[0]); // pinta las lineas
     locate(12, 5); printf("Sc: %d", scores[5]); // pinta la puntuacion
     locate(12, 6); printf("Next:");
+	/*
     // player 2
     if (numPlayers == 2) {
         if (gameOver[1] == TRUE) {
@@ -75,6 +75,7 @@ void displayStatus(void) {
         if (gameOver[i] == FALSE)
 			drawNextShape(i);
 		*/
+	waitkey(0);
 }
 
 void drawBlock(char blockColor, word pitX, word pitY, byte player) { // pinta bloque de pieza
@@ -161,6 +162,7 @@ void menu(void) {
 
 // lógica para inicializar el sistema y los fosos
 void init(void) {
+	unsigned char i;
     menu();
 	cls(1);
     pitLeft[0] = 1;
@@ -175,7 +177,7 @@ void init(void) {
         createShape(i); // genera pieza (forma, posición)
         drawPit(i); //pinta foso
     }
-    displayStatus();*/
+    displayStatus();
 }
 
 void mainLoop(void) { // bucle principal
