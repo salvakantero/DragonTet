@@ -24,7 +24,7 @@ unsigned char numPlayers;
 int gameOver[2];
 int level[2];
 int lines[2];
-int pitLeft[2];
+unsigned char pitLeft[2];
 char pit[2][PITWIDTH * PITHEIGHT];
 int nextShape[2];
 char names[7][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","",""};
@@ -162,7 +162,6 @@ void menu(void) {
 // lógica para inicializar el sistema y los fosos
 void init(void) {
     menu();
-	/*
 	cls(1);
     pitLeft[0] = 1;
     pitLeft[1] = 23;
@@ -260,17 +259,12 @@ void checkScores(unsigned char player) {
 
     if (scores[i] > scores[4]) {
         drawHeader();
-        locate(3, 10);
-        printf("BUENA PUNTUACION JUGADOR %d", player + 1);
-        locate(6, 11);
-        printf("NOMBRE?: ");
+        locate(3, 10); printf("BUENA PUNTUACION JUGADOR %d", player + 1);
+        locate(6, 11); printf("NOMBRE?: ");
         char *response = readline();
-
-        // Limitar la longitud del nombre para evitar problemas
         strncpy(names[i], response, 10);
-        names[i][10] = '\0';  // Asegurarse de terminar en '\0'
+        names[i][10] = '\0';
 
-        // inserta la nueva puntuación en la lista de high scores
         for (j = 4; j >= 0; j--) {
             if (scores[i] > scores[j]) {
                 // desplaza puntuaciones y nombres hacia abajo
@@ -283,7 +277,6 @@ void checkScores(unsigned char player) {
                 break;
             }
         }
-        // coloca la nueva puntuación en su lugar correcto
         scores[j+1] = scores[i];
         strncpy(names[j+1], names[i], 10);
     }
@@ -295,9 +288,6 @@ int main(void) {
     while(TRUE) {
         init();		
 		mainLoop();
-		
-		scores[5] = 1250;
-		scores[6] = 1320;
 		
         for (byte i = 0; i <= numPlayers; i++) {
             checkScores(i);
