@@ -48,33 +48,33 @@ void drawNextShape(unsigned char player) {
 }
 
 void displayStatus(void) {
+	unsigned char i;
     // player 1
     if (gameOver[0] == TRUE) {
         locate(pitLeft[0], 8);
         printf("GAME OVER!");
     }
     locate(12, 2); printf("=PLAYER 1=");
-    locate(12, 3); printf("Level: %u", level[0]); // pinta el num. de nivel
-    locate(12, 4); printf("Lines: %u", lines[0]); // pinta las lineas
-    locate(12, 5); printf("Sc: %d", scores[5]); // pinta la puntuacion
-    locate(12, 6); printf("Next:");
-	/*
+    locate(12, 3); printf("LEVEL: %u", level[0]); // pinta el num. de nivel
+    locate(12, 4); printf("LINES: %u", lines[0]); // pinta las lineas
+    locate(12, 5); printf("SC: %d", scores[5]); // pinta la puntuacion
+    locate(12, 6); printf("NEXT:");
     // player 2
-    if (numPlayers == 2) {
+    if (numPlayers == 1) {
         if (gameOver[1] == TRUE) {
 			locate(pitLeft[1], 8);
 			printf("GAME OVER!");
         }
         locate(12, 10); printf("=PLAYER 2=");
-        locate(12, 11); printf("Level: %u", level[1]); // pinta el num. de nivel
-        locate(12, 12); printf("Lines: %u", lines[1]); // pinta las lineas
-        locate(12, 12); printf("Sc: %d", scores[6]); // pinta la puntuacion
-        locate(12, 12); printf("Next:");
+        locate(12, 11); printf("LEVEL: %u", level[1]); // pinta el num. de nivel
+        locate(12, 12); printf("LINES: %u", lines[1]); // pinta las lineas
+        locate(12, 12); printf("SC: %d", scores[6]); // pinta la puntuacion
+        locate(12, 12); printf("NEXT:");
     }
     for (i = 0; i <= numPlayers; i++)
         if (gameOver[i] == FALSE)
 			drawNextShape(i);
-		*/
+
 	waitkey(0);
 }
 
@@ -111,7 +111,8 @@ void createShape(unsigned char player) {
 }
 
 void drawHighScores(void) {
-    for(byte i = 0; i < 5; i++) {
+	unsigned char i;
+    for(i = 0; i < 5; i++) {
         locate(7, 8 + i);  printf("...............");
         locate(7, 8 + i);  printf("%s", names[i]);
         locate(19, 8 + i); printf("%5d", scores[i]);
@@ -291,7 +292,7 @@ int main(void) {
         init();		
 		mainLoop();
 		
-        for (byte i = 0; i <= numPlayers; i++) {
+        for (i = 0; i <= numPlayers; i++) {
             checkScores(i);
 		}
 		cls(1);
