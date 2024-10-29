@@ -54,24 +54,24 @@ void displayStatus(void) {
         locate(pitLeft[0], 8);
         printf("GAME OVER!");
     }
-    locate(12, 2); printf("=PLAYER 1=");
-    locate(12, 3); printf("LEVEL: %u", level[0]); // pinta el num. de nivel
-    locate(12, 4); printf("LINES: %u", lines[0]); // pinta las lineas
-    locate(12, 5); printf("SC: %d", scores[5]); // pinta la puntuacion
-    locate(12, 6); printf("NEXT:");
+    locate(12, 1); printf("=PLAYER 1=");
+    locate(12, 2); printf("LEVEL: %u", level[0]); // pinta el num. de nivel
+    locate(12, 3); printf("LINES: %u", lines[0]); // pinta las lineas
+    locate(12, 4); printf("SC: %d", scores[5]); // pinta la puntuacion
+    locate(12, 5); printf("NEXT:");
     // player 2
-    if (numPlayers == 1) {
+    if (numPlayers == 2) {
         if (gameOver[1] == TRUE) {
 			locate(pitLeft[1], 8);
 			printf("GAME OVER!");
         }
-        locate(12, 10); printf("=PLAYER 2=");
-        locate(12, 11); printf("LEVEL: %u", level[1]); // pinta el num. de nivel
-        locate(12, 12); printf("LINES: %u", lines[1]); // pinta las lineas
+        locate(12, 9); printf("=PLAYER 2=");
+        locate(12, 10); printf("LEVEL: %u", level[1]); // pinta el num. de nivel
+        locate(12, 11); printf("LINES: %u", lines[1]); // pinta las lineas
         locate(12, 12); printf("SC: %d", scores[6]); // pinta la puntuacion
-        locate(12, 12); printf("NEXT:");
+        locate(12, 13); printf("NEXT:");
     }
-    for (i = 0; i <= numPlayers; i++)
+    for (i=0; i<numPlayers; i++)
         if (gameOver[i] == FALSE)
 			drawNextShape(i);
 
@@ -143,11 +143,11 @@ void menu(void) {
     do {
         key = inkey();		
         if (key == '1')	{
-            numPlayers = 0;
+            numPlayers = 1;
             break;
         } 
 		else if (key == '2') {
-            numPlayers = 1;
+            numPlayers = 2;
             break;
         } 
 		else if (key == '3') {			
@@ -168,7 +168,7 @@ void init(void) {
 	cls(1);
     pitLeft[0] = 1;
     pitLeft[1] = 23;
-	for(i = 0; i <= numPlayers; i++) {
+	for(i=0; i<numPlayers; i++) {
         gameOver[i] = FALSE; // partida en curso
         level[i] = 1; // nivel inicial
         lines[i] = 0; // lineas conseguidas
@@ -262,13 +262,13 @@ void checkScores(unsigned char player) {
 
     if (scores[i] > scores[4]) {
         drawHeader();
-        locate(3, 10); printf("BUENA PUNTUACION JUGADOR %d", player + 1);
+        locate(3, 10); printf("BUENA PUNTUACION JUGADOR %d", player+1);
         locate(6, 11); printf("NOMBRE?: ");
         char *response = readline();
         strncpy(names[i], response, 10);
         names[i][10] = '\0';
 
-        for (j = 4; j >= 0; j--) {
+        for (j=4; j>=0; j--) {
             if (scores[i] > scores[j]) {
                 // desplaza puntuaciones y nombres hacia abajo
                 if (j < 4) {
@@ -292,7 +292,7 @@ int main(void) {
         init();		
 		mainLoop();
 		
-        for (i = 0; i <= numPlayers; i++) {
+        for (i=0; i<numPlayers; i++) {
             checkScores(i);
 		}
 		cls(1);
