@@ -2,6 +2,13 @@
 #include <cmoc.h>
 #include <coco.h>
 
+/*
+unsigned char:	byte
+signed char:	char/sbyte
+unsigned int:	word
+signed int:		int/sword
+*/
+
 #define SCREEN_WIDTH 32 // ancho de la pantalla en modo texto
 #define SCREEN_BASE_ADDR 0x0400 // dirección base de la memoria de video en modo texto
 
@@ -12,23 +19,26 @@
 #define PITWIDTH 10 // ancho del foso
 #define PITHEIGHT 16 // alto del foso
 
-/*
-unsigned char:	byte
-signed char:	char/sbyte
-unsigned int:	word
-signed int:		int/sword
-*/
-
-char key;
-unsigned char numPlayers;
-unsigned char gameOver[2];
-unsigned char level[2];
-unsigned int lines[2];
-unsigned char pitLeft[2];
-char pit[2][PITWIDTH * PITHEIGHT];
-int nextShape[2];
+char key; // tecla pulsada
+unsigned char numPlayers; // jugadores(1-2)
+// valores fake para el TOP 5 inicial
 char names[7][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","",""};
 unsigned int scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
+
+unsigned char gameOver[2]; 			// 0=juego en curso -1=finalizado
+float dropRate[2]; 					// 1=cayendo 0=parada al fondo del foso
+char pit[2][PITWIDTH*PITHEIGHT];	// contenido de los fosos
+unsigned char level[2]; 			// niveles de juego (velocidad)
+unsigned int lines[2]; 				// lineas conseguidas
+unsigned char pitLeft[2]; 			// pos X del lado izquierdo de cada foso
+
+unsigned char shape[2]; 		// tipo de pieza (0 a 6)
+unsigned char shapeAngle[2]; 	// rotacion de la pieza (0 a 3)
+char* shapeMap[2];				// diseño de la pieza
+int shapeX[2], shapeY[2];		// pos XY de la pieza
+
+unsigned char nextShape[2];		// tipo de las siguientes piezas (0 a 6)
+char* nextShapeMap[2];		// diseño de la siguiente pieza
 
 void drawNextShape(unsigned char player) {
 /*
@@ -96,6 +106,47 @@ void drawPit(unsigned char player) {
     }*/
 }
 
+char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
+	/*
+    NewBlockX = 0
+    NewBlockY = 0
+    Map$ = GetShapeMap$(Shape) 'pieza sin rotar
+    RotatedMap$ = String$(SIDEBLOCKCOUNT * SIDEBLOCKCOUNT, NOBLOCK$) 'nueva pieza rotada
+
+    If Angle = 0 Then 'vuelve a la posicion inicial
+        GetRotatedShapeMap = Map$
+        Exit Function
+    Else
+        'para todos los bloques de la pieza
+        For BlockX = 0 To LASTSIDEBLOCK
+            For BlockY = 0 To LASTSIDEBLOCK
+                Select Case Angle
+                    Case 1 '270' grados
+                        NewBlockX = BlockY
+                        NewBlockY = LASTSIDEBLOCK - BlockX
+                    Case 2 '180 grados
+                        NewBlockX = LASTSIDEBLOCK - BlockX
+                        NewBlockY = LASTSIDEBLOCK - BlockY
+                    Case 3 '90 grados
+                        NewBlockX = LASTSIDEBLOCK - BlockY
+                        NewBlockY = BlockX
+                End Select
+                'asigna a la pieza rotada el bloque correspondiente al angulo
+                Mid$(RotatedMap$, ((SIDEBLOCKCOUNT * NewBlockY) + NewBlockX) + 1, 1) = Mid$(Map$, ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1)
+            Next BlockY
+        Next BlockX
+    End If
+    GetRotatedShapeMap = RotatedMap$ */
+	return '';
+}
+
+void createNextShape(unsigned char player) {
+	/*
+    NextShape(i) = Int(Rnd * 7) 'tipo de pieza. x7
+    NextShapeMap$(i) = GetRotatedShapeMap$(NextShape(i), 0) 'composicion de la pieza
+	*/
+}
+
 void createShape(unsigned char player) {
 	/*
     DropRate!(i) = 1 - (Level(i) * 0.2) 'tiempo de caida variable segun el nivel
@@ -108,6 +159,26 @@ void createShape(unsigned char player) {
     ShapeX(i) = 3 'posicion X inicial (centro del foso)
     ShapeY(i) = -SIDEBLOCKCOUNT 'posicion Y inicial (totalmente oculta)
     CreateNextShape (i) */
+	
+	// calcula la velocidad de caída en función del nivel
+    dropRate[player] = 1 - (level[player] * 0.2f);
+    if (dropRate[player] <= 0) {
+        dropRate[player] = 0.1f;  // límite mínimo de velocidad de caída
+    }
+    // Si no es la primera pieza, toma el valor de nextShape
+    if (nextShape[player] >= 0) {
+        shape[player] = nextShape[player];
+    } else {
+        shape[player] = (unsigned char)rand() % 7;  // nueva pieza aleatoria (0 a 6)
+    }
+	// composición de la pieza según su rotación
+    shapeAngle[player] = 0;
+    shapeMap[player] = getRotatedShapeMap(shape[player], shapeAngle[player]);
+    // posición inicial (centro del foso en X, totalmente oculta en Y)
+    shapeX[player] = 3;
+    shapeY[player] = -SIDEBLOCKCOUNT;
+    // genera la próxima pieza
+    createNextShape(player);
 }
 
 void drawHighScores(void) {
