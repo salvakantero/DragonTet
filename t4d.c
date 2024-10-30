@@ -15,7 +15,6 @@ signed int:		int/sword
 #define LASTSIDEBLOCK 3 // para recorrer con bucles la pieza actual (0 a 3)
 #define SIDEBLOCKCOUNT 4 // tamano del lado de la pieza (4x4)
 #define NOBLOCK '0' // carácter que representa un bloque vacío
-#define PITTOP 0 // pos Y de la parte de arriba del foso (justo arriba de la pantalla)
 #define PITWIDTH 10 // ancho del foso
 #define PITHEIGHT 16 // alto del foso
 
@@ -40,31 +39,42 @@ int shapeX[2], shapeY[2];		// pos XY de la pieza
 unsigned char nextShape[2];		// tipo de las siguientes piezas (0 a 6)
 char* nextShapeMap[2];		// diseño de la siguiente pieza
 
-void drawNextShape(unsigned char player) {
-/*
-    'para todos los bloques de la pieza
-    For BlockX = 0 To LASTSIDEBLOCK
-        For BlockY = 0 To LASTSIDEBLOCK
-            'color de la pieza
-            BlockColor$ = Mid$(NextShapeMap$(i), ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1)
-            If BlockColor$ = NOBLOCK$ Then BlockColor$ = "2"
-            If i = 0 Then
-                DrawBlock BlockColor$, BlockX + 17, BlockY + 4, i 'pinta el bloque
-            Else
-                DrawBlock BlockColor$, BlockX - 5, BlockY + 12, i 'pinta el bloque
-            End If
-        Next BlockY
-    Next BlockX */
+void drawBlock(char blockColor, unsigned char pitX, unsigned char pitY, unsigned char i) {
+    // Convierte el color de hexadecimal a int
+    int color = (blockColor>='0' && blockColor<='9') ? blockColor - '0' : blockColor-'A' + 10;
+    // Ajusta la posición usando Locate
+    locate(pitX + pitLeft[i], pitY+1);
+    // Imprime el carácter de bloque relleno
+    printf("%c", 219); // Carácter 219 es un bloque relleno en ASCII
+}
+
+void drawNextShape(unsigned char i) {
+    unsigned char blockX, blockY;
+    char blockColor;
+    // Para todos los bloques de la pieza
+    for (blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
+        for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
+            // Color de la pieza
+            blockColor = nextShapeMap[i][(SIDEBLOCKCOUNT*blockY)+blockX];
+            if (blockColor == NOBLOCK) {
+                blockColor = '2';
+            }
+            if (i == 0) {
+                drawBlock(blockColor, blockX+17, blockY+4, i);
+            } else {
+                drawBlock(blockColor, blockX-5, blockY+12, i);
+            }
+        }
+    }
 }
 
 void displayStatus(void) {
-	unsigned char i;
     // player 1
     if (gameOver[0] == TRUE) {
         locate(pitLeft[0], 8);
         printf("GAME OVER!");
     }
-    locate(12, 1); printf("=PLAYER 1=");
+    locate(11, 1); printf("=PLAYER 1=");
     locate(12, 2); printf("LEVEL: %u", level[0]); // pinta el num. de nivel
     locate(12, 3); printf("LINES: %u", lines[0]); // pinta las lineas
     locate(12, 4); printf("SC: %4d", scores[5]); // pinta la puntuacion
@@ -75,24 +85,19 @@ void displayStatus(void) {
 			locate(pitLeft[1], 8);
 			printf("GAME OVER!");
         }
-        locate(12, 9); printf("=PLAYER 2=");
+        locate(11, 9); printf("=PLAYER 2=");
         locate(12, 10); printf("LEVEL: %u", level[1]); // pinta el num. de nivel
         locate(12, 11); printf("LINES: %u", lines[1]); // pinta las lineas
         locate(12, 12); printf("SC: %4d", scores[6]); // pinta la puntuacion
         locate(12, 13); printf("NEXT:");
     }
-    for (i=0; i<numPlayers; i++)
-        if (gameOver[i] == FALSE)
+    unsigned char i;
+    for (i=0; i<numPlayers; i++) {
+        if (gameOver[i] == FALSE) {
 			drawNextShape(i);
-
+        }
+    }
 	waitkey(0);
-}
-
-void drawBlock(char blockColor, word pitX, word pitY, byte player) { // pinta bloque de pieza
-    /*
-	int color = strtol(&blockColor, NULL, 16);
-    locate(pitX + pitLeft(player), pitY + 1);
-    printf("%c", 219); */
 }
 
 void drawPit(unsigned char player) {
@@ -169,31 +174,31 @@ char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
 	return rotatedMap;
 }
 
-void createNextShape(unsigned char player) {
-	nextShape[player] = (unsigned char)(rand() % 7); // Tipo de pieza (0 a 6)
-	nextShapeMap[player] = getRotatedShapeMap(nextShape[player], 0); // Composición de la pieza
+void createNextShape(unsigned char i) {
+	nextShape[i] = (unsigned char)(rand() % 7); // Tipo de pieza (0 a 6)
+	nextShapeMap[i] = getRotatedShapeMap(nextShape[i], 0); // Composición de la pieza
 }
 
-void createShape(unsigned char player) {
+void createShape(unsigned char i) {
 	// calcula la velocidad de caída en función del nivel
-    dropRate[player] = 1 - (level[player] * 0.2f);
-    if (dropRate[player] <= 0) {
-        dropRate[player] = 0.1f;  // límite mínimo de velocidad de caída
+    dropRate[i] = 1 - (level[i] * 0.2f);
+    if (dropRate[i] <= 0) {
+        dropRate[i] = 0.1f;  // límite mínimo de velocidad de caída
     }
     // Si no es la primera pieza, toma el valor de nextShape
-    if (nextShape[player] >= 0) {
-        shape[player] = nextShape[player];
+    if (nextShape[i] >= 0) {
+        shape[i] = nextShape[i];
     } else {
-        shape[player] = (unsigned char)rand() % 7;  // nueva pieza aleatoria (0 a 6)
+        shape[i] = (unsigned char)rand() % 7;  // nueva pieza aleatoria (0 a 6)
     }
 	// composición de la pieza según su rotación
-    shapeAngle[player] = 0;
-    shapeMap[player] = getRotatedShapeMap(shape[player], shapeAngle[player]);
+    shapeAngle[i] = 0;
+    shapeMap[i] = getRotatedShapeMap(shape[i], shapeAngle[i]);
     // posición inicial (centro del foso en X, totalmente oculta en Y)
-    shapeX[player] = 3;
-    shapeY[player] = -SIDEBLOCKCOUNT;
+    shapeX[i] = 3;
+    shapeY[i] = -SIDEBLOCKCOUNT;
     // genera la próxima pieza
-    createNextShape(player);
+    createNextShape(i);
 }
 
 void drawHighScores(void) {
@@ -361,7 +366,7 @@ void checkScores(unsigned char player) {
                     scores[j+1] = scores[j];
                     strncpy(names[j+1], names[j], 10);
                 }
-            } 
+            }
 			else {
                 break;
             }
