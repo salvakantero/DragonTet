@@ -106,9 +106,30 @@ void drawPit(unsigned char player) {
     }*/
 }
 
+const char* getShapeMap(unsigned char shape) {
+    switch (shape) {
+        case 0:
+            return "0000333300000000"; // Palo largo
+        case 1:
+            return "0000111000100000"; // L 1
+        case 2:
+            return "0000666060000000"; // L 2
+        case 3:
+            return "00000EE00EE00000"; // Cubo
+        case 4:
+            return "00000AA0AA000000"; // S 1
+        case 5:
+            return "0000440004400000"; // S 2
+        case 6:
+            return "0000555005000000"; // T
+        default:
+            return ""; // Cadena vacía para casos no válidos
+    }
+}
+
 // rotar la pieza y devolver el mapa resultante
 char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
-	char* map = getShapeMap(shape); // mapa sin rotar
+	const char* map = getShapeMap(shape); // mapa sin rotar
 	char* rotatedMap; // mapa rotado
     int newBlockX, newBlockY;
 	unsigned char i;
@@ -118,7 +139,7 @@ char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
         for (i=0; i<(SIDEBLOCKCOUNT*SIDEBLOCKCOUNT); i++) {
             rotatedMap[i] = map[i];
         }
-        return *rotatedMap;
+        return rotatedMap;
     }
     // Inicializa rotatedMap como vacía
     for (i=0; i<(SIDEBLOCKCOUNT*SIDEBLOCKCOUNT); i++) {
@@ -140,14 +161,12 @@ char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
                     newBlockX = LASTSIDEBLOCK - blockY;
                     newBlockY = blockX;
                     break;
-                default:
-                    continue;
             }
             // asigna el bloque correspondiente al ángulo en rotatedMap
             rotatedMap[SIDEBLOCKCOUNT*newBlockY+newBlockX] = map[SIDEBLOCKCOUNT*blockY+blockX];
         }
     }
-	return *rotatedMap;
+	return rotatedMap;
 }
 
 void createNextShape(unsigned char player) {
