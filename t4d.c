@@ -67,7 +67,7 @@ void displayStatus(void) {
     locate(12, 1); printf("=PLAYER 1=");
     locate(12, 2); printf("LEVEL: %u", level[0]); // pinta el num. de nivel
     locate(12, 3); printf("LINES: %u", lines[0]); // pinta las lineas
-    locate(12, 4); printf("SC: %d", scores[5]); // pinta la puntuacion
+    locate(12, 4); printf("SC: %4d", scores[5]); // pinta la puntuacion
     locate(12, 5); printf("NEXT:");
     // player 2
     if (numPlayers == 2) {
@@ -78,7 +78,7 @@ void displayStatus(void) {
         locate(12, 9); printf("=PLAYER 2=");
         locate(12, 10); printf("LEVEL: %u", level[1]); // pinta el num. de nivel
         locate(12, 11); printf("LINES: %u", lines[1]); // pinta las lineas
-        locate(12, 12); printf("SC: %d", scores[6]); // pinta la puntuacion
+        locate(12, 12); printf("SC: %4d", scores[6]); // pinta la puntuacion
         locate(12, 13); printf("NEXT:");
     }
     for (i=0; i<numPlayers; i++)
@@ -106,60 +106,56 @@ void drawPit(unsigned char player) {
     }*/
 }
 
+// rotar la pieza y devolver el mapa resultante
 char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
-	/*
-    NewBlockX = 0
-    NewBlockY = 0
-    Map$ = GetShapeMap$(Shape) 'pieza sin rotar
-    RotatedMap$ = String$(SIDEBLOCKCOUNT * SIDEBLOCKCOUNT, NOBLOCK$) 'nueva pieza rotada
+	char* map = getShapeMap(shape); // mapa sin rotar
+	char* rotatedMap; // mapa rotado
+    int newBlockX, newBlockY;
+	unsigned char i;
 
-    If Angle = 0 Then 'vuelve a la posicion inicial
-        GetRotatedShapeMap = Map$
-        Exit Function
-    Else
-        'para todos los bloques de la pieza
-        For BlockX = 0 To LASTSIDEBLOCK
-            For BlockY = 0 To LASTSIDEBLOCK
-                Select Case Angle
-                    Case 1 '270' grados
-                        NewBlockX = BlockY
-                        NewBlockY = LASTSIDEBLOCK - BlockX
-                    Case 2 '180 grados
-                        NewBlockX = LASTSIDEBLOCK - BlockX
-                        NewBlockY = LASTSIDEBLOCK - BlockY
-                    Case 3 '90 grados
-                        NewBlockX = LASTSIDEBLOCK - BlockY
-                        NewBlockY = BlockX
-                End Select
-                'asigna a la pieza rotada el bloque correspondiente al angulo
-                Mid$(RotatedMap$, ((SIDEBLOCKCOUNT * NewBlockY) + NewBlockX) + 1, 1) = Mid$(Map$, ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1)
-            Next BlockY
-        Next BlockX
-    End If
-    GetRotatedShapeMap = RotatedMap$ */
-	return '';
+    // si el ángulo es 0, copia directamente el mapa original en rotatedMap
+    if (angle == 0) {
+        for (i=0; i<(SIDEBLOCKCOUNT*SIDEBLOCKCOUNT); i++) {
+            rotatedMap[i] = map[i];
+        }
+        return *rotatedMap;
+    }
+    // Inicializa rotatedMap como vacía
+    for (i=0; i<(SIDEBLOCKCOUNT*SIDEBLOCKCOUNT); i++) {
+        rotatedMap[i] = NOBLOCK;
+    }
+    // Para otros ángulos, recorre todos los bloques
+    for (int blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
+        for (int blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
+            switch (angle) {
+                case 1: // 270 grados
+                    newBlockX = blockY;
+                    newBlockY = LASTSIDEBLOCK - blockX;
+                    break;
+                case 2: // 180 grados
+                    newBlockX = LASTSIDEBLOCK - blockX;
+                    newBlockY = LASTSIDEBLOCK - blockY;
+                    break;
+                case 3: // 90 grados
+                    newBlockX = LASTSIDEBLOCK - blockY;
+                    newBlockY = blockX;
+                    break;
+                default:
+                    continue;
+            }
+            // asigna el bloque correspondiente al ángulo en rotatedMap
+            rotatedMap[SIDEBLOCKCOUNT*newBlockY+newBlockX] = map[SIDEBLOCKCOUNT*blockY+blockX];
+        }
+    }
+	return *rotatedMap;
 }
 
 void createNextShape(unsigned char player) {
-	/*
-    NextShape(i) = Int(Rnd * 7) 'tipo de pieza. x7
-    NextShapeMap$(i) = GetRotatedShapeMap$(NextShape(i), 0) 'composicion de la pieza
-	*/
+	nextShape[player] = (unsigned char)(rand() % 7); // Tipo de pieza (0 a 6)
+	nextShapeMap[player] = getRotatedShapeMap(nextShape[player], 0); // Composición de la pieza
 }
 
 void createShape(unsigned char player) {
-	/*
-    DropRate!(i) = 1 - (Level(i) * 0.2) 'tiempo de caida variable segun el nivel
-    If DropRate!(i) <= 0 Then DropRate!(i) = .1 'limite de caida de .1
-    'si no es la primera pieza la toma de NextShape
-    'si es la primera la genera (0 a 6)
-    If NextShape(i) >= 0 Then Shape(i) = NextShape(i) Else Shape(i) = Int(Rnd * 7)
-    ShapeAngle(i) = 0
-    ShapeMap$(i) = GetRotatedShapeMap$(Shape(i), ShapeAngle(i)) 'composicion de la pieza
-    ShapeX(i) = 3 'posicion X inicial (centro del foso)
-    ShapeY(i) = -SIDEBLOCKCOUNT 'posicion Y inicial (totalmente oculta)
-    CreateNextShape (i) */
-	
 	// calcula la velocidad de caída en función del nivel
     dropRate[player] = 1 - (level[player] * 0.2f);
     if (dropRate[player] <= 0) {
@@ -245,7 +241,7 @@ void init(void) {
         lines[i] = 0; // lineas conseguidas
         scores[i+5] = 0; // puntuacion actual
         nextShape[i] = -1; // sera necesario generar pieza
-        memset(pit[i], NOBLOCK, PITWIDTH * PITHEIGHT); // inicializa el foso vacío
+        memset(pit[i], NOBLOCK, PITWIDTH*PITHEIGHT); // inicializa el foso vacío
         createShape(i); // genera pieza (forma, posición)
         drawPit(i); //pinta foso
     }
