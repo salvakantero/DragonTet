@@ -60,9 +60,9 @@ void drawNextShape(unsigned char i) {
                 blockColor = '2';
             }
             if (i == 0) {
-                drawBlock(blockColor, blockX+17, blockY+4, i);
+                drawBlock(blockColor, blockX+17, blockY+3, i);
             } else {
-                drawBlock(blockColor, blockX-5, blockY+12, i);
+                drawBlock(blockColor, blockX-5, blockY+11, i);
             }
         }
     }
@@ -74,22 +74,22 @@ void displayStatus(void) {
         locate(pitLeft[0], 8);
         printf("GAME OVER!");
     }
-    locate(11, 1); printf("=PLAYER 1=");
-    locate(12, 2); printf("LEVEL: %u", level[0]); // pinta el num. de nivel
-    locate(12, 3); printf("LINES: %u", lines[0]); // pinta las lineas
-    locate(12, 4); printf("SC: %4d", scores[5]); // pinta la puntuacion
-    locate(12, 5); printf("NEXT:");
+    locate(11, 0); printf("=PLAYER 1=");
+    locate(12, 1); printf("LEVEL: %u", level[0]); // pinta el num. de nivel
+    locate(12, 2); printf("LINES: %u", lines[0]); // pinta las lineas
+    locate(12, 3); printf("SC: %4d", scores[5]); // pinta la puntuacion
+    locate(12, 4); printf("NEXT:");
     // player 2
     if (numPlayers == 2) {
         if (gameOver[1] == TRUE) {
 			locate(pitLeft[1], 8);
 			printf("GAME OVER!");
         }
-        locate(11, 9); printf("=PLAYER 2=");
-        locate(12, 10); printf("LEVEL: %u", level[1]); // pinta el num. de nivel
-        locate(12, 11); printf("LINES: %u", lines[1]); // pinta las lineas
-        locate(12, 12); printf("SC: %4d", scores[6]); // pinta la puntuacion
-        locate(12, 13); printf("NEXT:");
+        locate(11, 8); printf("=PLAYER 2=");
+        locate(12, 9); printf("LEVEL: %u", level[1]); // pinta el num. de nivel
+        locate(12, 10); printf("LINES: %u", lines[1]); // pinta las lineas
+        locate(12, 11); printf("SC: %4d", scores[6]); // pinta la puntuacion
+        locate(12, 12); printf("NEXT:");
     }
     unsigned char i;
     for (i=0; i<numPlayers; i++) {
@@ -100,15 +100,17 @@ void displayStatus(void) {
 	waitkey(0);
 }
 
-void drawPit(unsigned char player) {
-	/*
-    // repinta el contenido del foso
-	for (word pitY = 0; pitY < PITHEIGHT; pitY++) {
-        for (word pitX = 0; pitX < PITWIDTH; pitX++) {
-            blockColor = pit[player][(PITWIDTH * pitY) + pitX];
-            drawBlock(blockColor, pitX, pitY, player);
+void drawPit(unsigned char i) {
+    unsigned char pitY, pitX;
+    // Recorre el contenido del foso y repinta
+    for (pitY=0; pitY<PITHEIGHT; pitY++) {
+        for (pitX = 0; pitX<PITWIDTH; pitX++) {
+            // Obtiene el color del bloque de la posición actual
+            char blockColor = pit[i][(PITWIDTH * pitY) + pitX];
+            // Dibuja el bloque con el color especificado
+            drawBlock(blockColor, pitX, pitY, i);
         }
-    }*/
+    }
 }
 
 const char* getShapeMap(unsigned char shape) {
