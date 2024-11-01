@@ -43,9 +43,22 @@ void drawBlock(char blockColor, unsigned char pitX, unsigned char pitY, unsigned
     // Convierte el color de hexadecimal a int
     int color = (blockColor>='0' && blockColor<='9') ? blockColor - '0' : blockColor-'A' + 10;
     // Ajusta la posición usando Locate
-    locate(pitX + pitLeft[i], pitY+1);
+    locate(pitX + pitLeft[i], pitY);
     // Imprime el carácter de bloque relleno
     printf("%c", 219); // Carácter 219 es un bloque relleno en ASCII
+}
+
+void drawPit(unsigned char i) {
+    unsigned char pitY, pitX;
+    // Recorre el contenido del foso y repinta
+    for (pitY=0; pitY<PITHEIGHT; pitY++) {
+        for (pitX = 0; pitX<PITWIDTH; pitX++) {
+            // Obtiene el color del bloque de la posición actual
+            char blockColor = pit[i][(PITWIDTH * pitY) + pitX];
+            // Dibuja el bloque con el color especificado
+            drawBlock(blockColor, pitX, pitY, i);
+        }
+    }
 }
 
 void drawNextShape(unsigned char i) {
@@ -60,9 +73,9 @@ void drawNextShape(unsigned char i) {
                 blockColor = '2';
             }
             if (i == 0) {
-                drawBlock(blockColor, blockX+17, blockY+3, i);
+                drawBlock(blockColor, blockX+17, blockY+4, i);
             } else {
-                drawBlock(blockColor, blockX-5, blockY+11, i);
+                drawBlock(blockColor, blockX-5, blockY+12, i);
             }
         }
     }
@@ -98,19 +111,6 @@ void displayStatus(void) {
         }
     }
 	waitkey(0);
-}
-
-void drawPit(unsigned char i) {
-    unsigned char pitY, pitX;
-    // Recorre el contenido del foso y repinta
-    for (pitY=0; pitY<PITHEIGHT; pitY++) {
-        for (pitX = 0; pitX<PITWIDTH; pitX++) {
-            // Obtiene el color del bloque de la posición actual
-            char blockColor = pit[i][(PITWIDTH * pitY) + pitX];
-            // Dibuja el bloque con el color especificado
-            drawBlock(blockColor, pitX, pitY, i);
-        }
-    }
 }
 
 const char* getShapeMap(unsigned char shape) {
@@ -259,8 +259,8 @@ void init(void) {
 	unsigned char i;
     menu();
 	cls(1);
-    pitLeft[0] = 1;
-    pitLeft[1] = 23;
+    pitLeft[0] = 0;
+    pitLeft[1] = 22;
 	for(i=0; i<numPlayers; i++) {
         gameOver[i] = FALSE; // partida en curso
         level[i] = 1; // nivel inicial
