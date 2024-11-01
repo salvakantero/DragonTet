@@ -26,6 +26,7 @@ unsigned int scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
 
 unsigned char gameOver[2]; 			// 0=juego en curso -1=finalizado
 float dropRate[2]; 					// 1=cayendo 0=parada al fondo del foso
+float startTime[2];                 // tiempo desde que ha avanzado la pieza
 char pit[2][PITWIDTH*PITHEIGHT];	// contenido de los fosos
 unsigned char level[2]; 			// niveles de juego (velocidad)
 unsigned int lines[2]; 				// lineas conseguidas
@@ -59,6 +60,10 @@ void drawPit(unsigned char i) {
             drawBlock(blockColor, pitX, pitY, i);
         }
     }
+}
+
+void shapeCanMove(char* map, unsigned char xDirection, 
+                    unsigned char yDirection, unsigned char i) {
 }
 
 void drawNextShape(unsigned char i) {
@@ -110,7 +115,6 @@ void displayStatus(void) {
 			drawNextShape(i);
         }
     }
-	waitkey(0);
 }
 
 const char* getShapeMap(unsigned char shape) {
@@ -203,6 +207,12 @@ void createShape(unsigned char i) {
     createNextShape(i);
 }
 
+void drawShape(unsigned char i, unsigned char eraseShape) {
+}
+
+void dropShape(unsigned char i) {
+}
+
 void drawHighScores(void) {
 	unsigned char i;
     for(i = 0; i < 5; i++) {
@@ -274,78 +284,88 @@ void init(void) {
     displayStatus();
 }
 
-void mainLoop(void) { // bucle principal
-/*
-    StartTime!(0) = Timer 'guarda el tiempo de inicio para jugador 0
-    If NumPlayers > 0 Then
-        StartTime!(1) = Timer 'guarda el tiempo de inicio para jugador 1
-    End If
+void mainLoop() {
+    unsigned char newAngle;
+    unsigned char i;
+    char* rotatedMap;
 
-    Do
-        Key$ = ""
-        Do While Key$ = "" 'mientras no se pulse una tecla
-            For i = 0 To NumPlayers 'bucle para ambos jugadores
-                If Not GameOver(i) Then 'juego en curso
-                    'Si ha sido superado el tiempo de caida
-                    If Timer >= StartTime!(i) + DropRate!(i) Or StartTime!(i) > Timer Then
-                        DropShape i 'la pieza avanza hacia abajo
-                        StartTime!(i) = Timer 'reinicia el temporizador de caida
-                    End If
-                End If
-            Next i
-            Key$ = InKey$ 'lee pulsaciones del teclado
-        Loop
-        If Key$ = Chr$(27) Then 'si se pulsa ESC sale
-            Exit Sub
-        Else
-            For i = 0 To NumPlayers 'bucle para ambos jugadores
-                If GameOver(i) = TRUE Then 'fuera de juego
-                    If Key$ = Chr$(13) Then
-                        Exit Sub 'si se pulsa ENTER reinicia juego
-                    End If
-                Else
-                    ' Asignar teclas para cada jugador
-                    If i = 0 Then
-                        RotateKey$ = "w"
-                        LeftKey$ = "a"
-                        DownKey$ = "s"
-                        RightKey$ = "d"
-                    Else
-                        RotateKey$ = "i"
-                        LeftKey$ = "j"
-                        DownKey$ = "k"
-                        RightKey$ = "l"
-                    End If
-                    Select Case Key$
-                        Case RotateKey$ 'al pulsar la tecla de rotaci�n, gira la pieza
-                            DrawShape i, TRUE 'borra pieza
-                            'cambia el �ngulo de la pieza
-                            If ShapeAngle(i) = 3 Then NewAngle = 0 Else NewAngle = ShapeAngle(i) + 1
-                            'modifica la pieza
-                            RotatedMap$ = GetRotatedShapeMap(Shape(i), NewAngle)
-                            If ShapeCanMove(RotatedMap$, 0, 0, i) Then 'si se puede mover...
-                                ShapeAngle(i) = NewAngle
-                                ShapeMap$(i) = RotatedMap$
-                            End If
-                            DrawShape i, FALSE 'pinta pieza
+    // Guarda el tiempo de inicio para el jugador 0
+    startTime[0] = getTimer();
+    if (numPlayers > 0) {
+        // Guarda el tiempo de inicio para el jugador 1
+        startTime[1] = getTimer();
+    }
+    while (TRUE) {
+        char key = '\0';
+        // Bucle hasta que se pulse una tecla
+        while (key == '\0') {
+            for (i=0; i<=numPlayers; i++) { // Bucle para ambos jugadores
+                if (!gameOver[i]) { // Juego en curso
+                    // Si ha sido superado el tiempo de caída
+                    if (getTimer() >= startTime[i]+dropRate[i] || startTime[i] > getTimer()) {
+                        dropShape(i); // La pieza avanza hacia abajo
+                        startTime[i] = getTimer(); // Reinicia el temporizador de caída
+                    }
+                }
+            }
+            key = inkey(); // Lee pulsaciones del teclado
+        }
 
-                        Case LeftKey$ 'al pulsar la tecla izquierda, mueve a la izquierda si puede
-                            DrawShape i, TRUE 'borra pieza
-                            If ShapeCanMove(ShapeMap$(i), -1, 0, i) Then ShapeX(i) = ShapeX(i) - 1
-                            DrawShape i, FALSE 'pinta pieza
+        if (key == 'X') { // Si se pulsa X, sale
+            break;
+        } else {
+            for (i=0; i<=numPlayers; i++) { // Bucle para ambos jugadores
+                if (gameOver[i]) { // Fuera de juego
+                    if (key == 'Z') { // Si se pulsa ENTER, reinicia juego
+                        break;
+                    }
+                } else {
+                    // Asigna teclas para cada jugador
+                    char rotateKey, leftKey, downKey, rightKey;
+                    if (i == 0) {
+                        rotateKey = 'W';
+                        leftKey = 'A';
+                        downKey = 'S';
+                        rightKey = 'D';
+                    } else {
+                        rotateKey = 'I';
+                        leftKey = 'J';
+                        downKey = 'K';
+                        rightKey = 'L';
+                    }
 
-                        Case RightKey$ 'al pulsar la tecla derecha, mueve a la derecha si puede
-                            DrawShape i, TRUE 'borra pieza
-                            If ShapeCanMove(ShapeMap$(i), 1, 0, i) Then ShapeX(i) = ShapeX(i) + 1
-                            DrawShape i, FALSE 'pinta pieza
+                    switch (key) {
+                        case 'W': case 'I': // Tecla de rotación
+                            drawShape(i, TRUE); // Borra pieza
+                            newAngle = (shapeAngle[i] == 3) ? 0 : shapeAngle[i]+1;
+                            rotatedMap = getRotatedShapeMap(shape[i], newAngle);
+                            if (shapeCanMove(rotatedMap, 0, 0, i)) { // Si se puede mover...
+                                shapeAngle[i] = newAngle;
+                                shapeMap[i] = rotatedMap;
+                            }
+                            drawShape(i, FALSE); // Pinta pieza
+                            break;
 
-                        Case DownKey$ 'al pulsar la tecla abajo, pone el tiempo de descenso a 0
-                            DropRate!(i) = 0
-                    End Select
-                End If
-            Next i
-        End If
-    Loop */
+                        case 'A': case 'J': // Mueve a la izquierda
+                            drawShape(i, TRUE); // Borra pieza
+                            if (shapeCanMove(shapeMap[i], -1, 0, i)) shapeX[i]--;
+                            drawShape(i, FALSE); // Pinta pieza
+                            break;
+
+                        case 'D': case 'L': // Mueve a la derecha
+                            drawShape(i, TRUE); // Borra pieza
+                            if (shapeCanMove(shapeMap[i], 1, 0, i)) shapeX[i]++;
+                            drawShape(i, FALSE); // Pinta pieza
+                            break;
+
+                        case 'S': case 'K': // Pone el tiempo de descenso a 0
+                            dropRate[i] = 0;
+                            break;
+                    }
+                }
+            }
+        }
+    }
 }
 
 // verifica si la nueva puntuación es lo suficientemente alta para entrar en el top 5
