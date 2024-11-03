@@ -7,7 +7,15 @@ unsigned char:	byte
 signed char:	char/sbyte
 unsigned int:	word
 signed int:		int/sword
-*/
+
+caracteres semigráficos del dragón: 127 a 255
++16: amarillo
++32: azul
++48: rojo
++64: beige
++80: turquesa
++96: magenta
++112: naranja */
 
 #define SCREEN_WIDTH 32 // ancho de la pantalla en modo texto
 #define SCREEN_BASE_ADDR 0x0400 // dirección base de la memoria de video en modo texto
@@ -46,7 +54,7 @@ void drawBlock(char blockColor, unsigned char pitX, unsigned char pitY, unsigned
     // Ajusta la posición usando Locate
     locate(pitX + pitLeft[i], pitY);
     // Imprime el carácter de bloque relleno
-    printf("%c", 219); // Carácter 219 es un bloque relleno en ASCII
+    printf("%c", 127); // Carácter 219 es un bloque relleno en ASCII
 }
 
 void drawPit(unsigned char i) {
@@ -62,8 +70,33 @@ void drawPit(unsigned char i) {
     }
 }
 
-void shapeCanMove(char* map, unsigned char xDirection, 
+// Verifica si una forma puede moverse en la dirección especificada
+unsigned char shapeCanMove(char *map, unsigned char xDirection, 
                     unsigned char yDirection, unsigned char i) {
+    int pitX, pitY;
+    unsigned char blockX, blockY;
+    // Recorre todos los bloques de la pieza
+    for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
+        for (blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
+            // Verifica si no es un bloque vacío
+            if (map[(SIDEBLOCKCOUNT*blockY)+blockX] != NOBLOCK) {
+                // Calcula la posición en el foso
+                pitX = (shapeX[i]+blockX) + xDirection;
+                pitY = (shapeY[i]+blockY) + yDirection;
+                // Verifica si el bloque está dentro de los límites del foso
+                if (pitX>=0 && pitX<PITWIDTH && pitY>=0 && pitY<PITHEIGHT) {
+                    // Si la posición en el foso no está vacía, no se puede mover
+                    if (pit[i][(PITWIDTH*pitY)+pitX] != NOBLOCK) {
+                        return FALSE; // No puede moverse
+                    }
+                } else if (pitX<0 || pitX>=PITWIDTH || pitY>=PITHEIGHT) {
+                    // Si está fuera de los límites, no se puede mover
+                    return FALSE;
+                }
+            }
+        }
+    }
+    return TRUE; // Puede moverse
 }
 
 void drawNextShape(unsigned char i) {
@@ -208,10 +241,67 @@ void createShape(unsigned char i) {
 }
 
 void drawShape(unsigned char i, unsigned char eraseShape) {
+    int pitX, pitY;
+    unsigned char blockX, blockY;
+    char blockColor;
+
+    // Recorre todos los bloques de la pieza
+    for (blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
+        for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
+            pitX = shapeX[i] + blockX;
+            pitY = shapeY[i] + blockY;
+            // Verifica si el bloque está dentro de los límites del foso
+            if (pitX>=0 && pitX<PITWIDTH && pitY>=0 && pitY<PITHEIGHT) {
+                if (eraseShape) {
+                    // Obtiene el color del foso en la posición actual
+                    blockColor = pit[i][(PITWIDTH*pitY)+pitX];
+                } else {
+                    // Obtiene el color del bloque de la pieza
+                    blockColor = shapeMap[i][(SIDEBLOCKCOUNT*blockY)+blockX];
+                    // Si el bloque es vacío, toma el color del foso en esa posición
+                    if (blockColor == NOBLOCK) {
+                        blockColor = pit[i][(PITWIDTH*pitY)+pitX];
+                    }
+                }
+                drawBlock(blockColor, (unsigned char)pitX, (unsigned char)pitY, i); // Pinta o borra el bloque
+            }
+        }
+    }
 }
 
 void dropShape(unsigned char i) {
 }
+
+void dropShape(byte player) {
+    // Verifica si la pieza puede moverse hacia abajo
+    if (shapeCanMove(shapeMap[player], 0, 1, player)) {
+        drawShape(player, true);      // Borra la pieza actual
+        shapeY[player] += 1;          // Baja la pieza una posición
+        drawShape(player, false);     // Vuelve a dibujar la pieza en la nueva posición
+    } else {
+        // La pieza se establece en el foso
+        settleActiveShapeInPit(player);
+        
+        // Verifica si la pieza alcanzó la parte superior y se pierde la partida
+        gameOver[player] = (shapeY[player] < 0);
+
+        // Verifica si hay filas completas para eliminar
+        checkForFullRows(player);
+        
+        // Redibuja el contenido del foso
+        drawPit(player);
+
+        // Si el juego no ha terminado, crea una nueva pieza y la dibuja
+        if (!gameOver[player]) {
+            createShape(player);
+            drawShape(player, false);
+        }
+
+        // Muestra el estado actual del juego, como puntos o mensajes
+        displayStatus();
+    }
+}
+
 
 void drawHighScores(void) {
 	unsigned char i;
