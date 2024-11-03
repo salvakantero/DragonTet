@@ -50,9 +50,9 @@ char* nextShapeMap[2];		// diseño de la siguiente pieza
 
 void drawBlock(char blockColor, unsigned char pitX, unsigned char pitY, unsigned char i) {
     // Convierte el color de hexadecimal a int
-    int color = (blockColor>='0' && blockColor<='9') ? blockColor - '0' : blockColor-'A' + 10;
+    int color = (blockColor>='0' && blockColor<='9') ? blockColor-'0' : blockColor-'A'+10;
     // Ajusta la posición usando Locate
-    locate(pitX + pitLeft[i], pitY);
+    locate(pitX+pitLeft[i], pitY);
     // Imprime el carácter de bloque relleno
     printf("%c", 127); // Carácter 219 es un bloque relleno en ASCII
 }
@@ -61,9 +61,9 @@ void drawPit(unsigned char i) {
     unsigned char pitY, pitX;
     // Recorre el contenido del foso y repinta
     for (pitY=0; pitY<PITHEIGHT; pitY++) {
-        for (pitX = 0; pitX<PITWIDTH; pitX++) {
+        for (pitX=0; pitX<PITWIDTH; pitX++) {
             // Obtiene el color del bloque de la posición actual
-            char blockColor = pit[i][(PITWIDTH * pitY) + pitX];
+            char blockColor = pit[i][(PITWIDTH*pitY)+pitX];
             // Dibuja el bloque con el color especificado
             drawBlock(blockColor, pitX, pitY, i);
         }
@@ -81,8 +81,8 @@ unsigned char shapeCanMove(char *map, unsigned char xDirection,
             // Verifica si no es un bloque vacío
             if (map[(SIDEBLOCKCOUNT*blockY)+blockX] != NOBLOCK) {
                 // Calcula la posición en el foso
-                pitX = (shapeX[i]+blockX) + xDirection;
-                pitY = (shapeY[i]+blockY) + yDirection;
+                pitX = (shapeX[i]+blockX)+xDirection;
+                pitY = (shapeY[i]+blockY)+yDirection;
                 // Verifica si el bloque está dentro de los límites del foso
                 if (pitX>=0 && pitX<PITWIDTH && pitY>=0 && pitY<PITHEIGHT) {
                     // Si la posición en el foso no está vacía, no se puede mover
@@ -195,14 +195,14 @@ char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
             switch (angle) {
                 case 1: // 270 grados
                     newBlockX = blockY;
-                    newBlockY = LASTSIDEBLOCK - blockX;
+                    newBlockY = LASTSIDEBLOCK-blockX;
                     break;
                 case 2: // 180 grados
-                    newBlockX = LASTSIDEBLOCK - blockX;
-                    newBlockY = LASTSIDEBLOCK - blockY;
+                    newBlockX = LASTSIDEBLOCK-blockX;
+                    newBlockY = LASTSIDEBLOCK-blockY;
                     break;
                 case 3: // 90 grados
-                    newBlockX = LASTSIDEBLOCK - blockY;
+                    newBlockX = LASTSIDEBLOCK-blockY;
                     newBlockY = blockX;
                     break;
             }
@@ -214,13 +214,13 @@ char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
 }
 
 void createNextShape(unsigned char i) {
-	nextShape[i] = (unsigned char)(rand() % 7); // Tipo de pieza (0 a 6)
+	nextShape[i] = (unsigned char)(rand()%7); // Tipo de pieza (0 a 6)
 	nextShapeMap[i] = getRotatedShapeMap(nextShape[i], 0); // Composición de la pieza
 }
 
 void createShape(unsigned char i) {
 	// calcula la velocidad de caída en función del nivel
-    dropRate[i] = 1 - (level[i] * 0.2f);
+    dropRate[i] = 1-(level[i]*0.2f);
     if (dropRate[i] <= 0) {
         dropRate[i] = 0.1f;  // límite mínimo de velocidad de caída
     }
@@ -228,7 +228,7 @@ void createShape(unsigned char i) {
     if (nextShape[i] >= 0) {
         shape[i] = nextShape[i];
     } else {
-        shape[i] = (unsigned char)rand() % 7;  // nueva pieza aleatoria (0 a 6)
+        shape[i] = (unsigned char)rand()%7;  // nueva pieza aleatoria (0 a 6)
     }
 	// composición de la pieza según su rotación
     shapeAngle[i] = 0;
@@ -248,8 +248,8 @@ void drawShape(unsigned char i, unsigned char eraseShape) {
     // Recorre todos los bloques de la pieza
     for (blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
         for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
-            pitX = shapeX[i] + blockX;
-            pitY = shapeY[i] + blockY;
+            pitX = shapeX[i]+blockX;
+            pitY = shapeY[i]+blockY;
             // Verifica si el bloque está dentro de los límites del foso
             if (pitX>=0 && pitX<PITWIDTH && pitY>=0 && pitY<PITHEIGHT) {
                 if (eraseShape) {
@@ -269,46 +269,123 @@ void drawShape(unsigned char i, unsigned char eraseShape) {
     }
 }
 
-void dropShape(unsigned char i) {
+void removeFullRow(unsigned char removedRow, unsigned char i) {
+    unsigned char pitX, pitY;
+    char blockColor;
+    // Itera desde la fila removida hacia arriba
+    for (pitY=removedRow; pitY>0; pitY--) {
+        for (pitX=0; pitX<PITWIDTH; pitX++) {
+            if (pitY == 0) {
+                blockColor = NOBLOCK; // La línea más alta queda vacía
+            } else {
+                // Copia la línea superior en la actual
+                blockColor = pit[i][(pitY-1)*PITWIDTH+pitX];
+            }
+            // Asigna el color a la línea actual
+            pit[i][pitY*PITWIDTH+pitX] = blockColor;
+        }
+    }
+    // Vacía la primera fila después de bajar todas
+    for (pitX = 0; pitX < PITWIDTH; pitX++) {
+        pit[i][pitX] = NOBLOCK;
+    }
 }
 
-void dropShape(byte player) {
+void checkForFullRows(unsigned char i) { // busca filas completas
+    unsigned char fullRow = FALSE;
+    unsigned int numLines = 0;
+    unsigned char pitX, pitY;
+    unsigned char j = i+5;
+
+    // Recorre todas las filas del foso
+    for (pitY=0; pitY<PITHEIGHT; pitY++) {
+        fullRow = TRUE;
+        // Verifica cada bloque en la fila
+        for (pitX=0; pitX<PITWIDTH; pitX++) {
+            if (pit[i][pitY*PITWIDTH+pitX] == NOBLOCK) {
+                fullRow = FALSE;  // Encuentra un hueco
+                break;
+            }
+        }
+        // Si la fila está completa, se elimina
+        if (fullRow) {
+            removeFullRow(pitY, i); // Función para eliminar la fila completa
+            numLines++;
+        }
+    }
+    // Actualiza la puntuación si se completaron líneas
+    if (numLines > 0) {
+        switch (numLines) {
+            case 1:
+                scores[j] += (100*level[i]);
+                break;
+            case 2:
+                scores[j] += (300*level[i]);
+                break;
+            case 3:
+                scores[j] += (500*level[i]);
+                break;
+            case 4:
+                scores[j] += (800*level[i]); // Tetris!
+                break;
+        }
+        // Actualiza el total de líneas completadas y calcula el nivel
+        lines[i] += numLines;
+        level[i] = (unsigned char)(lines[i]/10)+1;
+    }
+}
+
+void settleActiveShapeInPit(unsigned char i) {
+    unsigned char blockX, blockY;
+    int pitX, pitY;
+    // Itera sobre cada bloque de la pieza
+    for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
+        for (blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
+            pitX = shapeX[i]+blockX;
+            pitY = shapeY[i]+blockY;
+            // Verifica que el bloque esté dentro de los límites del foso
+            if (pitX>=0 && pitX<PITWIDTH && pitY>=0 && pitY<PITHEIGHT) {
+                // Comprueba que el bloque no sea un hueco vacío
+                if (shapeMap[i][blockY*SIDEBLOCKCOUNT+blockX] != NOBLOCK) {
+                    // Fija el bloque de la pieza en el foso
+                    pit[i][pitY*PITWIDTH+pitX] = shapeMap[i][blockY*SIDEBLOCKCOUNT+blockX];
+                }
+            }
+        }
+    }
+}
+
+void dropShape(unsigned char i) {
     // Verifica si la pieza puede moverse hacia abajo
-    if (shapeCanMove(shapeMap[player], 0, 1, player)) {
-        drawShape(player, true);      // Borra la pieza actual
-        shapeY[player] += 1;          // Baja la pieza una posición
-        drawShape(player, false);     // Vuelve a dibujar la pieza en la nueva posición
+    if (shapeCanMove(shapeMap[i], 0, 1, i)) {
+        drawShape(i, TRUE);      // Borra la pieza actual
+        shapeY[i] += 1;          // Baja la pieza una posición
+        drawShape(i, FALSE);     // Vuelve a dibujar la pieza en la nueva posición
     } else {
         // La pieza se establece en el foso
-        settleActiveShapeInPit(player);
-        
+        settleActiveShapeInPit(i);
         // Verifica si la pieza alcanzó la parte superior y se pierde la partida
-        gameOver[player] = (shapeY[player] < 0);
-
+        gameOver[i] = (shapeY[i]<0);
         // Verifica si hay filas completas para eliminar
-        checkForFullRows(player);
-        
+        checkForFullRows(i);
         // Redibuja el contenido del foso
-        drawPit(player);
-
+        drawPit(i);
         // Si el juego no ha terminado, crea una nueva pieza y la dibuja
-        if (!gameOver[player]) {
-            createShape(player);
-            drawShape(player, false);
+        if (!gameOver[i]) {
+            createShape(i);
+            drawShape(i, FALSE);
         }
-
         // Muestra el estado actual del juego, como puntos o mensajes
         displayStatus();
     }
 }
 
-
 void drawHighScores(void) {
 	unsigned char i;
-    for(i = 0; i < 5; i++) {
-        locate(7, 8 + i);  printf("...............");
-        locate(7, 8 + i);  printf("%s", names[i]);
-        locate(19, 8 + i); printf("%5d", scores[i]);
+    for(i=0; i<5; i++) {
+        locate(7, 8+i);  printf("...............");
+        locate(7, 8+i);  printf("%s", names[i]);
+        locate(19, 8+i); printf("%5d", scores[i]);
 	}
 	locate(2,14); printf("PRESS ANY KEY TO CONTINUE...");
 	waitkey(0);
