@@ -47,12 +47,11 @@ unsigned char nextShape[2];		// tipo de las siguientes piezas (0 a 6)
 char* nextShapeMap[2];		// diseño de la siguiente pieza
 
 void drawBlock(char blockColor, unsigned char pitX, unsigned char pitY, unsigned char i) {
-    // Convierte el color de hexadecimal a int
-    int color = (blockColor>='0' && blockColor<='9') ? blockColor-'0' : blockColor-'A'+10;
+    int color = blockColor-'0';
     // Ajusta la posición usando Locate
-    locate(pitX+pitLeft[i], pitY);
+    locate(pitX+pitLeft[i], pitY+1);
     // Imprime el carácter de bloque relleno
-    printf("%c", 127); // Carácter 219 es un bloque relleno en ASCII
+    printf("%c", 143+(color*16)); // Carácter 219 es un bloque relleno en ASCII
 }
 
 void drawPit(unsigned char i) {
@@ -153,17 +152,17 @@ const char* getShapeMap(unsigned char shape) {
         case 0:
             return "0000333300000000"; // Palo largo
         case 1:
-            return "0000111000100000"; // L 1
+            return "0000666000600000"; // L 1
         case 2:
-            return "0000666060000000"; // L 2
+            return "0000111010000000"; // L 2
         case 3:
-            return "00000EE00EE00000"; // Cubo
+            return "0000022002200000"; // Cubo
         case 4:
-            return "00000AA0AA000000"; // S 1
+            return "0000055055000000"; // S 1
         case 5:
-            return "0000440004400000"; // S 2
+            return "0000770007700000"; // S 2
         case 6:
-            return "0000555005000000"; // T
+            return "0000444004000000"; // T
         default:
             return ""; // Cadena vacía para casos no válidos
     }
