@@ -17,9 +17,6 @@ caracteres semigráficos del dragón: 127 a 255
 +96: magenta
 +112: naranja */
 
-#define SCREEN_WIDTH 32 // ancho de la pantalla en modo texto
-#define SCREEN_BASE_ADDR 0x0400 // dirección base de la memoria de video en modo texto
-
 #define LASTSIDEBLOCK 3 // para recorrer con bucles la pieza actual (0 a 3)
 #define SIDEBLOCKCOUNT 4 // tamano del lado de la pieza (4x4)
 #define NOBLOCK '0' // carácter que representa un bloque vacío
@@ -31,8 +28,9 @@ unsigned char numPlayers; // jugadores(1-2)
 // valores fake para el TOP 5 inicial
 char names[7][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","",""};
 unsigned int scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
+unsigned char newScore;
 
-unsigned char gameOver[2]; 			// 0=juego en curso -1=finalizado
+unsigned char gameOver[2]; 			// FALSE=juego en curso TRUE=finalizado
 float dropRate[2]; 					// 1=cayendo 0=parada al fondo del foso
 float startTime[2];                 // tiempo desde que ha avanzado la pieza
 char pit[2][PITWIDTH*PITHEIGHT];	// contenido de los fosos
@@ -555,6 +553,7 @@ void checkScores(unsigned char player) {
                     scores[j+1] = scores[j];
                     strncpy(names[j+1], names[j], 10);
                 }
+                newScore = TRUE;
             }
 			else {
                 break;
@@ -572,12 +571,15 @@ int main(void) {
         init();		
 		mainLoop();
 		
+        newScore = FALSE;
         for (i=0; i<numPlayers; i++) {
             checkScores(i);
 		}
-		cls(1);
-		drawHeader();
-		drawHighScores();
+        if (newScore) {
+		    cls(1);
+		    drawHeader();
+		    drawHighScores();
+        }
     }
     return 0;
 }
