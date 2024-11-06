@@ -6,11 +6,19 @@
 unsigned char:	byte
 signed char:	char/sbyte
 unsigned int:	word
-signed int:		int/sword */
+signed int:		int/sword
+
+caracteres semigráficos del dragón: 127 a 255
++16: amarillo
++32: azul
++48: rojo
++64: beige
++80: turquesa
++96: magenta
++112: naranja */
 
 #define LASTSIDEBLOCK 3 // para recorrer con bucles la pieza actual (0 a 3)
 #define SIDEBLOCKCOUNT 4 // tamano del lado de la pieza (4x4)
-#define BLOCKCOUNT (SIDEBLOCKCOUNT * SIDEBLOCKCOUNT) // número total de bloques de la pieza
 #define NOBLOCK '0' // carácter que representa un bloque vacío
 #define PITWIDTH 10 // ancho del foso
 #define PITHEIGHT 16 // alto del foso
@@ -25,7 +33,7 @@ unsigned char newScore;
 unsigned char gameOver[2]; 			// FALSE=juego en curso TRUE=finalizado
 float dropRate[2]; 					// 1=cayendo 0=parada al fondo del foso
 float startTime[2];                 // tiempo desde que ha avanzado la pieza
-char pit[2][PITWIDTH * PITHEIGHT];	// contenido de los fosos
+char pit[2][PITWIDTH*PITHEIGHT];	// contenido de los fosos
 unsigned char level[2]; 			// niveles de juego (velocidad)
 unsigned int lines[2]; 				// lineas conseguidas
 unsigned char pitLeft[2]; 			// pos X del lado izquierdo de cada foso
@@ -38,97 +46,79 @@ int shapeX[2], shapeY[2];		// pos XY de la pieza
 unsigned char nextShape[2];		// tipo de las siguientes piezas (0 a 6)
 char* nextShapeMap[2];		// diseño de la siguiente pieza
 
-
-
 void drawBlock(char blockColor, unsigned char pitX, unsigned char pitY, unsigned char i) {
-    // convierte el color del bloque de caracter a int
-    int color = blockColor - '0';
-    locate(pitX + pitLeft[i], pitY + 1);
-    /*  imprime el bloque relleno del color solicitado
-        caracteres semigráficos del dragón: 127 a 255
-            +16: amarillo
-            +32: azul
-            +48: rojo
-            +64: beige
-            +80: turquesa
-            +96: magenta
-            +112: naranja 
-    */
-    //printf("%c", 128 + (color * 16));
-    printf("%d", color);
+    int color = blockColor-'0';
+    // Ajusta la posición usando Locate
+    locate(pitX+pitLeft[i], pitY+1);
+    // Imprime el carácter de bloque relleno
+    printf("%c", 143+(color*16)); // Carácter 219 es un bloque relleno en ASCII
 }
-
-
 
 void drawPit(unsigned char i) {
     unsigned char pitY, pitX;
-    // actualiza (repinta) el contenido del foso
-    for (pitY = 0; pitY < PITHEIGHT; pitY++) {
-        for (pitX = 0; pitX < PITWIDTH; pitX++) {
-            // dibuja el bloque con el color correspondiente a su posición
-            drawBlock(pit[i][(PITWIDTH * pitY) + pitX], pitX, pitY, i);
+    // Recorre el contenido del foso y repinta
+    for (pitY=0; pitY<PITHEIGHT; pitY++) {
+        for (pitX=0; pitX<PITWIDTH; pitX++) {
+            // Obtiene el color del bloque de la posición actual
+            char blockColor = pit[i][(PITWIDTH*pitY)+pitX];
+            // Dibuja el bloque con el color especificado
+            drawBlock(blockColor, pitX, pitY, i);
         }
     }
 }
 
-
-
-// verifica si una pieza puede moverse en la dirección especificada
+// Verifica si una forma puede moverse en la dirección especificada
 unsigned char shapeCanMove(char *map, unsigned char xDirection, 
                     unsigned char yDirection, unsigned char i) {
     int pitX, pitY;
     unsigned char blockX, blockY;
-    // recorre todos los bloques de la pieza
-    for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
-        for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
-            // si no es un bloque vacío...
-            if (map[(SIDEBLOCKCOUNT * blockY) + blockX] != NOBLOCK) {
-                // calcula la posición dentro del foso
-                pitX = (shapeX[i] + blockX) + xDirection;
-                pitY = (shapeY[i] + blockY) + yDirection;
-                // verifica si el bloque está dentro de los límites del foso
-                if (pitX >= 0 && pitX < PITWIDTH && pitY >= 0 && pitY < PITHEIGHT) {
-                    // si la posición en el foso no está vacía, no se puede mover
-                    if (pit[i][(PITWIDTH * pitY) + pitX] != NOBLOCK) {
-                        return FALSE;
+    // Recorre todos los bloques de la pieza
+    for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
+        for (blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
+            // Verifica si no es un bloque vacío
+            if (map[(SIDEBLOCKCOUNT*blockY)+blockX] != NOBLOCK) {
+                // Calcula la posición en el foso
+                pitX = (shapeX[i]+blockX)+xDirection;
+                pitY = (shapeY[i]+blockY)+yDirection;
+                // Verifica si el bloque está dentro de los límites del foso
+                if (pitX>=0 && pitX<PITWIDTH && pitY>=0 && pitY<PITHEIGHT) {
+                    // Si la posición en el foso no está vacía, no se puede mover
+                    if (pit[i][(PITWIDTH*pitY)+pitX] != NOBLOCK) {
+                        return FALSE; // No puede moverse
                     }
-                // si está fuera de los límites, no se puede mover
-                } else if (pitX < 0 || pitX >= PITWIDTH || pitY >= PITHEIGHT) {                    
+                } else if (pitX<0 || pitX>=PITWIDTH || pitY>=PITHEIGHT) {
+                    // Si está fuera de los límites, no se puede mover
                     return FALSE;
                 }
             }
         }
     }
-    return TRUE; //puede moverse
+    return TRUE; // Puede moverse
 }
-
-
 
 void drawNextShape(unsigned char i) {
     unsigned char blockX, blockY;
     char blockColor;
-    // para todos los bloques de la pieza
-    for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
-        for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
-            // color de la pieza
-            blockColor = nextShapeMap[i][(SIDEBLOCKCOUNT * blockY) + blockX];
+    // Para todos los bloques de la pieza
+    for (blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
+        for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
+            // Color de la pieza
+            blockColor = nextShapeMap[i][(SIDEBLOCKCOUNT*blockY)+blockX];
             if (blockColor == NOBLOCK) {
-                blockColor = '1';
+                blockColor = '2';
             }
             if (i == 0) {
-                drawBlock(blockColor, blockX + 17, blockY + 4, i);
+                drawBlock(blockColor, blockX+17, blockY+4, i);
             } else {
-                drawBlock(blockColor, blockX - 5, blockY + 12, i);
+                drawBlock(blockColor, blockX-5, blockY+12, i);
             }
         }
     }
 }
 
-
-
 void displayStatus(void) {
     // player 1
-    if (gameOver[0]) {
+    if (gameOver[0] == TRUE) {
         locate(pitLeft[0], 8);
         printf("GAME OVER!");
     }
@@ -139,12 +129,12 @@ void displayStatus(void) {
     locate(12, 4); printf("NEXT:");
     // player 2
     if (numPlayers == 2) {
-        if (gameOver[1]) {
+        if (gameOver[1] == TRUE) {
 			locate(pitLeft[1], 8);
 			printf("GAME OVER!");
         }
-        locate(11, 8);  printf("=PLAYER 2=");
-        locate(12, 9);  printf("LEVEL: %u", level[1]); // pinta el num. de nivel
+        locate(11, 8); printf("=PLAYER 2=");
+        locate(12, 9); printf("LEVEL: %u", level[1]); // pinta el num. de nivel
         locate(12, 10); printf("LINES: %u", lines[1]); // pinta las lineas
         locate(12, 11); printf("SC: %4d", scores[6]); // pinta la puntuacion
         locate(12, 12); printf("NEXT:");
@@ -157,85 +147,77 @@ void displayStatus(void) {
     }
 }
 
-
-
 const char* getShapeMap(unsigned char shape) {
     switch (shape) {
         case 0:
-            return "0000333300000000"; // |
+            return "0000333300000000"; // Palo largo
         case 1:
-            return "0000111000100000"; // |_
+            return "0000666000600000"; // L 1
         case 2:
-            return "0000666060000000"; // _|
+            return "0000111010000000"; // L 2
         case 3:
-            return "0000022002200000"; // []
+            return "0000022002200000"; // Cubo
         case 4:
-            return "0000055055000000"; // S
+            return "0000055055000000"; // S 1
         case 5:
-            return "0000770007700000"; // Z
+            return "0000770007700000"; // S 2
         case 6:
             return "0000444004000000"; // T
         default:
-            return "";
+            return ""; // Cadena vacía para casos no válidos
     }
 }
-
-
 
 // rotar la pieza y devolver el mapa resultante
 char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
 	const char* map = getShapeMap(shape); // mapa sin rotar
 	char* rotatedMap; // mapa rotado
-    int blockX, blockY, newBlockX, newBlockY;
+    int newBlockX, newBlockY;
 	unsigned char i;
 
     // si el ángulo es 0, copia directamente el mapa original en rotatedMap
     if (angle == 0) {
-        for (i = 0; i < BLOCKCOUNT; i++) {
+        for (i=0; i<(SIDEBLOCKCOUNT*SIDEBLOCKCOUNT); i++) {
             rotatedMap[i] = map[i];
         }
         return rotatedMap;
     }
-    // inicializa rotatedMap como vacía
-    for (i = 0; i < BLOCKCOUNT; i++) {
+    // Inicializa rotatedMap como vacía
+    for (i=0; i<(SIDEBLOCKCOUNT*SIDEBLOCKCOUNT); i++) {
         rotatedMap[i] = NOBLOCK;
     }
     // Para otros ángulos, recorre todos los bloques
-    for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
-        for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
+    for (int blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
+        for (int blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
             switch (angle) {
                 case 1: // 270 grados
                     newBlockX = blockY;
-                    newBlockY = LASTSIDEBLOCK - blockX;
+                    newBlockY = LASTSIDEBLOCK-blockX;
                     break;
                 case 2: // 180 grados
-                    newBlockX = LASTSIDEBLOCK - blockX;
-                    newBlockY = LASTSIDEBLOCK - blockY;
+                    newBlockX = LASTSIDEBLOCK-blockX;
+                    newBlockY = LASTSIDEBLOCK-blockY;
                     break;
                 case 3: // 90 grados
-                    newBlockX = LASTSIDEBLOCK  -blockY;
+                    newBlockX = LASTSIDEBLOCK-blockY;
                     newBlockY = blockX;
                     break;
             }
             // asigna el bloque correspondiente al ángulo en rotatedMap
-            rotatedMap[(SIDEBLOCKCOUNT * newBlockY) + newBlockX] = map[(SIDEBLOCKCOUNT * blockY) + blockX];
+            rotatedMap[SIDEBLOCKCOUNT*newBlockY+newBlockX] = map[SIDEBLOCKCOUNT*blockY+blockX];
         }
     }
 	return rotatedMap;
 }
 
-
-
 void createNextShape(unsigned char i) {
-	nextShape[i] = (unsigned char)(rand() % 7); // Tipo de pieza (0 a 6)
+	nextShape[i] = (unsigned char)(rand()%7); // Tipo de pieza (0 a 6)
 	nextShapeMap[i] = getRotatedShapeMap(nextShape[i], 0); // Composición de la pieza
 }
 
-
-
 void createShape(unsigned char i) {
 	// calcula la velocidad de caída en función del nivel
-    dropRate[i] = 1 - (level[i] * 0.2f);
+    dropRate[i] = 1-(level[i]*0.2f);
     if (dropRate[i] <= 0) {
         dropRate[i] = 0.1f;  // límite mínimo de velocidad de caída
     }
@@ -243,7 +225,7 @@ void createShape(unsigned char i) {
     if (nextShape[i] >= 0) {
         shape[i] = nextShape[i];
     } else {
-        shape[i] = (unsigned char)rand() % 7;  // nueva pieza aleatoria (0 a 6)
+        shape[i] = (unsigned char)rand()%7;  // nueva pieza aleatoria (0 a 6)
     }
 	// composición de la pieza según su rotación
     shapeAngle[i] = 0;
@@ -255,28 +237,27 @@ void createShape(unsigned char i) {
     createNextShape(i);
 }
 
-
-
 void drawShape(unsigned char i, unsigned char eraseShape) {
     int pitX, pitY;
     unsigned char blockX, blockY;
     char blockColor;
-    // recorre todos los bloques de la pieza
-    for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
-        for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
-            pitX = shapeX[i] + blockX;
-            pitY = shapeY[i] + blockY;
-            // verifica si el bloque está dentro de los límites del foso
-            if (pitX >= 0 && pitX < PITWIDTH && pitY >= 0 && pitY < PITHEIGHT) {
+
+    // Recorre todos los bloques de la pieza
+    for (blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
+        for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
+            pitX = shapeX[i]+blockX;
+            pitY = shapeY[i]+blockY;
+            // Verifica si el bloque está dentro de los límites del foso
+            if (pitX>=0 && pitX<PITWIDTH && pitY>=0 && pitY<PITHEIGHT) {
                 if (eraseShape) {
-                    // obtiene el color del foso en la posición actual
-                    blockColor = pit[i][(PITWIDTH * pitY) + pitX];
+                    // Obtiene el color del foso en la posición actual
+                    blockColor = pit[i][(PITWIDTH*pitY)+pitX];
                 } else {
-                    // obtiene el color del bloque de la pieza
-                    blockColor = shapeMap[i][(SIDEBLOCKCOUNT * blockY) + blockX];
-                    // si el bloque es vacío, toma el color del foso en esa posición
+                    // Obtiene el color del bloque de la pieza
+                    blockColor = shapeMap[i][(SIDEBLOCKCOUNT*blockY)+blockX];
+                    // Si el bloque es vacío, toma el color del foso en esa posición
                     if (blockColor == NOBLOCK) {
-                        blockColor = pit[i][(PITWIDTH * pitY) + pitX];
+                        blockColor = pit[i][(PITWIDTH*pitY)+pitX];
                     }
                 }
                 drawBlock(blockColor, (unsigned char)pitX, (unsigned char)pitY, i); // Pinta o borra el bloque
@@ -351,12 +332,10 @@ void checkForFullRows(unsigned char i) { // busca filas completas
     }
 }
 
-
-
 void settleActiveShapeInPit(unsigned char i) {
     unsigned char blockX, blockY;
     int pitX, pitY;
-    // itera sobre cada bloque de la pieza
+    // Itera sobre cada bloque de la pieza
     for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
         for (blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
             pitX = shapeX[i]+blockX;
