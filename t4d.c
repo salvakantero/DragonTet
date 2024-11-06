@@ -124,6 +124,8 @@ void drawNextShape(unsigned char i) {
     }
 }
 
+
+
 void displayStatus(void) {
     // player 1
     if (gameOver[0]) {
@@ -155,6 +157,8 @@ void displayStatus(void) {
     }
 }
 
+
+
 const char* getShapeMap(unsigned char shape) {
     switch (shape) {
         case 0:
@@ -176,56 +180,62 @@ const char* getShapeMap(unsigned char shape) {
     }
 }
 
+
+
 // rotar la pieza y devolver el mapa resultante
 char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
 	const char* map = getShapeMap(shape); // mapa sin rotar
 	char* rotatedMap; // mapa rotado
-    int newBlockX, newBlockY;
+    int blockX, blockY, newBlockX, newBlockY;
 	unsigned char i;
 
     // si el ángulo es 0, copia directamente el mapa original en rotatedMap
     if (angle == 0) {
-        for (i = 0; i < (SIDEBLOCKCOUNT * SIDEBLOCKCOUNT); i++) {
+        for (i = 0; i < BLOCKCOUNT; i++) {
             rotatedMap[i] = map[i];
         }
         return rotatedMap;
     }
-    // Inicializa rotatedMap como vacía
-    for (i=0; i<(SIDEBLOCKCOUNT*SIDEBLOCKCOUNT); i++) {
+    // inicializa rotatedMap como vacía
+    for (i = 0; i < BLOCKCOUNT; i++) {
         rotatedMap[i] = NOBLOCK;
     }
     // Para otros ángulos, recorre todos los bloques
-    for (int blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
-        for (int blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
+    for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
+        for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
             switch (angle) {
                 case 1: // 270 grados
                     newBlockX = blockY;
-                    newBlockY = LASTSIDEBLOCK-blockX;
+                    newBlockY = LASTSIDEBLOCK - blockX;
                     break;
                 case 2: // 180 grados
-                    newBlockX = LASTSIDEBLOCK-blockX;
-                    newBlockY = LASTSIDEBLOCK-blockY;
+                    newBlockX = LASTSIDEBLOCK - blockX;
+                    newBlockY = LASTSIDEBLOCK - blockY;
                     break;
                 case 3: // 90 grados
-                    newBlockX = LASTSIDEBLOCK-blockY;
+                    newBlockX = LASTSIDEBLOCK  -blockY;
                     newBlockY = blockX;
                     break;
             }
             // asigna el bloque correspondiente al ángulo en rotatedMap
-            rotatedMap[SIDEBLOCKCOUNT*newBlockY+newBlockX] = map[SIDEBLOCKCOUNT*blockY+blockX];
+            rotatedMap[(SIDEBLOCKCOUNT * newBlockY) + newBlockX] = map[(SIDEBLOCKCOUNT * blockY) + blockX];
         }
     }
 	return rotatedMap;
 }
 
+
+
 void createNextShape(unsigned char i) {
-	nextShape[i] = (unsigned char)(rand()%7); // Tipo de pieza (0 a 6)
+	nextShape[i] = (unsigned char)(rand() % 7); // Tipo de pieza (0 a 6)
 	nextShapeMap[i] = getRotatedShapeMap(nextShape[i], 0); // Composición de la pieza
 }
 
+
+
 void createShape(unsigned char i) {
 	// calcula la velocidad de caída en función del nivel
-    dropRate[i] = 1-(level[i]*0.2f);
+    dropRate[i] = 1 - (level[i] * 0.2f);
     if (dropRate[i] <= 0) {
         dropRate[i] = 0.1f;  // límite mínimo de velocidad de caída
     }
@@ -233,7 +243,7 @@ void createShape(unsigned char i) {
     if (nextShape[i] >= 0) {
         shape[i] = nextShape[i];
     } else {
-        shape[i] = (unsigned char)rand()%7;  // nueva pieza aleatoria (0 a 6)
+        shape[i] = (unsigned char)rand() % 7;  // nueva pieza aleatoria (0 a 6)
     }
 	// composición de la pieza según su rotación
     shapeAngle[i] = 0;
@@ -245,27 +255,28 @@ void createShape(unsigned char i) {
     createNextShape(i);
 }
 
+
+
 void drawShape(unsigned char i, unsigned char eraseShape) {
     int pitX, pitY;
     unsigned char blockX, blockY;
     char blockColor;
-
-    // Recorre todos los bloques de la pieza
-    for (blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
-        for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
-            pitX = shapeX[i]+blockX;
-            pitY = shapeY[i]+blockY;
-            // Verifica si el bloque está dentro de los límites del foso
-            if (pitX>=0 && pitX<PITWIDTH && pitY>=0 && pitY<PITHEIGHT) {
+    // recorre todos los bloques de la pieza
+    for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
+        for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
+            pitX = shapeX[i] + blockX;
+            pitY = shapeY[i] + blockY;
+            // verifica si el bloque está dentro de los límites del foso
+            if (pitX >= 0 && pitX < PITWIDTH && pitY >= 0 && pitY < PITHEIGHT) {
                 if (eraseShape) {
-                    // Obtiene el color del foso en la posición actual
-                    blockColor = pit[i][(PITWIDTH*pitY)+pitX];
+                    // obtiene el color del foso en la posición actual
+                    blockColor = pit[i][(PITWIDTH * pitY) + pitX];
                 } else {
-                    // Obtiene el color del bloque de la pieza
-                    blockColor = shapeMap[i][(SIDEBLOCKCOUNT*blockY)+blockX];
-                    // Si el bloque es vacío, toma el color del foso en esa posición
+                    // obtiene el color del bloque de la pieza
+                    blockColor = shapeMap[i][(SIDEBLOCKCOUNT * blockY) + blockX];
+                    // si el bloque es vacío, toma el color del foso en esa posición
                     if (blockColor == NOBLOCK) {
-                        blockColor = pit[i][(PITWIDTH*pitY)+pitX];
+                        blockColor = pit[i][(PITWIDTH * pitY) + pitX];
                     }
                 }
                 drawBlock(blockColor, (unsigned char)pitX, (unsigned char)pitY, i); // Pinta o borra el bloque
@@ -340,10 +351,12 @@ void checkForFullRows(unsigned char i) { // busca filas completas
     }
 }
 
+
+
 void settleActiveShapeInPit(unsigned char i) {
     unsigned char blockX, blockY;
     int pitX, pitY;
-    // Itera sobre cada bloque de la pieza
+    // itera sobre cada bloque de la pieza
     for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
         for (blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
             pitX = shapeX[i]+blockX;
