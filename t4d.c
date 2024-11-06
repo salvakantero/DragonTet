@@ -10,6 +10,7 @@ signed int:		int/sword */
 
 #define LASTSIDEBLOCK 3 // para recorrer con bucles la pieza actual (0 a 3)
 #define SIDEBLOCKCOUNT 4 // tamano del lado de la pieza (4x4)
+#define BLOCKCOUNT (SIDEBLOCKCOUNT * SIDEBLOCKCOUNT) // número total de bloques de la pieza
 #define NOBLOCK '0' // carácter que representa un bloque vacío
 #define PITWIDTH 10 // ancho del foso
 #define PITHEIGHT 16 // alto del foso
@@ -59,9 +60,9 @@ void drawBlock(char blockColor, unsigned char pitX, unsigned char pitY, unsigned
 
 
 
-// actualiza (repinta) el contenido del foso
 void drawPit(unsigned char i) {
     unsigned char pitY, pitX;
+    // actualiza (repinta) el contenido del foso
     for (pitY = 0; pitY < PITHEIGHT; pitY++) {
         for (pitX = 0; pitX < PITWIDTH; pitX++) {
             // dibuja el bloque con el color correspondiente a su posición
@@ -125,7 +126,7 @@ void drawNextShape(unsigned char i) {
 
 void displayStatus(void) {
     // player 1
-    if (gameOver[0] == TRUE) {
+    if (gameOver[0]) {
         locate(pitLeft[0], 8);
         printf("GAME OVER!");
     }
@@ -136,12 +137,12 @@ void displayStatus(void) {
     locate(12, 4); printf("NEXT:");
     // player 2
     if (numPlayers == 2) {
-        if (gameOver[1] == TRUE) {
+        if (gameOver[1]) {
 			locate(pitLeft[1], 8);
 			printf("GAME OVER!");
         }
-        locate(11, 8); printf("=PLAYER 2=");
-        locate(12, 9); printf("LEVEL: %u", level[1]); // pinta el num. de nivel
+        locate(11, 8);  printf("=PLAYER 2=");
+        locate(12, 9);  printf("LEVEL: %u", level[1]); // pinta el num. de nivel
         locate(12, 10); printf("LINES: %u", lines[1]); // pinta las lineas
         locate(12, 11); printf("SC: %4d", scores[6]); // pinta la puntuacion
         locate(12, 12); printf("NEXT:");
@@ -157,21 +158,21 @@ void displayStatus(void) {
 const char* getShapeMap(unsigned char shape) {
     switch (shape) {
         case 0:
-            return "0000333300000000"; // Palo largo
+            return "0000333300000000"; // |
         case 1:
-            return "0000666000600000"; // L 1
+            return "0000111000100000"; // |_
         case 2:
-            return "0000111010000000"; // L 2
+            return "0000666060000000"; // _|
         case 3:
-            return "0000022002200000"; // Cubo
+            return "0000022002200000"; // []
         case 4:
-            return "0000055055000000"; // S 1
+            return "0000055055000000"; // S
         case 5:
-            return "0000770007700000"; // S 2
+            return "0000770007700000"; // Z
         case 6:
             return "0000444004000000"; // T
         default:
-            return ""; // Cadena vacía para casos no válidos
+            return "";
     }
 }
 
@@ -184,7 +185,7 @@ char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
 
     // si el ángulo es 0, copia directamente el mapa original en rotatedMap
     if (angle == 0) {
-        for (i=0; i<(SIDEBLOCKCOUNT*SIDEBLOCKCOUNT); i++) {
+        for (i = 0; i < (SIDEBLOCKCOUNT * SIDEBLOCKCOUNT); i++) {
             rotatedMap[i] = map[i];
         }
         return rotatedMap;
