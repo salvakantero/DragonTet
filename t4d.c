@@ -5,7 +5,7 @@
 
 Based on Peter Swinkels' Qbasic code. (QBBlocks v1.0)
 
-compatible with Dragon 32/64 & COCO
+compatible with Dragon 32/64 and COCO
 
 use the CMOC compiler 0.1.89 or higher
 "cmoc --dragon -o t4d.bin t4d.c"
@@ -17,7 +17,7 @@ use the CMOC compiler 0.1.89 or higher
 
 #define LASTSIDEBLOCK 3 // to iterate over the current piece (0 to 3)
 #define SIDEBLOCKCOUNT 4 // size of the piece's side (4x4)
-#define BLOCKCOUNT SIDEBLOCKCOUNT*SIDEBLOCKCOUNT // size of the piece in blocks
+#define BLOCKCOUNT SIDEBLOCKCOUNT * SIDEBLOCKCOUNT // size of the piece in blocks
 #define NOBLOCK '0' // character representing an empty block
 #define PITWIDTH 10 // width of the pit in blocks
 #define PITHEIGHT 15 // height of the pit in blocks
@@ -32,7 +32,7 @@ unsigned char newScore;
 unsigned char gameOver[2]; 			// FALSE = game in progress, TRUE = finished
 float dropRate[2]; 					// 1 = falling, 0 = stopped at the bottom of the pit
 float startTime[2];                 // time since the piece has moved
-char pit[2][PITWIDTH*PITHEIGHT];	// content of each pit in blocks
+char pit[2][PITWIDTH * PITHEIGHT];	// content of each pit in blocks
 unsigned char level[2]; 			// game levels (speed)
 unsigned int lines[2]; 				// lines cleared
 unsigned char pitLeft[2]; 			// X position of the left side of each pit
