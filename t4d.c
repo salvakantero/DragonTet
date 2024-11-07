@@ -23,7 +23,7 @@ use the CMOC compiler 0.1.89 or higher
 #define PITHEIGHT 15 // height of the pit in blocks
 
 char key; // key pressed
-unsigned char numPlayers; // players (1-2)
+unsigned char numPlayers; // 0 = player1  1 = player2
 // fake values for the initial TOP 5
 char names[7][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","",""};
 unsigned int scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
@@ -60,8 +60,7 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY, unsigne
     +96: magenta  
     +112: orange 
     */
-    //printf("%c", 143 + (colour * 16));
-    printf("%d", colour);
+    printf("%c", 143 + (colour * 16));
 }
 
 
@@ -121,9 +120,9 @@ void drawNextShape(unsigned char i) {
         for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
             // colour de la pieza
             blockcolour = nextShapeMap[i][(SIDEBLOCKCOUNT*blockY)+blockX];
-            if (blockcolour == NOBLOCK) {
+            /*if (blockcolour == NOBLOCK) {
                 blockcolour = '2';
-            }
+            }*/
             if (i == 0) {
                 drawBlock(blockcolour, blockX+17, blockY+4, i);
             } else {
@@ -145,7 +144,7 @@ void displayStatus(void) {
     locate(12, 3); printf("SC: %4d", scores[5]); // pinta la puntuacion
     locate(12, 4); printf("NEXT:");
     // player 2
-    if (numPlayers == 2) {
+    if (numPlayers == 1) {
         if (gameOver[1] == TRUE) {
 			locate(pitLeft[1], 8);
 			printf("GAME OVER!");
@@ -157,7 +156,7 @@ void displayStatus(void) {
         locate(12, 12); printf("NEXT:");
     }
     unsigned char i;
-    for (i=0; i<numPlayers; i++) {
+    for (i=0; i<=numPlayers; i++) {
         if (gameOver[i] == FALSE) {
 			drawNextShape(i);
         }
@@ -427,11 +426,11 @@ void menu(void) {
     do {
         key = inkey();		
         if (key == '1')	{
-            numPlayers = 1;
+            numPlayers = 0;
             break;
         } 
 		else if (key == '2') {
-            numPlayers = 2;
+            numPlayers = 1;
             break;
         } 
 		else if (key == '3') {			
@@ -452,7 +451,7 @@ void init(void) {
 	cls(1);
     pitLeft[0] = 0;
     pitLeft[1] = 22;
-	for(i=0; i<numPlayers; i++) {
+	for(i=0; i<=numPlayers; i++) {
         gameOver[i] = FALSE; // partida en curso
         level[i] = 1; // nivel inicial
         lines[i] = 0; // lineas conseguidas
@@ -588,7 +587,7 @@ int main(void) {
 		mainLoop();
 		
         newScore = FALSE;
-        for (i=0; i<numPlayers; i++) {
+        for (i=0; i<=numPlayers; i++) {
             checkScores(i);
 		}
         if (newScore) {
