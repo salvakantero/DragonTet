@@ -3,20 +3,27 @@
 ***TETRIS4DRAGON***
  salvaKantero 2024
 
-Based on Peter Swinkels' Qbasic code. (QBBlocks v1.0)
+Based on Peter Swinkels' PC Qbasic code. (QBBlocks v1.0)
 
 compatible with Dragon 32/64 and COCO
 
 use the CMOC compiler 0.1.89 or higher
 "cmoc --dragon -o t4d.bin t4d.c"
 
+
+TODO
+====
+- random seed
+- timing
+
+
 */
 
 #include <cmoc.h>
 #include <coco.h>
 
-#define LASTSIDEBLOCK 3 // to iterate over the current piece (0 to 3)
 #define SIDEBLOCKCOUNT 4 // size of the piece's side (4x4)
+#define LASTSIDEBLOCK SIDEBLOCKCOUNT - 1 // to iterate over the current piece (0 to 3)
 #define BLOCKCOUNT SIDEBLOCKCOUNT * SIDEBLOCKCOUNT // size of the piece in blocks
 #define NOBLOCK '0' // character representing an empty block
 #define PITWIDTH 10 // width of the pit in blocks
@@ -37,12 +44,12 @@ unsigned char level[2]; 			// game levels (speed)
 unsigned int lines[2]; 				// lines cleared
 unsigned char pitLeft[2]; 			// X position of the left side of each pit
 
-unsigned char shape[2]; 		// piece type (0 to 6)
+char shape[2]; 		            // piece type (-1 to 6)
 unsigned char shapeAngle[2]; 	// piece rotation (0 to 3)
 char* shapeMap[2];				// piece design
 int shapeX[2], shapeY[2];		// piece XY position
 
-unsigned char nextShape[2];		// type of the next piece (0 to 6)
+char nextShape[2];		        // type of the next piece (-1 to 6)
 char* nextShapeMap[2];		    // design of the next piece
 
 
@@ -61,6 +68,7 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY, unsigne
     +112: orange 
     */
     printf("%c", 143 + ((colour-1) * 16));
+    //printf("%d", colour);
 }
 
 
@@ -120,9 +128,9 @@ void drawNextShape(unsigned char i) {
         for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
             // piece colour
             blockcolour = nextShapeMap[i][(SIDEBLOCKCOUNT*blockY)+blockX];
-            /*if (blockcolour == NOBLOCK) {
-                blockcolour = '2';
-            }*/
+            if (blockcolour == NOBLOCK) {
+                blockcolour = '1';
+            }
             if (i == 0) { // player 1
                 drawBlock(blockcolour, blockX + 17, blockY + 4, i);
             } else { // player 2
@@ -184,7 +192,7 @@ const char* getShapeMap(unsigned char shape) {
         case 5:
             return "0000880008800000"; // orange Z
         case 6:
-            return "0000111001000000"; // green T
+            return "0000555005000000"; // white T
         default:
             return "";
     }
@@ -193,7 +201,7 @@ const char* getShapeMap(unsigned char shape) {
 
 
 // rotates the piece and returns the resulting map
-char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
+char* getRotatedShapeMap(char shape, unsigned char angle) {
 	const char* map = getShapeMap(shape); // unrotated map
 	char* rotatedMap; // rotated map
     int newBlockX, newBlockY;
@@ -244,177 +252,189 @@ void createNextShape(unsigned char i) {
 
 
 void createShape(unsigned char i) {
-	// calcula la velocidad de caída en función del nivel
-    dropRate[i] = 1-(level[i]*0.2f);
+	// calculates the fall speed based on the level
+    dropRate[i] = 1-(level[i] * 0.2f);
     if (dropRate[i] <= 0) {
-        dropRate[i] = 0.1f;  // límite mínimo de velocidad de caída
+        dropRate[i] = 0.1f;  // minimum fall speed limit
     }
-    // Si no es la primera pieza, toma el valor de nextShape
+    // if it's not the first piece, take the value of nextShape
     if (nextShape[i] >= 0) {
         shape[i] = nextShape[i];
     } else {
-        shape[i] = (unsigned char)rand()%7;  // nueva pieza aleatoria (0 a 6)
+        shape[i] = (unsigned char)rand() % 7;  // new random piece (0 to 6)
     }
-	// composición de la pieza según su rotación
     shapeAngle[i] = 0;
     shapeMap[i] = getRotatedShapeMap(shape[i], shapeAngle[i]);           // <-------- necessary?
-    // posición inicial (centro del foso en X, totalmente oculta en Y)
+    // initial position (centre of the pit in X, fully hidden in Y)
     shapeX[i] = 3;
     shapeY[i] = -SIDEBLOCKCOUNT;
-    // genera la próxima pieza
+    // generates the next piece
     createNextShape(i);
 }
+
+
 
 void drawShape(unsigned char i, unsigned char eraseShape) {
     int pitX, pitY;
     unsigned char blockX, blockY;
-    char blockcolour;
+    char blockColour;
 
-    // Recorre todos los bloques de la pieza
-    for (blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
-        for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
-            pitX = shapeX[i]+blockX;
-            pitY = shapeY[i]+blockY;
-            // Verifica si el bloque está dentro de los límites del foso
-            if (pitX>=0 && pitX<PITWIDTH && pitY>=0 && pitY<PITHEIGHT) {
+    // iterates through all the blocks of the piece
+    for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
+        for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
+            pitX = shapeX[i] + blockX;
+            pitY = shapeY[i] + blockY;
+            // check if the block is within the pit boundaries
+            if (pitX >= 0 && pitX < PITWIDTH && pitY >= 0 && pitY < PITHEIGHT) {
                 if (eraseShape) {
-                    // Obtiene el colour del foso en la posición actual
-                    blockcolour = pit[i][(PITWIDTH*pitY)+pitX];
+                    // gets the colour of the pit at the current position
+                    blockColour = pit[i][(PITWIDTH * pitY) + pitX];
                 } else {
-                    // Obtiene el colour del bloque de la pieza
-                    blockcolour = shapeMap[i][(SIDEBLOCKCOUNT*blockY)+blockX];
-                    // Si el bloque es vacío, toma el colour del foso en esa posición
-                    if (blockcolour == NOBLOCK) {
-                        blockcolour = pit[i][(PITWIDTH*pitY)+pitX];
+                    // gets the colour of the piece's block
+                    blockColour = shapeMap[i][(SIDEBLOCKCOUNT * blockY) + blockX];
+                    // if the block is empty, take the colour of the pit at that position
+                    if (blockColour == NOBLOCK) {
+                        blockColour = pit[i][(PITWIDTH * pitY) + pitX];
                     }
                 }
-                drawBlock(blockcolour, (unsigned char)pitX, (unsigned char)pitY, i); // Pinta o borra el bloque
+                // draw or erase the block
+                drawBlock(blockColour, (unsigned char)pitX, (unsigned char)pitY, i); 
             }
         }
     }
 }
 
+
+
 void removeFullRow(unsigned char removedRow, unsigned char i) {
     unsigned char pitX, pitY;
-    char blockcolour;
-    // Itera desde la fila removida hacia arriba
-    for (pitY=removedRow; pitY>0; pitY--) {
-        for (pitX=0; pitX<PITWIDTH; pitX++) {
+    char blockColour;
+    // iterate from the removed row upwards
+    for (pitY = removedRow; pitY > 0; pitY--) {
+        for (pitX = 0; pitX < PITWIDTH; pitX++) {
             if (pitY == 0) {
-                blockcolour = NOBLOCK; // La línea más alta queda vacía
+                blockColour = NOBLOCK; // the topmost line becomes empty
             } else {
-                // Copia la línea superior en la actual
-                blockcolour = pit[i][(pitY-1)*PITWIDTH+pitX];
+                // copy the top row to the current one
+                blockColour = pit[i][(pitY - 1) * PITWIDTH + pitX];
             }
-            // Asigna el colour a la línea actual
-            pit[i][pitY*PITWIDTH+pitX] = blockcolour;
+            // assign the colour to the current row
+            pit[i][pitY * PITWIDTH + pitX] = blockColour;
         }
     }
-    // Vacía la primera fila después de bajar todas
+    // clear the first row after shifting all rows down
     for (pitX = 0; pitX < PITWIDTH; pitX++) {
         pit[i][pitX] = NOBLOCK;
     }
 }
 
-void checkForFullRows(unsigned char i) { // busca filas completas
+
+
+void checkForFullRows(unsigned char i) { // searches for full rows
     unsigned char fullRow = FALSE;
     unsigned int numLines = 0;
     unsigned char pitX, pitY;
-    unsigned char j = i+5;
+    unsigned char j = i + 5;
 
-    // Recorre todas las filas del foso
-    for (pitY=0; pitY<PITHEIGHT; pitY++) {
+    // loops through all the rows in the pit
+    for (pitY = 0; pitY < PITHEIGHT; pitY++) {
         fullRow = TRUE;
-        // Verifica cada bloque en la fila
-        for (pitX=0; pitX<PITWIDTH; pitX++) {
-            if (pit[i][pitY*PITWIDTH+pitX] == NOBLOCK) {
-                fullRow = FALSE;  // Encuentra un hueco
+        // checks each block in the row
+        for (pitX = 0; pitX < PITWIDTH; pitX++) {
+            if (pit[i][pitY * PITWIDTH + pitX] == NOBLOCK) {
+                fullRow = FALSE; // finds an empty space
                 break;
             }
         }
-        // Si la fila está completa, se elimina
+        // if the row is full, it gets removed
         if (fullRow) {
-            removeFullRow(pitY, i); // Función para eliminar la fila completa
+            removeFullRow(pitY, i);
             numLines++;
         }
     }
-    // Actualiza la puntuación si se completaron líneas
+    // updates the score if rows were completed
     if (numLines > 0) {
         switch (numLines) {
             case 1:
-                scores[j] += (100*level[i]);
+                scores[j] += (100 * level[i]);
                 break;
             case 2:
-                scores[j] += (300*level[i]);
+                scores[j] += (300 * level[i]);
                 break;
             case 3:
-                scores[j] += (500*level[i]);
+                scores[j] += (500 * level[i]);
                 break;
             case 4:
-                scores[j] += (800*level[i]); // Tetris!
+                scores[j] += (800 * level[i]); // Tetris!
                 break;
         }
-        // Actualiza el total de líneas completadas y calcula el nivel
+        // updates the total completed rows and calculates the level
         lines[i] += numLines;
         level[i] = (unsigned char)(lines[i]/10)+1;
     }
 }
 
+
+
 void settleActiveShapeInPit(unsigned char i) {
     unsigned char blockX, blockY;
     int pitX, pitY;
-    // Itera sobre cada bloque de la pieza
-    for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
-        for (blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
-            pitX = shapeX[i]+blockX;
-            pitY = shapeY[i]+blockY;
-            // Verifica que el bloque esté dentro de los límites del foso
-            if (pitX>=0 && pitX<PITWIDTH && pitY>=0 && pitY<PITHEIGHT) {
-                // Comprueba que el bloque no sea un hueco vacío
-                if (shapeMap[i][blockY*SIDEBLOCKCOUNT+blockX] != NOBLOCK) {
-                    // Fija el bloque de la pieza en el foso
-                    pit[i][pitY*PITWIDTH+pitX] = shapeMap[i][blockY*SIDEBLOCKCOUNT+blockX];
+    for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
+        for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
+            pitX = shapeX[i] + blockX;
+            pitY = shapeY[i] + blockY;
+            // checks that the block is within the pit boundaries
+            if (pitX >= 0 && pitX < PITWIDTH && pitY >= 0 && pitY < PITHEIGHT) {
+                // checks that the block is not an empty space
+                if (shapeMap[i][blockY * SIDEBLOCKCOUNT + blockX] != NOBLOCK) {
+                    // fixes the piece's block in the pit
+                    pit[i][pitY * PITWIDTH + pitX] = shapeMap[i][blockY * SIDEBLOCKCOUNT + blockX];
                 }
             }
         }
     }
 }
 
+
+
 void dropShape(unsigned char i) {
-    // Verifica si la pieza puede moverse hacia abajo
+    // checks if the piece can move down
     if (shapeCanMove(shapeMap[i], 0, 1, i)) {
-        drawShape(i, TRUE);      // Borra la pieza actual
-        shapeY[i] += 1;          // Baja la pieza una posición
-        drawShape(i, FALSE);     // Vuelve a dibujar la pieza en la nueva posición
+        drawShape(i, TRUE);      // erases the current piece
+        shapeY[i] += 1;          // moves the piece down by one position
+        drawShape(i, FALSE);     // redraws the piece at the new position
     } else {
-        // La pieza se establece en el foso
         settleActiveShapeInPit(i);
-        // Verifica si la pieza alcanzó la parte superior y se pierde la partida
-        gameOver[i] = (shapeY[i]<0);
-        // Verifica si hay filas completas para eliminar
+        // checks if the piece has reached the top and the game is lost
+        gameOver[i] = (shapeY[i] < 0);
+
         checkForFullRows(i);
-        // Redibuja el contenido del foso
         drawPit(i);
-        // Si el juego no ha terminado, crea una nueva pieza y la dibuja
+
+        // if the game is not over, creates a new piece and draws it
         if (!gameOver[i]) {
             createShape(i);
             drawShape(i, FALSE);
         }
-        // Muestra el estado actual del juego, como puntos o mensajes
+        // displays the current game status, such as points or messages
         displayStatus();
     }
 }
 
+
+
 void drawHighScores(void) {
 	unsigned char i;
-    for(i=0; i<5; i++) {
+    for(i = 0; i < 5; i++) {
         locate(7, 8+i);  printf("...............");
         locate(7, 8+i);  printf("%s", names[i]);
         locate(19, 8+i); printf("%5d", scores[i]);
 	}
-	locate(2,14); printf("PRESS ANY KEY TO CONTINUE...");
+	locate(2, 14); printf("PRESS ANY KEY TO CONTINUE...");
 	waitkey(0);
 }
+
+
 
 void drawHeader(void) {
     locate(8, 1); printf("***************");
@@ -422,6 +442,8 @@ void drawHeader(void) {
     locate(8, 3); printf("***************");
     locate(7, 5); printf("SALVAKANTERO 2024");
 }
+
+
 
 void drawMenu(void) {
 	cls(1);
@@ -433,86 +455,92 @@ void drawMenu(void) {
     locate(6, 14); printf("SELECT OPTION (1-4)");	
 }
 
+
+
 void menu(void) {
 	drawMenu();
     do {
         key = inkey();		
-        if (key == '1')	{
+        if (key == '1')	{ // 1 player game
             numPlayers = 0;
             break;
         } 
-		else if (key == '2') {
+		else if (key == '2') { // 2 player game
             numPlayers = 1;
             break;
         } 
-		else if (key == '3') {			
+		else if (key == '3') { // high scores		
             drawHighScores();
 			drawMenu();
         } 
-		else if (key == '4') {
+		else if (key == '4') { // exit
 			cls(1);
             exit(0);
 		}
     } while (TRUE);
 }
 
-// lógica para inicializar el sistema y los fosos
+
+
+// logic to initialize the system and pits
 void init(void) {
 	unsigned char i;
     menu();
 	cls(1);
     pitLeft[0] = 0;
     pitLeft[1] = 22;
-	for(i=0; i<=numPlayers; i++) {
-        gameOver[i] = FALSE; // partida en curso
-        level[i] = 1; // nivel inicial
-        lines[i] = 0; // lineas conseguidas
-        scores[i+5] = 0; // puntuacion actual
-        nextShape[i] = -1; // sera necesario generar pieza
-        memset(pit[i], NOBLOCK, PITWIDTH*PITHEIGHT); // inicializa el foso vacío
-        createShape(i); // genera pieza (forma, posición)
-        drawPit(i); //pinta foso
+	for(i = 0; i <= numPlayers; i++) {
+        gameOver[i] = FALSE; // game in progress
+        level[i] = 1; // initial level
+        lines[i] = 0; // lines cleared
+        scores[i+5] = 0; // current score
+        nextShape[i] = -1; // piece generation will be required
+        memset(pit[i], NOBLOCK, PITWIDTH * PITHEIGHT); // initialize the empty pit
+        createShape(i); // generate piece (shape, position)
+        drawPit(i);
     }
     displayStatus();
 }
+
+
 
 void mainLoop() {
     unsigned char newAngle;
     unsigned char i;
     char* rotatedMap;
 
-    // Guarda el tiempo de inicio para el jugador 0
+    // save the start time for player 1
     startTime[0] = getTimer();
     if (numPlayers > 0) {
-        // Guarda el tiempo de inicio para el jugador 1
+        // save the start time for player 1
         startTime[1] = getTimer();
     }
     while (TRUE) {
         char key = '\0';
-        // Bucle hasta que se pulse una tecla
+        // loop until a key is pressed
         while (key == '\0') {
-            for (i=0; i<=numPlayers; i++) { // Bucle para ambos jugadores
-                if (!gameOver[i]) { // Juego en curso
-                    // Si ha sido superado el tiempo de caída
-                    if (getTimer() >= startTime[i]+dropRate[i] || startTime[i] > getTimer()) {
-                        dropShape(i); // La pieza avanza hacia abajo
-                        startTime[i] = getTimer(); // Reinicia el temporizador de caída
+            for (i = 0; i <= numPlayers; i++) {
+                if (!gameOver[i]) { // game in progress
+                    // if the falling time has been exceeded
+                    if (getTimer() >= startTime[i] + dropRate[i] || startTime[i] > getTimer()) {
+                        dropShape(i); // the piece moves down
+                        startTime[i] = getTimer(); // reset the fall timer
                     }
                 }
             }
-            key = inkey(); // Lee pulsaciones del teclado
+            key = inkey(); // read keypresses
         }
 
-        if (key == 'X') { // Si se pulsa X, sale
+        if (key == 'X') { // if X is pressed, exit to the main menu
             break;
         } else {
-            for (i=0; i<=numPlayers; i++) { // Bucle para ambos jugadores
-                if (gameOver[i]) { // Fuera de juego
-                    if (key == 'Z') { // Si se pulsa ENTER, reinicia juego
+            for (i = 0; i <= numPlayers; i++) {
+                if (gameOver[i]) { // out of game
+                    if (key == 'Z') { // if ENTER is pressed, restart game
                         break;
                     }
                 } else {
-                    // Asigna teclas para cada jugador
+                    // assign keys for each player
                     char rotateKey, leftKey, downKey, rightKey;
                     if (i == 0) {
                         rotateKey = 'W';
@@ -527,30 +555,30 @@ void mainLoop() {
                     }
 
                     switch (key) {
-                        case 'W': case 'I': // Tecla de rotación
-                            drawShape(i, TRUE); // Borra pieza
+                        case 'W': case 'I': // rotate key
+                            drawShape(i, TRUE); // erase piece
                             newAngle = (shapeAngle[i] == 3) ? 0 : shapeAngle[i]+1;
                             rotatedMap = getRotatedShapeMap(shape[i], newAngle);
-                            if (shapeCanMove(rotatedMap, 0, 0, i)) { // Si se puede mover...
+                            if (shapeCanMove(rotatedMap, 0, 0, i)) {
                                 shapeAngle[i] = newAngle;
                                 shapeMap[i] = rotatedMap;
                             }
-                            drawShape(i, FALSE); // Pinta pieza
+                            drawShape(i, FALSE);
                             break;
 
-                        case 'A': case 'J': // Mueve a la izquierda
-                            drawShape(i, TRUE); // Borra pieza
+                        case 'A': case 'J': // move left
+                            drawShape(i, TRUE); // erase piece
                             if (shapeCanMove(shapeMap[i], -1, 0, i)) shapeX[i]--;
-                            drawShape(i, FALSE); // Pinta pieza
+                            drawShape(i, FALSE);
                             break;
 
-                        case 'D': case 'L': // Mueve a la derecha
-                            drawShape(i, TRUE); // Borra pieza
+                        case 'D': case 'L': // move right
+                            drawShape(i, TRUE); // erase piece
                             if (shapeCanMove(shapeMap[i], 1, 0, i)) shapeX[i]++;
-                            drawShape(i, FALSE); // Pinta pieza
+                            drawShape(i, FALSE);
                             break;
 
-                        case 'S': case 'K': // Pone el tiempo de descenso a 0
+                        case 'S': case 'K': // set the descent time to 0
                             dropRate[i] = 0;
                             break;
                     }
@@ -560,22 +588,24 @@ void mainLoop() {
     }
 }
 
-// verifica si la nueva puntuación es lo suficientemente alta para entrar en el top 5
+
+
+// check if the new score is high enough to enter the top 5
 void checkScores(unsigned char player) {
     unsigned char i = player + 5;
 	unsigned char j;
 
     if (scores[i] > scores[4]) {
         drawHeader();
-        locate(3, 10); printf("BUENA PUNTUACION JUGADOR %d", player+1);
-        locate(6, 11); printf("NOMBRE?: ");
+        locate(3, 10); printf("GOOD SCORE PLAYER %d", player+1);
+        locate(6, 11); printf("NAME?: ");
         char *response = readline();
         strncpy(names[i], response, 10);
         names[i][10] = '\0';
 
-        for (j=4; j>=0; j--) {
+        for (j = 4; j >= 0; j--) {
             if (scores[i] > scores[j]) {
-                // desplaza puntuaciones y nombres hacia abajo
+                // shift scores and names down
                 if (j < 4) {
                     scores[j+1] = scores[j];
                     strncpy(names[j+1], names[j], 10);
@@ -591,6 +621,8 @@ void checkScores(unsigned char player) {
     }
 }
 
+
+
 int main(void) {
 	unsigned char i;
 	
@@ -599,7 +631,7 @@ int main(void) {
 		mainLoop();
 		
         newScore = FALSE;
-        for (i=0; i<=numPlayers; i++) {
+        for (i = 0; i <= numPlayers; i++) {
             checkScores(i);
 		}
         if (newScore) {
