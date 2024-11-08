@@ -60,7 +60,7 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY, unsigne
     +96: magenta  
     +112: orange 
     */
-    printf("%c", 143 + (colour * 16));
+    printf("%c", 143 + ((colour-1) * 16));
 }
 
 
@@ -115,22 +115,24 @@ unsigned char shapeCanMove(char *map, unsigned char xDirection,
 void drawNextShape(unsigned char i) {
     unsigned char blockX, blockY;
     char blockcolour;
-    // Para todos los bloques de la pieza
-    for (blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
-        for (blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
-            // colour de la pieza
+    // loop through all the blocks of the piece
+    for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
+        for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
+            // piece colour
             blockcolour = nextShapeMap[i][(SIDEBLOCKCOUNT*blockY)+blockX];
             /*if (blockcolour == NOBLOCK) {
                 blockcolour = '2';
             }*/
-            if (i == 0) {
-                drawBlock(blockcolour, blockX+17, blockY+4, i);
-            } else {
-                drawBlock(blockcolour, blockX-5, blockY+12, i);
+            if (i == 0) { // player 1
+                drawBlock(blockcolour, blockX + 17, blockY + 4, i);
+            } else { // player 2
+                drawBlock(blockcolour, blockX - 5, blockY + 12, i);
             }
         }
     }
 }
+
+
 
 void displayStatus(void) {
     // player 1
@@ -139,10 +141,11 @@ void displayStatus(void) {
         printf("GAME OVER!");
     }
     locate(11, 0); printf("=PLAYER 1=");
-    locate(12, 1); printf("LEVEL: %u", level[0]); // pinta el num. de nivel
-    locate(12, 2); printf("LINES: %u", lines[0]); // pinta las lineas
-    locate(12, 3); printf("SC: %4d", scores[5]); // pinta la puntuacion
+    locate(12, 1); printf("LEVEL: %u", level[0]); // draws the level number
+    locate(12, 2); printf("LINES: %u", lines[0]); // draws the lines
+    locate(12, 3); printf("SC: %4d", scores[5]); // draws the score
     locate(12, 4); printf("NEXT:");
+
     // player 2
     if (numPlayers == 1) {
         if (gameOver[1] == TRUE) {
@@ -150,86 +153,95 @@ void displayStatus(void) {
 			printf("GAME OVER!");
         }
         locate(11, 8); printf("=PLAYER 2=");
-        locate(12, 9); printf("LEVEL: %u", level[1]); // pinta el num. de nivel
-        locate(12, 10); printf("LINES: %u", lines[1]); // pinta las lineas
-        locate(12, 11); printf("SC: %4d", scores[6]); // pinta la puntuacion
+        locate(12, 9); printf("LEVEL: %u", level[1]); // draws the level number
+        locate(12, 10); printf("LINES: %u", lines[1]); // draws the lines
+        locate(12, 11); printf("SC: %4d", scores[6]); // draws the score
         locate(12, 12); printf("NEXT:");
     }
+    
     unsigned char i;
-    for (i=0; i<=numPlayers; i++) {
+    for (i = 0; i <= numPlayers; i++) {
         if (gameOver[i] == FALSE) {
 			drawNextShape(i);
         }
     }
 }
 
+
+
 const char* getShapeMap(unsigned char shape) {
     switch (shape) {
         case 0:
-            return "0000333300000000"; // Palo largo
+            return "0000444400000000"; // red |
         case 1:
-            return "0000666000600000"; // L 1
+            return "0000222000200000"; // yellow _|
         case 2:
-            return "0000111010000000"; // L 2
+            return "0000777070000000"; // magenta |_
         case 3:
-            return "0000022002200000"; // Cubo
+            return "0000033003300000"; // blue []
         case 4:
-            return "0000055055000000"; // S 1
+            return "0000066066000000"; // cyan S
         case 5:
-            return "0000770007700000"; // S 2
+            return "0000880008800000"; // orange Z
         case 6:
-            return "0000444004000000"; // T
+            return "0000111001000000"; // green T
         default:
-            return ""; // Cadena vacía para casos no válidos
+            return "";
     }
 }
 
-// rotar la pieza y devolver el mapa resultante
+
+
+// rotates the piece and returns the resulting map
 char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
-	const char* map = getShapeMap(shape); // mapa sin rotar
-	char* rotatedMap; // mapa rotado
+	const char* map = getShapeMap(shape); // unrotated map
+	char* rotatedMap; // rotated map
     int newBlockX, newBlockY;
 	unsigned char i;
 
-    // si el ángulo es 0, copia directamente el mapa original en rotatedMap
+    // if the angle is 0, copy the original map directly into rotatedMap
     if (angle == 0) {
-        for (i=0; i<BLOCKCOUNT; i++) {
-            rotatedMap[i] = map[i];
+        for (i = 0; i < BLOCKCOUNT; i++) {
+            rotatedMap[i] = map[i];                 // <----------------- necessary??
         }
         return rotatedMap;
     }
-    // Inicializa rotatedMap como vacía
-    for (i=0; i<BLOCKCOUNT; i++) {
-        rotatedMap[i] = NOBLOCK;
+    // initialize rotatedMap as empty
+    for (i = 0; i < BLOCKCOUNT; i++) {
+        rotatedMap[i] = NOBLOCK;               // <----------------- necessary??
     }
-    // Para otros ángulos, recorre todos los bloques
-    for (int blockX=0; blockX<=LASTSIDEBLOCK; blockX++) {
-        for (int blockY=0; blockY<=LASTSIDEBLOCK; blockY++) {
+    // for other angles, iterate through all blocks
+    for (int blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
+        for (int blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
             switch (angle) {
-                case 1: // 270 grados
+                case 1: // 270 degrees
                     newBlockX = blockY;
-                    newBlockY = LASTSIDEBLOCK-blockX;
+                    newBlockY = LASTSIDEBLOCK - blockX;
                     break;
-                case 2: // 180 grados
-                    newBlockX = LASTSIDEBLOCK-blockX;
-                    newBlockY = LASTSIDEBLOCK-blockY;
+                case 2: // 180 degrees
+                    newBlockX = LASTSIDEBLOCK - blockX;
+                    newBlockY = LASTSIDEBLOCK - blockY;
                     break;
-                case 3: // 90 grados
-                    newBlockX = LASTSIDEBLOCK-blockY;
+                case 3: // 90 degrees
+                    newBlockX = LASTSIDEBLOCK - blockY;
                     newBlockY = blockX;
                     break;
             }
-            // asigna el bloque correspondiente al ángulo en rotatedMap
-            rotatedMap[SIDEBLOCKCOUNT*newBlockY+newBlockX] = map[SIDEBLOCKCOUNT*blockY+blockX];
+            // assign the corresponding block to the rotatedMap for the angle
+            rotatedMap[SIDEBLOCKCOUNT * newBlockY + newBlockX] = map[SIDEBLOCKCOUNT * blockY + blockX];
         }
     }
 	return rotatedMap;
 }
 
+
+
 void createNextShape(unsigned char i) {
-	nextShape[i] = (unsigned char)(rand()%7); // Tipo de pieza (0 a 6)
-	nextShapeMap[i] = getRotatedShapeMap(nextShape[i], 0); // Composición de la pieza
+	nextShape[i] = (unsigned char)(rand() % 7); // piece type (0 to 6)
+	nextShapeMap[i] = getRotatedShapeMap(nextShape[i], 0); // piece composition  // <---- necessary?
 }
+
+
 
 void createShape(unsigned char i) {
 	// calcula la velocidad de caída en función del nivel
@@ -245,7 +257,7 @@ void createShape(unsigned char i) {
     }
 	// composición de la pieza según su rotación
     shapeAngle[i] = 0;
-    shapeMap[i] = getRotatedShapeMap(shape[i], shapeAngle[i]);
+    shapeMap[i] = getRotatedShapeMap(shape[i], shapeAngle[i]);           // <-------- necessary?
     // posición inicial (centro del foso en X, totalmente oculta en Y)
     shapeX[i] = 3;
     shapeY[i] = -SIDEBLOCKCOUNT;
