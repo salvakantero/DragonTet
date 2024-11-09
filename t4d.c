@@ -1,11 +1,11 @@
 /*
 
-***TETRIS4DRAGON***
- salvaKantero 2024
+*** TETRIS4DRAGONS ***
+   salvaKantero2024
+
+Compatible with Dragon 32/64 and COCO
 
 Based on Peter Swinkels' PC Qbasic code. (QBBlocks v1.0)
-
-compatible with Dragon 32/64 and COCO
 
 use the CMOC compiler 0.1.89 or higher
 "cmoc --dragon -o t4d.bin t4d.c"
@@ -13,9 +13,9 @@ use the CMOC compiler 0.1.89 or higher
 
 TODO
 ====
-- impresión de bloques
+- línea 16 con 2 players
+- desplazamiento izda.
 - timing
-
 
 */
 
@@ -27,7 +27,7 @@ TODO
 #define BLOCKCOUNT SIDEBLOCKCOUNT * SIDEBLOCKCOUNT // size of the piece in blocks
 #define NOBLOCK '0' // character representing an empty block
 #define PITWIDTH 10 // width of the pit in blocks
-#define PITHEIGHT 15 // height of the pit in blocks
+#define PITHEIGHT 16 // height of the pit in blocks
 
 char key; // key pressed
 unsigned char numPlayers; // 0 = player1  1 = player2
@@ -58,9 +58,7 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY, unsigne
     unsigned char colour = blockColour-'0'; // (0 to 8)
     locate(pitX + pitLeft[i], pitY);
     /*
-    dragon semigraphic characters: 127 to 255
-    +0: black
-    +1: green  
+    dragon semigraphic characters: 127 to 255 
     +16: yellow  
     +32: blue  
     +48: red  
@@ -69,12 +67,12 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY, unsigne
     +96: magenta  
     +112: orange 
     */
-    // black background (empty block = 128)
+    // black background (empty block)
     if (colour == 0) {
         printf("%c", 128);
         return;
     }
-    // black background (coloured filled block = 143)
+    // coloured filled block
     printf("%c", 143 + ((colour-1) * 16));
 }
 
@@ -517,11 +515,11 @@ void mainLoop() {
     char* rotatedMap;
 
     // save the start time for player 1
-    startTime[0] = getTimer();
-    if (numPlayers > 0) {
+    //startTime[0] = getTimer();
+    //if (numPlayers > 0) {
         // save the start time for player 1
-        startTime[1] = getTimer();
-    }
+        //startTime[1] = getTimer();
+    //}
     while (TRUE) {
         char key = '\0';
         // loop until a key is pressed
@@ -529,10 +527,10 @@ void mainLoop() {
             for (i = 0; i <= numPlayers; i++) {
                 if (!gameOver[i]) { // game in progress
                     // if the falling time has been exceeded
-                    if (getTimer() >= startTime[i] + dropRate[i] || startTime[i] > getTimer()) {
+                    //if (getTimer() >= startTime[i] + dropRate[i] || startTime[i] > getTimer()) {
                         dropShape(i); // the piece moves down
-                        startTime[i] = getTimer(); // reset the fall timer
-                    }
+                        //startTime[i] = getTimer(); // reset the fall timer
+                    //}
                 }
             }
             key = inkey(); // read keypresses
@@ -542,11 +540,13 @@ void mainLoop() {
             break;
         } else {
             for (i = 0; i <= numPlayers; i++) {
+                /*
                 if (gameOver[i]) { // out of game
                     if (key == 'Z') { // if ENTER is pressed, restart game
                         break;
                     }
-                } else {
+                } else { */
+                if (!gameOver[i]) {
                     // assign keys for each player
                     char rotateKey, leftKey, downKey, rightKey;
                     if (i == 0) {
@@ -560,7 +560,6 @@ void mainLoop() {
                         downKey = 'K';
                         rightKey = 'L';
                     }
-
                     switch (key) {
                         case 'W': case 'I': // rotate key
                             drawShape(i, TRUE); // erase piece
@@ -574,15 +573,19 @@ void mainLoop() {
                             break;
 
                         case 'A': case 'J': // move left
-                            drawShape(i, TRUE); // erase piece
-                            if (shapeCanMove(shapeMap[i], -1, 0, i)) shapeX[i]--;
-                            drawShape(i, FALSE);
+                            if (shapeCanMove(shapeMap[i], -1, 0, i)) {
+                                drawShape(i, TRUE); // erase piece
+                                shapeX[i]--;
+                                drawShape(i, FALSE);
+                            }
                             break;
 
                         case 'D': case 'L': // move right
-                            drawShape(i, TRUE); // erase piece
-                            if (shapeCanMove(shapeMap[i], 1, 0, i)) shapeX[i]++;
-                            drawShape(i, FALSE);
+                            if (shapeCanMove(shapeMap[i], 1, 0, i)) {
+                                drawShape(i, TRUE); // erase piece
+                                shapeX[i]++;
+                                drawShape(i, FALSE);
+                            }
                             break;
 
                         case 'S': case 'K': // set the descent time to 0
