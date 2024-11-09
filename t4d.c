@@ -13,7 +13,7 @@ use the CMOC compiler 0.1.89 or higher
 
 TODO
 ====
-- random seed
+- impresión de bloques
 - timing
 
 
@@ -55,20 +55,27 @@ char* nextShapeMap[2];		    // design of the next piece
 
 
 void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY, unsigned char i) {
-    int colour = blockColour-'0';
+    unsigned char colour = blockColour-'0'; // (0 to 8)
     locate(pitX + pitLeft[i], pitY);
     /*
-    dragon semigraphic characters: 127 to 255  
+    dragon semigraphic characters: 127 to 255
+    +0: black
+    +1: green  
     +16: yellow  
     +32: blue  
     +48: red  
-    +64: beige  
-    +80: turquoise  
+    +64: white 
+    +80: cyan  
     +96: magenta  
     +112: orange 
     */
+    // black background (empty block = 128)
+    if (colour == 0) {
+        printf("%c", 128);
+        return;
+    }
+    // black background (coloured filled block = 143)
     printf("%c", 143 + ((colour-1) * 16));
-    //printf("%d", colour);
 }
 
 
@@ -627,6 +634,7 @@ int main(void) {
 	unsigned char i;
 	
     while(TRUE) {
+        srand(getTimer()); // random seed
         init();		
 		mainLoop();
 		
