@@ -14,8 +14,9 @@ use the CMOC compiler 0.1.89 or higher
 TODO
 ====
 - línea 16 con 2 players
-- desplazamiento izda.
+- pit derecho pausado con 1 player
 - timing
+- menú con imagen de fondo y marquesina de color
 
 */
 
@@ -55,8 +56,6 @@ char* nextShapeMap[2];		    // design of the next piece
 
 
 void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY, unsigned char i) {
-    unsigned char colour = blockColour-'0'; // (0 to 8)
-    locate(pitX + pitLeft[i], pitY);
     /*
     dragon semigraphic characters: 127 to 255 
     +16: yellow  
@@ -67,6 +66,8 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY, unsigne
     +96: magenta  
     +112: orange 
     */
+    unsigned char colour = blockColour-'0'; // (0 to 8)
+    locate(pitX + pitLeft[i], pitY);
     // black background (empty block)
     if (colour == 0) {
         printf("%c", 128);
@@ -95,8 +96,7 @@ void drawPit(unsigned char i) {
 
 
 // check if a shape can move in the specified direction
-unsigned char shapeCanMove(char *map, unsigned char xDirection, 
-                    unsigned char yDirection, unsigned char i) {
+unsigned char shapeCanMove(char *map, char xDirection, char yDirection, unsigned char i) {
     int pitX, pitY;
     unsigned char blockX, blockY;
     // loop through all the blocks of the piece
@@ -547,19 +547,6 @@ void mainLoop() {
                     }
                 } else { */
                 if (!gameOver[i]) {
-                    // assign keys for each player
-                    char rotateKey, leftKey, downKey, rightKey;
-                    if (i == 0) {
-                        rotateKey = 'W';
-                        leftKey = 'A';
-                        downKey = 'S';
-                        rightKey = 'D';
-                    } else {
-                        rotateKey = 'I';
-                        leftKey = 'J';
-                        downKey = 'K';
-                        rightKey = 'L';
-                    }
                     switch (key) {
                         case 'W': case 'I': // rotate key
                             drawShape(i, TRUE); // erase piece
