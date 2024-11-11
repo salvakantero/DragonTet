@@ -13,9 +13,11 @@ use the CMOC compiler 0.1.89 or higher
 
 TODO
 ====
-- línea 16 con 2 players
+- BUG pieza sin rotar no definida
+- BUG se cuelga al rotar pieza en el borde
+- BUG high scores no graba nueva puntuación
+- BUG línea 16 con 2 players
 - pit derecho pausado con 1 player
-- timing
 - menú con imagen de fondo y marquesina de color
 
 */
@@ -183,21 +185,32 @@ void displayStatus(void) {
 
 
 const char* getShapeMap(unsigned char shape) {
+    /* colours:
+        0 - black
+        1 - green
+        2 - yellow
+        3 - blue
+        4 - red
+        5 - white
+        6 - cyan
+        7 - magenta
+        8 - orange
+    */
     switch (shape) {
         case 0:
-            return "0000444400000000"; // red |
+            return "0000666600000000"; // | cyan
         case 1:
-            return "0000222000200000"; // yellow _|
+            return "0000333000300000"; // _| blue
         case 2:
-            return "0000777070000000"; // magenta |_
+            return "0000888080000000"; // |_ orange
         case 3:
-            return "0000033003300000"; // blue []
+            return "0000022002200000"; // [] yellow
         case 4:
-            return "0000066066000000"; // cyan S
+            return "0000011011000000"; // S green
         case 5:
-            return "0000880008800000"; // orange Z
+            return "0000440004400000"; // Z red
         case 6:
-            return "0000555005000000"; // white T
+            return "0000777007000000"; // T magenta
         default:
             return "";
     }
@@ -257,7 +270,14 @@ void createNextShape(unsigned char i) {
 
 
 void createShape(unsigned char i) {
-	// calculates the fall speed based on the level
+    /* calculates the fall speed based on the level
+        level 1: 30 ticks
+        level 2: 25 ticks
+        level 3: 20 ticks
+        level 4: 15 ticks
+        level 5: 10 ticks
+        level x:  5 ticks
+    */
     dropRate[i] = 35 - (level[i] * 5);
     // minimum fall speed limit
     if (dropRate[i] <= 0) {
