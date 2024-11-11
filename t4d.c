@@ -38,8 +38,8 @@ unsigned int scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
 unsigned char newScore;
 
 unsigned char gameOver[2]; 			// FALSE = game in progress, TRUE = finished
-float dropRate[2]; 					// 1 = falling, 0 = stopped at the bottom of the pit
-float startTime[2];                 // time since the piece has moved
+int dropRate[2]; 					// 1 = falling, 0 = stopped at the bottom of the pit
+int startTime[2];                   // time since the piece has moved
 char pit[2][PITWIDTH * PITHEIGHT];	// content of each pit in blocks
 unsigned char level[2]; 			// game levels (speed)
 unsigned int lines[2]; 				// lines cleared
@@ -258,9 +258,10 @@ void createNextShape(unsigned char i) {
 
 void createShape(unsigned char i) {
 	// calculates the fall speed based on the level
-    dropRate[i] = 1-(level[i] * 0.2f);
+    dropRate[i] = 35 - (level[i] * 5);
+    // minimum fall speed limit
     if (dropRate[i] <= 0) {
-        dropRate[i] = 0.1f;  // minimum fall speed limit
+        dropRate[i] = 5;
     }
     // if it's not the first piece, take the value of nextShape
     if (nextShape[i] >= 0) {
@@ -515,11 +516,11 @@ void mainLoop() {
     char* rotatedMap;
 
     // save the start time for player 1
-    //startTime[0] = getTimer();
-    //if (numPlayers > 0) {
-        // save the start time for player 1
-        //startTime[1] = getTimer();
-    //}
+    startTime[0] = getTimer();
+    if (numPlayers > 0) {
+        // save the start time for player 2
+        startTime[1] = getTimer();
+    }
     while (TRUE) {
         char key = '\0';
         // loop until a key is pressed
@@ -527,10 +528,10 @@ void mainLoop() {
             for (i = 0; i <= numPlayers; i++) {
                 if (!gameOver[i]) { // game in progress
                     // if the falling time has been exceeded
-                    //if (getTimer() >= startTime[i] + dropRate[i] || startTime[i] > getTimer()) {
+                    if (getTimer() >= startTime[i] + dropRate[i] || startTime[i] > getTimer()) {
                         dropShape(i); // the piece moves down
-                        //startTime[i] = getTimer(); // reset the fall timer
-                    //}
+                        startTime[i] = getTimer(); // reset the fall timer
+                    }
                 }
             }
             key = inkey(); // read keypresses
