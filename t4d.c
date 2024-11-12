@@ -5,14 +5,17 @@
 
 Compatible with Dragon 32/64 and COCO
 
-Based on Peter Swinkels' PC Qbasic code. (QBBlocks v1.0)
+Based on Peter Swinkels' PC Qbasic code. (QBBlocks v1.0. Text mode, 1 player)
 
-use the CMOC compiler 0.1.89 or higher
+use the CMOC compiler 0.1.89 or higher:
 "cmoc --dragon -o t4d.bin t4d.c"
+use roar to test:
+"xroar -run t4d.bin"
 
 
 TODO
 ====
+- BUG al quitar waitkey
 - BUG pieza sin rotar no definida
 - BUG se cuelga al rotar pieza en el borde
 - BUG high scores no graba nueva puntuación
