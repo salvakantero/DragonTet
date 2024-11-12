@@ -110,9 +110,9 @@ void drawPit(byte i) {
 
 
 // check if a shape can move in the specified direction
-unsigned char shapeCanMove(char *map, char xDirection, char yDirection, unsigned char i) {
-    int pitX, pitY;
-    unsigned char blockX, blockY;
+unsigned char shapeCanMove(char *map, sbyte xDirection, sbyte yDirection, byte i) {
+    word pitX, pitY;
+    byte blockX, blockY;
     // loop through all the blocks of the piece
     for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
         for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
@@ -123,7 +123,7 @@ unsigned char shapeCanMove(char *map, char xDirection, char yDirection, unsigned
                 // check if the block is within the pit boundaries
                 if (pitX >= 0 && pitX < PITWIDTH && pitY >= 0 && pitY < PITHEIGHT) {
                     // if the position in the pit is not empty, it cannot move
-                    if (pit[i][(PITWIDTH*pitY)+pitX] != NOBLOCK) {
+                    if (pit[i][(PITWIDTH * pitY) + pitX] != NOBLOCK) {
                         return FALSE;
                     }
                 } 
@@ -139,14 +139,14 @@ unsigned char shapeCanMove(char *map, char xDirection, char yDirection, unsigned
 
 
 
-void drawNextShape(unsigned char i) {
-    unsigned char blockX, blockY;
+void drawNextShape(byte i) {
+    byte blockX, blockY;
     char blockcolour;
     // loop through all the blocks of the piece
     for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
         for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
             // piece colour
-            blockcolour = nextShapeMap[i][(SIDEBLOCKCOUNT*blockY)+blockX];
+            blockcolour = nextShapeMap[i][(SIDEBLOCKCOUNT * blockY) + blockX];
             if (blockcolour == NOBLOCK) {
                 blockcolour = '1';
             }
@@ -231,26 +231,29 @@ const char* getShapeMap(byte shape) {
 
 
 // rotates the piece and returns the resulting map
-char* getRotatedShapeMap(char shape, unsigned char angle) {
+char* getRotatedShapeMap(char shape, byte angle) {
 	const char* map = getShapeMap(shape); // unrotated map
 	char* rotatedMap; // rotated map
-    int newBlockX, newBlockY;
-	unsigned char i;
+    sword newBlockX, newBlockY;
+    word blockX, blockY;
+	byte i;
 
     // if the angle is 0, copy the original map directly into rotatedMap
     if (angle == 0) {
+        /*
         for (i = 0; i < BLOCKCOUNT; i++) {
             rotatedMap[i] = map[i];                 // <----------------- necessary??
         }
-        return rotatedMap;
+        return rotatedMap; */
+        return (char*)map;
     }
     // initialize rotatedMap as empty
     for (i = 0; i < BLOCKCOUNT; i++) {
         rotatedMap[i] = NOBLOCK;               // <----------------- necessary??
     }
     // for other angles, iterate through all blocks
-    for (int blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
-        for (int blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
+    for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
+        for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
             switch (angle) {
                 case 1: // 270 degrees
                     newBlockX = blockY;
@@ -274,14 +277,14 @@ char* getRotatedShapeMap(char shape, unsigned char angle) {
 
 
 
-void createNextShape(unsigned char i) {
-	nextShape[i] = (unsigned char)(rand() % 7); // piece type (0 to 6)
+void createNextShape(byte i) {
+	nextShape[i] = (sbyte)(rand() % 7); // piece type (0 to 6)
 	nextShapeMap[i] = getRotatedShapeMap(nextShape[i], 0); // piece composition  // <---- necessary?
 }
 
 
 
-void createShape(unsigned char i) {
+void createShape(byte i) {
     /* calculates the fall speed based on the level
         level 1: 30 ticks
         level 2: 25 ticks
@@ -299,7 +302,7 @@ void createShape(unsigned char i) {
     if (nextShape[i] >= 0) {
         shape[i] = nextShape[i];
     } else {
-        shape[i] = (unsigned char)rand() % 7;  // new random piece (0 to 6)
+        shape[i] = (sbyte)(rand() % 7);  // new random piece (0 to 6)
     }
     shapeAngle[i] = 0;
     shapeMap[i] = getRotatedShapeMap(shape[i], shapeAngle[i]);           // <-------- necessary?
@@ -541,24 +544,24 @@ void init(void) {
 
 
 void mainLoop() {
-    unsigned char newAngle;
-    unsigned char i;
+    byte newAngle;
+    byte i; // player 1-2
     char* rotatedMap;
 
-    // save the start time for player 1
-    startTime[0] = getTimer();
-    if (numPlayers > 0) {
-        // save the start time for player 2
-        startTime[1] = getTimer();
-    }
+    // save the start time for both players
+    word ticks = getTimer();
+    startTime[0] = ticks;
+    startTime[1] = ticks;
+
     while (TRUE) {
         char key = '\0';
         // loop until a key is pressed
         while (key == '\0') {
             for (i = 0; i <= numPlayers; i++) {
                 if (!gameOver[i]) { // game in progress
+                    ticks = getTimer();
                     // if the falling time has been exceeded
-                    if (getTimer() >= startTime[i] + dropRate[i] || startTime[i] > getTimer()) {
+                    if (ticks >= startTime[i] + dropRate[i] || startTime[i] > ticks) {
                         dropShape(i); // the piece moves down
                         startTime[i] = getTimer(); // reset the fall timer
                     }
@@ -574,14 +577,21 @@ void mainLoop() {
                 if (!gameOver[i]) {
                     switch (key) {
                         case 'W': case 'I': // rotate key
-                            drawShape(i, TRUE); // erase piece
-                            newAngle = (shapeAngle[i] == 3) ? 0 : shapeAngle[i]+1;
+                            drawShape(i, TRUE); // erase piece                            
+                            if (shapeAngle[i] == 3) {
+                                // 270 degrees. Reset angle
+                                newAngle = 0;
+                            }
+                            else {
+                                // increases the angle by 90 degrees
+                                newAngle = shapeAngle[i] + 1;
+                            }
                             rotatedMap = getRotatedShapeMap(shape[i], newAngle);
                             if (shapeCanMove(rotatedMap, 0, 0, i)) {
                                 shapeAngle[i] = newAngle;
                                 shapeMap[i] = rotatedMap;
                             }
-                            drawShape(i, FALSE);
+                            drawShape(i, FALSE); 
                             break;
 
                         case 'A': case 'J': // move left
