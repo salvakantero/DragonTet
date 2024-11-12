@@ -21,10 +21,9 @@ sword = signed int
 
 TODO
 ====
-- BUG pieza sin rotar no definida
 - BUG se cuelga al rotar pieza en el borde
-- BUG high scores no graba nueva puntuación
 - BUG línea 16 con 2 players
+- alinear datos en el marcador
 - pit derecho pausado con 1 player
 - menú con imagen de fondo y marquesina de color
 - probar siguiente pieza con fondo negro
@@ -35,8 +34,8 @@ TODO
 #include <coco.h>
 
 #define SIDEBLOCKCOUNT 4 // size of the piece's side (4x4)
-#define LASTSIDEBLOCK SIDEBLOCKCOUNT - 1 // to iterate over the current piece (0 to 3)
-#define BLOCKCOUNT SIDEBLOCKCOUNT * SIDEBLOCKCOUNT // size of the piece in blocks
+#define LASTSIDEBLOCK 3 // to iterate over the current piece (0 to 3)
+#define BLOCKCOUNT 16 // size of the piece in blocks
 #define NOBLOCK '0' // character representing an empty block
 #define PITWIDTH 10 // width of the pit in blocks
 #define PITHEIGHT 16 // height of the pit in blocks
@@ -111,7 +110,7 @@ void drawPit(byte i) {
 
 // check if a shape can move in the specified direction
 unsigned char shapeCanMove(char *map, sbyte xDirection, sbyte yDirection, byte i) {
-    word pitX, pitY;
+    sword pitX, pitY;
     byte blockX, blockY;
     // loop through all the blocks of the piece
     for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
@@ -170,7 +169,7 @@ void displayStatus(void) {
     locate(11, 0); printf("=PLAYER 1=");
     locate(12, 1); printf("LEVEL: %u", level[0]); // draws the level number
     locate(12, 2); printf("LINES: %u", lines[0]); // draws the lines
-    locate(12, 3); printf("SC: %4d", scores[5]); // draws the score
+    locate(12, 3); printf("SC: %5d", scores[5]); // draws the score
     locate(12, 4); printf("NEXT:");
 
     // player 2
@@ -182,7 +181,7 @@ void displayStatus(void) {
         locate(11, 8); printf("=PLAYER 2=");
         locate(12, 9); printf("LEVEL: %u", level[1]); // draws the level number
         locate(12, 10); printf("LINES: %u", lines[1]); // draws the lines
-        locate(12, 11); printf("SC: %4d", scores[6]); // draws the score
+        locate(12, 11); printf("SC: %5d", scores[6]); // draws the score
         locate(12, 12); printf("NEXT:");
     }
     
@@ -235,21 +234,11 @@ char* getRotatedShapeMap(char shape, byte angle) {
 	const char* map = getShapeMap(shape); // unrotated map
 	char* rotatedMap; // rotated map
     sword newBlockX, newBlockY;
-    word blockX, blockY;
+    sword blockX, blockY;
 	byte i;
-
-    // if the angle is 0, copy the original map directly into rotatedMap
+    // if the angle is 0, return the original map
     if (angle == 0) {
-        /*
-        for (i = 0; i < BLOCKCOUNT; i++) {
-            rotatedMap[i] = map[i];                 // <----------------- necessary??
-        }
-        return rotatedMap; */
         return (char*)map;
-    }
-    // initialize rotatedMap as empty
-    for (i = 0; i < BLOCKCOUNT; i++) {
-        rotatedMap[i] = NOBLOCK;               // <----------------- necessary??
     }
     // for other angles, iterate through all blocks
     for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
@@ -269,7 +258,8 @@ char* getRotatedShapeMap(char shape, byte angle) {
                     break;
             }
             // assign the corresponding block to the rotatedMap for the angle
-            rotatedMap[SIDEBLOCKCOUNT * newBlockY + newBlockX] = map[SIDEBLOCKCOUNT * blockY + blockX];
+            rotatedMap[SIDEBLOCKCOUNT * newBlockY + newBlockX] = 
+                map[SIDEBLOCKCOUNT * blockY + blockX];
         }
     }
 	return rotatedMap;
@@ -305,7 +295,7 @@ void createShape(byte i) {
         shape[i] = (sbyte)(rand() % 7);  // new random piece (0 to 6)
     }
     shapeAngle[i] = 0;
-    shapeMap[i] = getRotatedShapeMap(shape[i], shapeAngle[i]);           // <-------- necessary?
+    shapeMap[i] = getRotatedShapeMap(shape[i], shapeAngle[i]);
     // initial position (centre of the pit in X, fully hidden in Y)
     shapeX[i] = 3;
     shapeY[i] = -SIDEBLOCKCOUNT;
