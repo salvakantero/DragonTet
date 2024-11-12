@@ -36,14 +36,15 @@ TODO
 #define PITHEIGHT 16 // height of the pit in blocks
 
 char key; // key pressed
-unsigned char numPlayers; // 0 = player1  1 = player2
-// fake values for the initial TOP 5
+byte numPlayers; // 0 = player1  1 = player2
+// pos 0-4: fake values for the initial TOP 5
+// pos 5-6: values for the current game
 char names[7][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","",""};
-unsigned int scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
-unsigned char newScore;
+int scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
 
-unsigned char gameOver[2]; 			// FALSE = game in progress, TRUE = finished
-int dropRate[2]; 					// 1 = falling, 0 = stopped at the bottom of the pit
+BOOL newScore;                      // TRUE = redraws the best scores table
+BOOL gameOver[2]; 			        // FALSE = game in progress, TRUE = finished
+int dropRate[2]; 					// 0 = lower the piece one position
 int startTime[2];                   // time since the piece has moved
 char pit[2][PITWIDTH * PITHEIGHT];	// content of each pit in blocks
 unsigned char level[2]; 			// game levels (speed)
