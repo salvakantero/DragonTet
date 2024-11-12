@@ -12,16 +12,22 @@ use the CMOC compiler 0.1.89 or higher:
 use roar to test:
 "xroar -run t4d.bin"
 
+BOOL = unsigned char
+byte = unsigned char
+sbyte = signed char
+word = unsigned int
+sword = signed int
+
 
 TODO
 ====
-- BUG al quitar waitkey
 - BUG pieza sin rotar no definida
 - BUG se cuelga al rotar pieza en el borde
 - BUG high scores no graba nueva puntuación
 - BUG línea 16 con 2 players
 - pit derecho pausado con 1 player
 - menú con imagen de fondo y marquesina de color
+- probar siguiente pieza con fondo negro
 
 */
 
@@ -35,35 +41,38 @@ TODO
 #define PITWIDTH 10 // width of the pit in blocks
 #define PITHEIGHT 16 // height of the pit in blocks
 
+#define DEBUGX 12
+#define DEBUGY 15
+
 char key; // key pressed
 byte numPlayers; // 0 = player1  1 = player2
 // pos 0-4: fake values for the initial TOP 5
 // pos 5-6: values for the current game
 char names[7][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","",""};
-int scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
+word scores[7] = {1400, 1300, 1200, 1100, 1000, 0, 0};
 
 BOOL newScore;                      // TRUE = redraws the best scores table
 BOOL gameOver[2]; 			        // FALSE = game in progress, TRUE = finished
 int dropRate[2]; 					// 0 = lower the piece one position
-int startTime[2];                   // time since the piece has moved
+int startTime[2];                   // system ticks since the piece has moved
 char pit[2][PITWIDTH * PITHEIGHT];	// content of each pit in blocks
-unsigned char level[2]; 			// game levels (speed)
-unsigned int lines[2]; 				// lines cleared
-unsigned char pitLeft[2]; 			// X position of the left side of each pit
+byte level[2]; 			            // game levels (speed)
+word lines[2]; 				        // lines cleared
+byte pitLeft[2]; 			        // X position of the left side of each pit
 
-char shape[2]; 		            // piece type (-1 to 6)
-unsigned char shapeAngle[2]; 	// piece rotation (0 to 3)
+sbyte shape[2]; 		        // piece type (-1 to 6)
+byte shapeAngle[2]; 	        // piece rotation (0 to 3)
 char* shapeMap[2];				// piece design
-int shapeX[2], shapeY[2];		// piece XY position
+sword shapeX[2], shapeY[2];		// piece XY position
 
-char nextShape[2];		        // type of the next piece (-1 to 6)
+sbyte nextShape[2];		        // type of the next piece (-1 to 6)
 char* nextShapeMap[2];		    // design of the next piece
 
 
 
-void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY, unsigned char i) {
+void drawBlock(char blockColour, byte pitX, byte pitY, byte i) {
     /*
-    dragon semigraphic characters: 127 to 255 
+    dragon semigraphic characters: 127 to 255  
     +16: yellow  
     +32: blue  
     +48: red  
@@ -72,7 +81,7 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY, unsigne
     +96: magenta  
     +112: orange 
     */
-    unsigned char colour = blockColour-'0'; // (0 to 8)
+    byte colour = blockColour-'0'; // (0 to 8)
     locate(pitX + pitLeft[i], pitY);
     // black background (empty block)
     if (colour == 0) {
@@ -85,18 +94,17 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY, unsigne
 
 
 
-void drawPit(unsigned char i) {
-    unsigned char pitY, pitX;
+void drawPit(byte i) {
+    word pitY, pitX;
     // loop through and repaint the contents of the pit
     for (pitY = 0; pitY < PITHEIGHT; pitY++) {
         for (pitX = 0; pitX < PITWIDTH; pitX++) {
             // get the colour of the block at the current position
             char blockcolour = pit[i][(PITWIDTH * pitY) + pitX];
             // draw the block with the specified colour
-            drawBlock(blockcolour, pitX, pitY, i);
+            drawBlock(blockcolour, (byte)pitX, (byte)pitY, i);
         }
     }
-    waitkey(0); // <---------------------- TEST!
 }
 
 
@@ -178,7 +186,7 @@ void displayStatus(void) {
         locate(12, 12); printf("NEXT:");
     }
     
-    unsigned char i;
+    byte i; // player 1-2
     for (i = 0; i <= numPlayers; i++) {
         if (gameOver[i] == FALSE) {
 			drawNextShape(i);
@@ -188,7 +196,7 @@ void displayStatus(void) {
 
 
 
-const char* getShapeMap(unsigned char shape) {
+const char* getShapeMap(byte shape) {
     /* colours:
         0 - black
         1 - green
@@ -210,7 +218,7 @@ const char* getShapeMap(unsigned char shape) {
         case 3:
             return "0000022002200000"; // [] yellow
         case 4:
-            return "0000011011000000"; // S green
+            return "0000055055000000"; // S white
         case 5:
             return "0000440004400000"; // Z red
         case 6:
@@ -454,7 +462,7 @@ void dropShape(unsigned char i) {
 
 
 void drawHighScores(void) {
-	unsigned char i;
+	byte i; // TOP 5 position (0-4)
     for(i = 0; i < 5; i++) {
         locate(7, 8+i);  printf("...............");
         locate(7, 8+i);  printf("%s", names[i]);
@@ -514,11 +522,9 @@ void menu(void) {
 
 // logic to initialize the system and pits
 void init(void) {
-	unsigned char i;
+	byte i; // player 1-2
     menu();
-	cls(1);
-    pitLeft[0] = 0;
-    pitLeft[1] = 22;
+	cls(1); // green screen
 	for(i = 0; i <= numPlayers; i++) {
         gameOver[i] = FALSE; // game in progress
         level[i] = 1; // initial level
@@ -565,12 +571,6 @@ void mainLoop() {
             break;
         } else {
             for (i = 0; i <= numPlayers; i++) {
-                /*
-                if (gameOver[i]) { // out of game
-                    if (key == 'Z') { // if ENTER is pressed, restart game
-                        break;
-                    }
-                } else { */
                 if (!gameOver[i]) {
                     switch (key) {
                         case 'W': case 'I': // rotate key
@@ -613,9 +613,9 @@ void mainLoop() {
 
 
 // check if the new score is high enough to enter the top 5
-void checkScores(unsigned char player) {
-    unsigned char i = player + 5;
-	unsigned char j;
+void checkScores(byte player) {
+    byte i = player + 5; // position 6-7 depending on player number
+	byte j;
 
     if (scores[i] > scores[4]) {
         drawHeader();
@@ -623,11 +623,11 @@ void checkScores(unsigned char player) {
         locate(6, 11); printf("NAME?: ");
         char *response = readline();
         strncpy(names[i], response, 10);
-        names[i][10] = '\0';
-
+        names[i][10] = '\0'; // ensure the name is null-terminated
+        // find the correct position in the top 5 list for the new score
         for (j = 4; j >= 0; j--) {
-            if (scores[i] > scores[j]) {
-                // shift scores and names down
+            if (scores[i] >= scores[j]) {
+                // shift scores/names down
                 if (j < 4) {
                     scores[j+1] = scores[j];
                     strncpy(names[j+1], names[j], 10);
@@ -638,6 +638,7 @@ void checkScores(unsigned char player) {
                 break;
             }
         }
+        // place the new score and name in the correct position in the top 5
         scores[j+1] = scores[i];
         strncpy(names[j+1], names[i], 10);
     }
@@ -646,17 +647,22 @@ void checkScores(unsigned char player) {
 
 
 int main(void) {
-	unsigned char i;
+	byte i; // player 1-2
+
+    // position X of the pits
+    pitLeft[0] = 0;
+    pitLeft[1] = 22;
 	
     while(TRUE) {
         srand(getTimer()); // random seed
         init();		
 		mainLoop();
-		
+		// check the scores of the last game
         newScore = FALSE;
         for (i = 0; i <= numPlayers; i++) {
             checkScores(i);
 		}
+        // draw the scoreboard
         if (newScore) {
 		    cls(1);
 		    drawHeader();
