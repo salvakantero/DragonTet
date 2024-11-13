@@ -38,7 +38,7 @@ TODO
 #define NOBLOCK '0' // character representing an empty block
 #define PITWIDTH 10 // width of the pit in blocks
 #define PITHEIGHT 16 // height of the pit in blocks
-#define LINESLEVEL 2 // lines per level
+#define LINESLEVEL 10 // lines per level
 
 #define DEBUGX 12
 #define DEBUGY 15
@@ -286,7 +286,7 @@ void createShape(byte i) {
     dropRate[i] = 35 - (level[i] * 5);
     // minimum fall speed limit
     if (dropRate[i] <= 0) {
-        dropRate[i] = 1; // 5; <---------------------- test
+        dropRate[i] = 1;
     }
     // if it's not the first piece, take the value of nextShape
     if (nextShape[i] >= 0) {
