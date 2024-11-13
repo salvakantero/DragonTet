@@ -25,8 +25,7 @@ TODO
 - BUG línea 16 con 2 players
 - pit derecho pausado con 1 player
 - menú con imagen de fondo y marquesina de color
-- gráfico sobre el fondo negro ("+")
-- probar siguiente pieza con fondo negro
+- fondo negro con gráfico GDU
 
 */
 
@@ -70,17 +69,6 @@ char* nextShapeMap[2];		    // design of the next piece
 
 
 
-void drawBlockDirect(int x, int y, byte colour) {
-    char *screenPos = (char *)(0x4000 + x + y * 32);
-    if (colour == 0) {
-        *screenPos = 128; // bloque vacío
-    } else {
-        *screenPos = 143 + ((colour - 1) * 16); // bloque relleno en color
-    }
-}
-
-
-
 void drawBlock(char blockColour, byte pitX, byte pitY, byte i) {
     /*
     dragon semigraphic characters: 127 to 255  
@@ -93,16 +81,14 @@ void drawBlock(char blockColour, byte pitX, byte pitY, byte i) {
     +112: orange 
     */
     byte colour = blockColour-'0'; // (0 to 8)
-    /*
     locate(pitX + pitLeft[i], pitY);
     // black background (empty block)
     if (colour == 0) {
-        printf("%c", 128);
+        putchar(126);
         return;
     }
     // coloured filled block
-    printf("%c", 143 + ((colour-1) * 16)); */
-    drawBlockDirect(pitX + pitLeft[i], pitY, colour);
+    putchar(143 + ((colour-1) * 16));
 }
 
 
@@ -629,7 +615,7 @@ void checkScores(byte player) {
         // drawHeader();     <--------------------    test
         locate(6, 10); printf(" GOOD SCORE PLAYER %d ", player+1);
         locate(6, 11); printf(" NAME?:               ");
-        locate(14, 10);
+        locate(14, 11);
         char *response = readline();
         strncpy(names[i], response, 10);
         names[i][10] = '\0'; // ensure the name is null-terminated
