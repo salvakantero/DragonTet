@@ -26,6 +26,7 @@ TODO
 - pit derecho pausado con 1 player
 - menú con imagen de fondo y marquesina de color
 - fondo negro con gráfico GDU
+- limitar tamaño de tipos en lo posible
 
 */
 
@@ -109,9 +110,9 @@ void drawPit(byte i) {
 
 
 // check if a shape can move in the specified direction
-unsigned char shapeCanMove(char *map, sbyte xDirection, sbyte yDirection, byte i) {
+byte shapeCanMove(char *map, sbyte xDirection, sbyte yDirection, byte i) {
     sword pitX, pitY;
-    byte blockX, blockY;
+    sword blockX, blockY;
     // loop through all the blocks of the piece
     for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
         for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
@@ -294,8 +295,8 @@ void createShape(byte i) {
     } else {
         shape[i] = (sbyte)(rand() % 7);  // new random piece (0 to 6)
     }    
-    shapeMap[i] = getRotatedShapeMap(shape[i], 0);
     shapeAngle[i] = 0;
+    shapeMap[i] = getRotatedShapeMap(shape[i], 0);
     // initial position (centre of the pit in X, fully hidden in Y)
     shapeX[i] = 3;
     shapeY[i] = -LASTSIDEBLOCK;
@@ -431,7 +432,7 @@ void dropShape(byte i) {
     } else {
         settleActiveShapeInPit(i);
         // checks if the piece has reached the top and the game is lost
-        gameOver[i] = (shapeY[i] < 0);
+        gameOver[i] = (shapeY[i] <= 0);
 
         checkForFullRows(i);
         drawPit(i);
@@ -528,7 +529,7 @@ void init(void) {
 
 
 void mainLoop() {
-    byte newAngle;
+    byte newAngle = 0;
     byte i; // player 1-2
     char* rotatedMap;
 
