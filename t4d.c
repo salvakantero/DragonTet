@@ -22,7 +22,9 @@ sword = signed int
 TODO
 ====
 - BUG se cuelga al rotar pieza en el borde
+- BUG se cuelga al rotar la primera pieza
 - BUG línea 16 con 2 players
+- pide nombre más abajo en la pantalla
 - pit derecho pausado con 1 player
 - menú con imagen de fondo y marquesina de color
 - fondo negro con gráfico GDU
