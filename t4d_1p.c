@@ -12,18 +12,12 @@ use the CMOC compiler 0.1.89 or higher:
 use xroar to test:
 "xroar -run t4d_1p.bin"
 
-alternative cmoc data types used:
-BOOL = unsigned char
-byte = unsigned char
-sbyte = signed char
-
 TODO
 ====
 - BUG se cuelga al rotar pieza en el borde
-- BUG se cuelga al rotar la primera pieza
-- pide nombre más abajo en la pantalla
 - menú con imagen de fondo y marquesina de color
 - fondo negro con gráfico GDU
+- teclado con repetición automática
 - limitar tamaño de tipos en lo posible
 
 */
@@ -42,33 +36,29 @@ TODO
 #define DEBUGX 12
 #define DEBUGY 15
 
-char key; // key pressed
-// pos 0-4: fake values for the initial TOP 5
-// pos 5: values for the current game
-char names[6][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON",""};
-unsigned int scores[6] = {1400, 1300, 1200, 1100, 1000, 0};
-
+char key;                       // key pressed
 BOOL newScore;                  // TRUE = redraws the best scores table
 BOOL gameOver; 			        // FALSE = game in progress, TRUE = finished
 int dropRate; 					// 0 = lower the piece one position
 int startTime;                  // system ticks since the piece has moved
 char pit[PITWIDTH * PITHEIGHT]; // content of each pit in blocks
-byte level; 			        // game levels (speed)
+unsigned char level; 			// game levels (speed)
 int lines; 				        // lines cleared
+unsigned char shape, nextShape; // piece type (0 to 6). 255 = piece not defined
+unsigned char shapeAngle; 	    // piece rotation (0 to 3)
+char *shapeMap, *nextShapeMap;  // piece design
+int shapeX, shapeY;		        // piece XY position
 
-sbyte shape; 		        // piece type (-1 to 6)
-byte shapeAngle; 	        // piece rotation (0 to 3)
-char* shapeMap;				// piece design
-int shapeX, shapeY;		    // piece XY position
-
-sbyte nextShape;		    // type of the next piece (-1 to 6)
-char* nextShapeMap;		    // design of the next piece
+// pos 0-4: fake values for the initial TOP 5
+// pos 5: values for the current game
+char names[6][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON",""};
+unsigned int scores[6] = {1400, 1300, 1200, 1100, 1000, 0};
 
 
 
-void drawBlock(char blockColour, byte pitX, byte pitY) {
+void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY) {
     /*
-    dragon semigraphic characters: 127 to 255  
+    dragon semigraphic characters: 128 to 255  
     +16: yellow  
     +32: blue  
     +48: red  
@@ -77,28 +67,28 @@ void drawBlock(char blockColour, byte pitX, byte pitY) {
     +96: magenta  
     +112: orange 
     */
-    byte colour = blockColour-'0'; // (0 to 8)
+    unsigned char colour = blockColour - NOBLOCK; // (0 to 8)
     locate(pitX, pitY);
     // black background (empty block)
     if (colour == 0) {
-        putchar(126);
+        putchar(128);
         return;
     }
     // coloured filled block
-    putchar(143 + ((colour-1) * 16));
+    putchar(143 + ((colour - 1) * 16));
 }
 
 
 
 void drawPit() {
-    int pitY, pitX;
+    unsigned char pitY, pitX;
     // loop through and repaint the contents of the pit
     for (pitY = 0; pitY < PITHEIGHT; pitY++) {
         for (pitX = 0; pitX < PITWIDTH; pitX++) {
             // get the colour of the block at the current position
             char blockcolour = pit[(PITWIDTH * pitY) + pitX];
             // draw the block with the specified colour
-            drawBlock(blockcolour, (byte)pitX, (byte)pitY);
+            drawBlock(blockcolour, pitX, pitY);
         }
     }
 }
@@ -106,7 +96,7 @@ void drawPit() {
 
 
 // check if a shape can move in the specified direction
-byte shapeCanMove(char *map, sbyte xDirection, sbyte yDirection) {
+BOOL shapeCanMove(char *map, char xDirection, char yDirection) {
     int pitX, pitY;
     int blockX, blockY;
     // loop through all the blocks of the piece
@@ -136,7 +126,7 @@ byte shapeCanMove(char *map, sbyte xDirection, sbyte yDirection) {
 
 
 void drawNextShape() {
-    byte blockX, blockY;
+    unsigned char blockX, blockY;
     char blockcolour;
     // loop through all the blocks of the piece
     for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
@@ -144,7 +134,7 @@ void drawNextShape() {
             // piece colour
             blockcolour = nextShapeMap[(SIDEBLOCKCOUNT * blockY) + blockX];
             if (blockcolour == NOBLOCK) {
-                blockcolour = '1';
+                blockcolour = '1'; // green background
             }
             drawBlock(blockcolour, blockX + 17, blockY + 7);
         }
@@ -170,7 +160,7 @@ void displayStatus(void) {
 
 
 
-const char* getShapeMap(byte shape) {
+const char* getShapeMap(unsigned char shape) {
     /* colours:
         0 - black
         1 - green
@@ -205,14 +195,14 @@ const char* getShapeMap(byte shape) {
 
 
 // rotates the piece and returns the resulting map
-char* getRotatedShapeMap(char shape, byte angle) {
-	const char* map = getShapeMap(shape); // unrotated map
+char* getRotatedShapeMap(char shape, unsigned char angle) {
+	const char *map = getShapeMap(shape); // unrotated map
     // if the angle is 0, return the original map
     if (angle == 0) {
-        return (char*)map;
+        return (char*) map;
     }
     // for other angles, iterate through all blocks
-	char* rotatedMap; // rotated map
+	char *rotatedMap; // rotated map
     int newBlockX, newBlockY;
     int blockX, blockY;
     for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
@@ -242,7 +232,7 @@ char* getRotatedShapeMap(char shape, byte angle) {
 
 
 void createNextShape() {
-	nextShape = (sbyte)(rand() % 7); // piece type (0 to 6)
+	nextShape = (unsigned char) rand() % 7; // piece type (0 to 6)
 	nextShapeMap = getRotatedShapeMap(nextShape, 0); // piece composition
 }
 
@@ -263,10 +253,10 @@ void createShape() {
         dropRate = 1;
     }
     // if it's not the first piece, take the value of nextShape
-    if (nextShape >= 0) {
+    if (nextShape != 255) {
         shape = nextShape;
     } else {
-        shape = (sbyte)(rand() % 7);  // new random piece (0 to 6)
+        shape = (unsigned char) rand() % 7;  // new random piece (0 to 6)
     }    
     shapeAngle = 0;
     shapeMap = getRotatedShapeMap(shape, 0);
@@ -302,7 +292,7 @@ void drawShape(BOOL eraseShape) {
                     }
                 }
                 // draw or erase the block
-                drawBlock(blockColour, (byte)pitX, (byte)pitY); 
+                drawBlock(blockColour, (unsigned char)pitX, (unsigned char)pitY); 
             }
         }
     }
@@ -310,8 +300,8 @@ void drawShape(BOOL eraseShape) {
 
 
 
-void removeFullRow(byte removedRow) {
-    byte pitX, pitY;
+void removeFullRow(unsigned char removedRow) {
+    unsigned char pitX, pitY;
     char blockColour;
     // iterate from the removed row upwards
     for (pitY = removedRow; pitY > 0; pitY--) {
@@ -337,8 +327,8 @@ void removeFullRow(byte removedRow) {
 void checkForFullRows() { // searches for full rows
     BOOL fullRow = FALSE;
     int numLines = 0;
-    byte pitX, pitY;
-    byte j = 5;
+    unsigned char pitX, pitY;
+    unsigned char j = 5;
     // loops through all the rows in the pit
     for (pitY = 0; pitY < PITHEIGHT; pitY++) {
         fullRow = TRUE;
@@ -369,7 +359,7 @@ void checkForFullRows() { // searches for full rows
         }
         // updates the total completed rows and calculates the level
         lines += numLines;
-        level = (byte)(lines / LINESLEVEL) + 1;
+        level = (unsigned char)(lines / LINESLEVEL) + 1;
     }
 }
 
@@ -423,11 +413,11 @@ void dropShape() {
 
 
 void drawHighScores() {
-	byte i; // TOP 5 position (0-4)
-    for(i = 0; i < 5; i++) {
-        locate(7, 8+i);  printf("...............");
-        locate(7, 8+i);  printf("%s", names[i]);
-        locate(19, 8+i); printf("%5d", scores[i]);
+	unsigned char pos; // TOP 5 position (0-4)
+    for(pos = 0; pos < 5; pos++) {
+        locate(7, 8+pos);  printf("...............");
+        locate(7, 8+pos);  printf("%s", names[pos]);
+        locate(19, 8+pos); printf("%5d", scores[pos]);
 	}
 	locate(2, 14); printf("PRESS ANY KEY TO CONTINUE...");
 	waitkey(0);
@@ -484,7 +474,7 @@ void init() {
     level = 1; // initial level
     lines = 0; // lines cleared
     scores[5] = 0; // current score
-    nextShape = -1; // piece generation will be required
+    nextShape = 255; // piece generation will be required
     memset(pit, NOBLOCK, PITWIDTH * PITHEIGHT); // initialize the empty pit
     createShape(); // generate piece (shape, position)
     drawPit();
@@ -494,22 +484,19 @@ void init() {
 
 
 void mainLoop() {
-    byte newAngle = 0;
-    char* rotatedMap;
+    unsigned char newAngle = 0;
+    char *rotatedMap;
 
     // save the start time
-    int ticks = getTimer();
-    startTime = ticks;
+    startTime = getTimer();
 
     while (TRUE) {
         char key = '\0';
         // loop until a key is pressed
         while (key == '\0') {
-
             if (gameOver == FALSE) { // game in progress
-                ticks = getTimer();
                 // if the falling time has been exceeded
-                if (ticks >= startTime + dropRate || startTime > ticks) {
+                if (getTimer() >= startTime + dropRate || startTime > getTimer()) {
                     dropShape(); // the piece moves down
                     startTime = getTimer(); // reset the fall timer
                 }
@@ -569,13 +556,13 @@ void mainLoop() {
 
 // check if the new score is high enough to enter the top 5
 void checkScores() {
-    byte i = 5; // 0-1-2-3-4-[current]
-	byte j;
+    unsigned char i = 5; // 0-1-2-3-4-[current]
+	unsigned char j;
 
     if (scores[i] > scores[4]) {
-        locate(15, 10); printf("GOOD SCORE!");
-        locate(15, 11); printf("NAME?:");
-        locate(14, 11);
+        locate(15, 12); printf("G O O D  S C O R E !");
+        locate(15, 13); printf("NAME?:");
+        locate(14, 20);
         char *response = readline();
         strncpy(names[i], response, 10);
         names[i][10] = '\0'; // ensure the name is null-terminated
