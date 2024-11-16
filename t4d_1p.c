@@ -161,7 +161,7 @@ void displayStatus(void) {
     locate(11, 1); printf("=PLAYER 1=");
     locate(11, 3); printf("LEVEL:  %2u", level); // draws the level number
     locate(11, 4); printf("LINES: %3u", lines); // draws the lines
-    locate(11, 5); printf("SC:  %5d", scores[5]); // draws the score
+    locate(11, 5); printf("SC:  %5u", scores[5]); // draws the score
     locate(11, 7); printf("NEXT:");
     if (gameOver == FALSE) {
         drawNextShape();
@@ -213,9 +213,8 @@ char* getRotatedShapeMap(char shape, byte angle) {
     }
     // for other angles, iterate through all blocks
 	char* rotatedMap; // rotated map
-    sword newBlockX, newBlockY;
-    sword blockX, blockY;
-	byte i;
+    int newBlockX, newBlockY;
+    int blockX, blockY;
     for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
         for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
             switch (angle) {
@@ -281,8 +280,8 @@ void createShape() {
 
 
 void drawShape(BOOL eraseShape) {
-    sword pitX, pitY;
-    sword blockX, blockY;
+    int pitX, pitY;
+    int blockX, blockY;
     char blockColour;
     // iterates through all the blocks of the piece
     for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
@@ -337,7 +336,7 @@ void removeFullRow(byte removedRow) {
 
 void checkForFullRows() { // searches for full rows
     BOOL fullRow = FALSE;
-    word numLines = 0;
+    int numLines = 0;
     byte pitX, pitY;
     byte j = 5;
     // loops through all the rows in the pit
@@ -377,8 +376,8 @@ void checkForFullRows() { // searches for full rows
 
 
 void settleActiveShapeInPit() {
-    sword blockX, blockY;
-    sword pitX, pitY;
+    int blockX, blockY;
+    int pitX, pitY;
     for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
         for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
             pitX = shapeX + blockX;
@@ -406,13 +405,13 @@ void dropShape() {
     } else {
         settleActiveShapeInPit();
         // checks if the piece has reached the top and the game is lost
-        gameOver = (shapeY <= 0);
+        gameOver = (shapeY < 0);
 
         checkForFullRows();
         drawPit();
 
         // if the game is not over, creates a new piece and draws it
-        if (!gameOver) {
+        if (gameOver == FALSE) {
             createShape();
             drawShape(FALSE);
         }
@@ -499,7 +498,7 @@ void mainLoop() {
     char* rotatedMap;
 
     // save the start time
-    word ticks = getTimer();
+    int ticks = getTimer();
     startTime = ticks;
 
     while (TRUE) {
@@ -507,7 +506,7 @@ void mainLoop() {
         // loop until a key is pressed
         while (key == '\0') {
 
-            if (!gameOver) { // game in progress
+            if (gameOver == FALSE) { // game in progress
                 ticks = getTimer();
                 // if the falling time has been exceeded
                 if (ticks >= startTime + dropRate || startTime > ticks) {
@@ -521,7 +520,7 @@ void mainLoop() {
         if (key == 'X') { // if X is pressed, exit to the main menu
             break;
         } else {
-            if (!gameOver) {
+            if (gameOver == FALSE) { // game in progress
                 switch (key) {
                     case 'W': // rotate key
                         drawShape(TRUE); // erase piece                            
@@ -611,7 +610,7 @@ int main() {
         newScore = FALSE;
         checkScores();
         // draw the scoreboard
-        if (newScore) {
+        if (newScore == TRUE) {
 		    cls(1);
 		    drawHeader();
 		    drawHighScores();
