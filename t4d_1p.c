@@ -15,10 +15,11 @@ use xroar to test:
 TODO
 ====
 - BUG se cuelga al rotar pieza en el borde
+- BUG al rotar tras desplazar a la izquierda
 - centrar textos
-- marquesina de color en el título
 - teclado con repetición automática
 - menú con imagen de fondo
+- asignar valores por defecto
 - limitar tamaño de tipos en lo posible
 
 */
@@ -49,6 +50,7 @@ unsigned char shape, nextShape; // piece type (0 to 6). 255 = piece not defined
 unsigned char shapeAngle; 	    // piece rotation (0 to 3)
 char *shapeMap, *nextShapeMap;  // piece design
 int shapeX, shapeY;		        // piece XY position
+unsigned char colourShift;      // colour shift effect in the title
 
 // pos 0-4: fake values for the initial TOP 5
 // pos 5: values for the current game
@@ -436,27 +438,29 @@ void drawHighScores() {
 
 
 
-void drawHeader(unsigned char x) {
-    unsigned char pos, colour = 2;
+void drawHeader(unsigned char x, unsigned char shift) {
+    unsigned char pos, colour;
+    const unsigned char colours[] = {2, 3, 4, 5, 6, 7, 8}; // colours available, excluding green
+    unsigned char colourCount = sizeof(colours) / sizeof(colours[0]);
+
     for (pos = 0; pos < 15; pos++) {
-        locate(x+pos, 1); putchar(143 + ((colour - 1) * 16));
-        locate(x+pos, 3); putchar(143 + ((colour - 1) * 16));
-        if (colour == 2) {
-            colour = 8;
-        }
-        else {
-            colour = 2;
-        }
+        // colour for the top line (to the right).
+        colour = colours[(pos + shift) % colourCount];
+        locate(x + pos, 1);
+        putchar(143 + ((colour - 1) * 16));
+        // colour for the bottom line (to the left)
+        colour = colours[(pos + colourCount - shift) % colourCount];
+        locate(x + pos, 3);
+        putchar(143 + ((colour - 1) * 16));
     }
     locate(x, 2); printf("= T E T R I S =");
-    locate(x-1, 5); printf("SALVAKANTERO 2024");
+    locate(x - 1, 5); printf("SALVAKANTERO 2024");
 }
 
 
 
 void drawMenu() {
 	cls(1);
-	drawHeader(8);
 	locate(7, 8);  printf("1)  START GAME");
     locate(7, 9);  printf("2)  HIGH SCORES");
     locate(7, 10); printf("3)  EXIT");
@@ -468,6 +472,7 @@ void drawMenu() {
 void menu() {
 	drawMenu();
     do {
+        drawHeader(8, colourShift++);
         key = inkey();		
         if (key == '1')	{ // start game
             break;
@@ -480,6 +485,7 @@ void menu() {
 			cls(1);
             exit(0);
 		}
+        delay(3);
     } while (TRUE);
 }
 
@@ -620,7 +626,7 @@ int main() {
         // draw the scoreboard
         if (newScore == TRUE) {
 		    cls(1);
-		    drawHeader(8);
+		    drawHeader(8, colourShift);
 		    drawHighScores();
         }
     }
