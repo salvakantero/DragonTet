@@ -5,7 +5,7 @@
 
 1 player game TEST version
 Compatible with Dragon 32/64 and COCO
-Based on Peter Swinkels' PC Qbasic code. (QBBlocks v1.0. Text mode, 1 player)
+Based on Peter Swinkels' PC Qbasic code. (QBBlocks v1.0)
 
 use the CMOC compiler 0.1.89 or higher:
 "cmoc --dragon -o t4d_1p.bin t4d_1p.c"
@@ -16,9 +16,9 @@ TODO
 ====
 - BUG se cuelga al rotar pieza en el borde
 - centrar textos
-- menú con imagen de fondo
 - marquesina de color en el título
 - teclado con repetición automática
+- menú con imagen de fondo
 - limitar tamaño de tipos en lo posible
 
 */
@@ -436,18 +436,27 @@ void drawHighScores() {
 
 
 
-void drawHeader() {
-    locate(8, 1); printf("***************");
-    locate(8, 2); printf("* T E T R I S *");
-    locate(8, 3); printf("***************");
-    locate(7, 5); printf("SALVAKANTERO 2024");
+void drawHeader(unsigned char x) {
+    unsigned char pos, colour = 2;
+    for (pos = 0; pos < 15; pos++) {
+        locate(x+pos, 1); putchar(143 + ((colour - 1) * 16));
+        locate(x+pos, 3); putchar(143 + ((colour - 1) * 16));
+        if (colour == 2) {
+            colour = 8;
+        }
+        else {
+            colour = 2;
+        }
+    }
+    locate(x, 2); printf("= T E T R I S =");
+    locate(x-1, 5); printf("SALVAKANTERO 2024");
 }
 
 
 
 void drawMenu() {
 	cls(1);
-	drawHeader();
+	drawHeader(8);
 	locate(7, 8);  printf("1)  START GAME");
     locate(7, 9);  printf("2)  HIGH SCORES");
     locate(7, 10); printf("3)  EXIT");
@@ -572,7 +581,7 @@ void checkScores() {
 	unsigned char j;
 
     if (scores[i] > scores[4]) {
-        locate(15, 12); printf("G O O D  S C O R E !");
+        locate(15, 12); printf("GOOD SCORE!!");
         locate(15, 13); printf("NAME?:");
         locate(14, 20);
         char *response = readline();
@@ -611,7 +620,7 @@ int main() {
         // draw the scoreboard
         if (newScore == TRUE) {
 		    cls(1);
-		    drawHeader();
+		    drawHeader(8);
 		    drawHighScores();
         }
     }
