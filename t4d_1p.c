@@ -15,8 +15,9 @@ use xroar to test:
 TODO
 ====
 - BUG se cuelga al rotar pieza en el borde
-- menú con imagen de fondo y marquesina de color
-- fondo negro con gráfico GDU
+- centrar textos
+- menú con imagen de fondo
+- marquesina de color en el título
 - teclado con repetición automática
 - limitar tamaño de tipos en lo posible
 
@@ -71,11 +72,21 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY) {
     locate(pitX, pitY);
     // black background (empty block)
     if (colour == 0) {
-        putchar(128);
+        putchar(111);
         return;
     }
     // coloured filled block
     putchar(143 + ((colour - 1) * 16));
+}
+
+
+
+void drawPitSeparator() {
+    unsigned char y;
+    for (y = 0; y < PITHEIGHT; y++) {
+        locate(PITWIDTH, y);
+        putchar(128);
+    }
 }
 
 
@@ -195,7 +206,7 @@ const char* getShapeMap(unsigned char shape) {
 
 
 // rotates the piece and returns the resulting map
-char* getRotatedShapeMap(char shape, unsigned char angle) {
+char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
 	const char *map = getShapeMap(shape); // unrotated map
     // if the angle is 0, return the original map
     if (angle == 0) {
@@ -479,6 +490,7 @@ void init() {
     createShape(); // generate piece (shape, position)
     drawPit();
     displayStatus();
+    drawPitSeparator();
 }
 
 
