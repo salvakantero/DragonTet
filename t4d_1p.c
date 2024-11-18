@@ -16,6 +16,7 @@ TODO
 ====
 - BUG se cuelga al rotar pieza en el borde
 - BUG al rotar tras desplazar a la izquierda
+- BUG score más alto no se guarda
 - centrar textos
 - teclado con repetición automática
 - menú con imagen de fondo
@@ -149,9 +150,30 @@ void drawNextShape() {
             if (blockcolour == NOBLOCK) {
                 blockcolour = '1'; // green background
             }
-            drawBlock(blockcolour, blockX + 17, blockY + 7);
+            drawBlock(blockcolour, blockX + 23, blockY + 12);
         }
     }
+}
+
+
+
+void drawHeader(unsigned char x, unsigned char shift) {
+    unsigned char pos, colour;
+    const unsigned char colours[] = {2, 3, 4, 5, 6, 7, 8}; // colours available, excluding green
+    unsigned char colourCount = sizeof(colours) / sizeof(colours[0]);
+
+    for (pos = 0; pos < 15; pos++) {
+        // colour for the top line (to the right).
+        colour = colours[(pos + shift) % colourCount];
+        locate(x + pos, 1);
+        putchar(143 + ((colour - 1) * 16));
+        // colour for the bottom line (to the left)
+        colour = colours[(pos + colourCount - shift) % colourCount];
+        locate(x + pos, 3);
+        putchar(143 + ((colour - 1) * 16));
+    }
+    locate(x, 2); printf("= T E T R I S =");
+    locate(x - 1, 5); printf("SALVAKANTERO 2024");
 }
 
 
@@ -161,11 +183,13 @@ void displayStatus(void) {
         locate(0, 8);
         printf("GAME OVER!");
     }
-    locate(11, 1); printf("=PLAYER 1=");
-    locate(11, 3); printf("LEVEL:  %2u", level); // draws the level number
-    locate(11, 4); printf("LINES: %3u", lines); // draws the lines
-    locate(11, 5); printf("SC:  %5u", scores[5]); // draws the score
-    locate(11, 7); printf("NEXT:");
+    //locate(11, 1); printf("=PLAYER 1=");
+    drawHeader(14, colourShift);
+    locate(16, 7); printf("LEVEL:   %2u", level); // draws the level number
+    locate(16, 8); printf("LINES:  %3u", lines); // draws the lines
+    locate(16, 10); printf("SCORE:%5u", scores[5]); // draws the score
+    locate(16, 11); printf("HIGH: %5u", scores[0]); // draws the high score
+    locate(16, 13); printf("NEXT:");
     if (gameOver == FALSE) {
         drawNextShape();
     }
@@ -433,38 +457,24 @@ void drawHighScores() {
         locate(19, 8+pos); printf("%5d", scores[pos]);
 	}
 	locate(2, 14); printf("PRESS ANY KEY TO CONTINUE...");
-	waitkey(0);
-}
-
-
-
-void drawHeader(unsigned char x, unsigned char shift) {
-    unsigned char pos, colour;
-    const unsigned char colours[] = {2, 3, 4, 5, 6, 7, 8}; // colours available, excluding green
-    unsigned char colourCount = sizeof(colours) / sizeof(colours[0]);
-
-    for (pos = 0; pos < 15; pos++) {
-        // colour for the top line (to the right).
-        colour = colours[(pos + shift) % colourCount];
-        locate(x + pos, 1);
-        putchar(143 + ((colour - 1) * 16));
-        // colour for the bottom line (to the left)
-        colour = colours[(pos + colourCount - shift) % colourCount];
-        locate(x + pos, 3);
-        putchar(143 + ((colour - 1) * 16));
+    do {
+        if (inkey() != '') {
+            break;
+        }
+        drawHeader(8, colourShift++);
+        delay(2);
     }
-    locate(x, 2); printf("= T E T R I S =");
-    locate(x - 1, 5); printf("SALVAKANTERO 2024");
+	while (TRUE);
 }
 
 
 
 void drawMenu() {
 	cls(1);
-	locate(7, 8);  printf("1)  START GAME");
-    locate(7, 9);  printf("2)  HIGH SCORES");
-    locate(7, 10); printf("3)  EXIT");
-    locate(6, 14); printf("SELECT OPTION (1-3)");	
+	locate(8, 8);  printf("1)  START GAME");
+    locate(8, 9);  printf("2)  HIGH SCORES");
+    locate(8, 10); printf("3)  EXIT");
+    locate(7, 14); printf("SELECT OPTION (1-3)");	
 }
 
 
@@ -485,7 +495,7 @@ void menu() {
 			cls(1);
             exit(0);
 		}
-        delay(3);
+        delay(2);
     } while (TRUE);
 }
 
