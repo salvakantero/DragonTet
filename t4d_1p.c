@@ -18,6 +18,8 @@ TODO
 - BUG al rotar tras desplazar a la izquierda
 - BUG score más alto no se guarda
 - teclado con repetición automática
+- mensaje al cerrar programa
+- CLS parcial para introducir nombre
 - sonidos
 - limitar tamaño de tipos en lo posible
 
