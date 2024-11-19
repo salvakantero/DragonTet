@@ -17,10 +17,8 @@ TODO
 - BUG se cuelga al rotar pieza en el borde
 - BUG al rotar tras desplazar a la izquierda
 - BUG score más alto no se guarda
-- centrar textos
 - teclado con repetición automática
-- menú con imagen de fondo
-- asignar valores por defecto
+- sonidos
 - limitar tamaño de tipos en lo posible
 
 */
@@ -39,19 +37,21 @@ TODO
 #define DEBUGX 12
 #define DEBUGY 15
 
-char key;                       // key pressed
-BOOL newScore;                  // TRUE = redraws the best scores table
-BOOL gameOver; 			        // FALSE = game in progress, TRUE = finished
-int dropRate; 					// 0 = lower the piece one position
-int startTime;                  // system ticks since the piece has moved
+char key = '\0';                // key pressed
+BOOL newScore = FALSE;          // TRUE = redraws the best scores table
+BOOL gameOver = FALSE; 			// FALSE = game in progress, TRUE = finished
+int dropRate = 0; 			    // 0 = lower the piece one position
+int startTime = 0;              // system ticks since the piece has moved
 char pit[PITWIDTH * PITHEIGHT]; // content of each pit in blocks
-unsigned char level; 			// game levels (speed)
-int lines; 				        // lines cleared
-unsigned char shape, nextShape; // piece type (0 to 6). 255 = piece not defined
-unsigned char shapeAngle; 	    // piece rotation (0 to 3)
-char *shapeMap, *nextShapeMap;  // piece design
-int shapeX, shapeY;		        // piece XY position
-unsigned char colourShift;      // colour shift effect in the title
+unsigned char level = 1; 		// game levels (increases the speed)
+int lines = 0; 				    // lines cleared
+unsigned char shape = 255;      // piece type (0 to 6). 255 = piece not defined
+unsigned char nextShape = 255;  // next piece type (0 to 6). 255 = piece not defined
+unsigned char shapeAngle = 0; 	// piece rotation (0 to 3)
+char *shapeMap = NULL;          // piece design
+char *nextShapeMap = NULL;      // next piece design
+int shapeX = 0, shapeY = 0;		// piece XY position
+unsigned char colourShift = 0;  // colour shift effect in the title
 
 // pos 0-4: fake values for the initial TOP 5
 // pos 5: values for the current game
@@ -110,7 +110,7 @@ void drawPit() {
 
 
 // check if a shape can move in the specified direction
-BOOL shapeCanMove(char *map, char xDirection, char yDirection) {
+BOOL shapeCanMove(char *map, char xDir, char yDir) {
     int pitX, pitY;
     int blockX, blockY;
     // loop through all the blocks of the piece
@@ -118,8 +118,8 @@ BOOL shapeCanMove(char *map, char xDirection, char yDirection) {
         for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
             if (map[(SIDEBLOCKCOUNT * blockY) + blockX] != NOBLOCK) {
                 // calculate the position in the pit
-                pitX = (shapeX + blockX) + xDirection;
-                pitY = (shapeY + blockY) + yDirection;
+                pitX = (shapeX + blockX) + xDir;
+                pitY = (shapeY + blockY) + yDir;
                 // check if the block is within the pit boundaries
                 if (pitX >= 0 && pitX < PITWIDTH && pitY >= 0 && pitY < PITHEIGHT) {
                     // if the position in the pit is not empty, it cannot move
@@ -148,7 +148,12 @@ void drawNextShape() {
             // piece colour
             blockcolour = nextShapeMap[(SIDEBLOCKCOUNT * blockY) + blockX];
             if (blockcolour == NOBLOCK) {
-                blockcolour = '1'; // green background
+                // green background
+                blockcolour = '1';
+            }
+            else if (blockcolour == '1') {
+                // white T instead of green
+                blockcolour = '5';
             }
             drawBlock(blockcolour, blockX + 23, blockY + 12);
         }
@@ -211,19 +216,19 @@ const char* getShapeMap(unsigned char shape) {
     */
     switch (shape) {
         case 0:
-            return "0000666600000000"; // | cyan
+            return "0000444400000000"; // | red
         case 1:
-            return "0000333000300000"; // _| blue
+            return "0000222000200000"; // _| yellow
         case 2:
-            return "0000888080000000"; // |_ orange
+            return "0000777070000000"; // |_ magenta
         case 3:
-            return "0000022002200000"; // [] yellow
+            return "0000033003300000"; // [] blue
         case 4:
-            return "0000055055000000"; // S white
+            return "0000066066000000"; // S cyan
         case 5:
-            return "0000440004400000"; // Z red
+            return "0000880008800000"; // Z orange
         case 6:
-            return "0000777007000000"; // T magenta
+            return "0000111001000000"; // T green
         default:
             return "";
     }
@@ -340,6 +345,14 @@ void drawShape(BOOL eraseShape) {
 void removeFullRow(unsigned char removedRow) {
     unsigned char pitX, pitY;
     char blockColour;
+
+    // line selection effect
+    for (pitX = 0; pitX < PITWIDTH; pitX++) {
+        locate(pitX, removedRow);
+        putchar(207);
+    }
+    // sound here <--------------
+    delay(2);
     // iterate from the removed row upwards
     for (pitY = removedRow; pitY > 0; pitY--) {
         for (pitX = 0; pitX < PITWIDTH; pitX++) {
@@ -528,7 +541,7 @@ void mainLoop() {
     startTime = getTimer();
 
     while (TRUE) {
-        char key = '\0';
+        key = '\0';
         // loop until a key is pressed
         while (key == '\0') {
             if (gameOver == FALSE) { // game in progress
