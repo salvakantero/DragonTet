@@ -151,8 +151,7 @@ void drawNextShape() {
                 // green background
                 blockcolour = '1';
             }
-            else if (blockcolour == '1') {
-                // white T instead of green
+            else { // white pieces
                 blockcolour = '5';
             }
             drawBlock(blockcolour, blockX + 23, blockY + 12);
@@ -442,6 +441,10 @@ void dropShape() {
         drawShape(TRUE);      // erases the current piece
         shapeY += 1;          // moves the piece down by one position
         drawShape(FALSE);     // redraws the piece at the new position
+        // 1 point for each line in rapid drop
+        if (dropRate == 0) {
+            scores[5]++;
+        }
     } else {
         settleActiveShapeInPit();
         // checks if the piece has reached the top and the game is lost
