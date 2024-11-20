@@ -17,6 +17,7 @@ TODO
 - BUG se cuelga al rotar pieza en el borde
 - BUG al rotar tras desplazar a la izquierda
 - BUG score más alto no se guarda
+
 - teclado con repetición automática
 - sonidos
 - limitar tamaño de tipos en lo posible
@@ -610,10 +611,10 @@ void mainLoop() {
 
 // check if the new score is high enough to enter the top 5
 void checkScores() {
-    unsigned char i = 5; // 0-1-2-3-4-[current]
+    // indices: 0-1-2-3-4-[current]
 	unsigned char j = 0;
 
-    if (scores[i] > scores[4]) {
+    if (scores[5] > scores[4]) {
         // partial cls
         for(j=10; j<16; j++) {
             locate(12, j);
@@ -623,13 +624,14 @@ void checkScores() {
         locate(15, 13); printf("NAME?:");
         locate(14, 20);
         char *response = readline();
-        strncpy(names[i], response, 10);
-        names[i][10] = '\0'; // ensure the name is null-terminated
+        strncpy(names[5], response, 10);
+        names[5][10] = '\0'; // ensure the name is null-terminated
+
         // find the correct position in the top 5 list for the new score
         for (j = 4; j >= 0; j--) {
-            if (scores[i] >= scores[j]) {
+            if (scores[5] >= scores[j]) {
                 // shift scores/names down
-                if (j < 4) {
+                if (j <= 4) {
                     scores[j+1] = scores[j];
                     strncpy(names[j+1], names[j], 10);
                 }
@@ -638,10 +640,10 @@ void checkScores() {
 			else {
                 break;
             }
-        }
+        }        
         // place the new score and name in the correct position in the top 5
-        scores[j+1] = scores[i];
-        strncpy(names[j+1], names[i], 10);
+        scores[j+1] = scores[5];
+        strncpy(names[j+1], names[5], 10);
     }
 }
 
