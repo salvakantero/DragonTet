@@ -18,8 +18,6 @@ TODO
 - BUG al rotar tras desplazar a la izquierda
 - BUG score más alto no se guarda
 - teclado con repetición automática
-- mensaje al cerrar programa
-- CLS parcial para introducir nombre
 - sonidos
 - limitar tamaño de tipos en lo posible
 
@@ -77,7 +75,7 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY) {
     locate(pitX, pitY);
     // black background (empty block)
     if (colour == 0) {
-        putchar(111);
+        putchar(111); // "O"
         return;
     }
     // coloured filled block
@@ -87,7 +85,7 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY) {
 
 
 void drawPitSeparator() {
-    unsigned char y;
+    unsigned char y = 0;
     for (y = 0; y < PITHEIGHT; y++) {
         locate(PITWIDTH, y);
         putchar(128);
@@ -97,7 +95,7 @@ void drawPitSeparator() {
 
 
 void drawPit() {
-    unsigned char pitY, pitX;
+    unsigned char pitY = 0, pitX = 0;
     // loop through and repaint the contents of the pit
     for (pitY = 0; pitY < PITHEIGHT; pitY++) {
         for (pitX = 0; pitX < PITWIDTH; pitX++) {
@@ -113,8 +111,8 @@ void drawPit() {
 
 // check if a shape can move in the specified direction
 BOOL shapeCanMove(char *map, char xDir, char yDir) {
-    int pitX, pitY;
-    int blockX, blockY;
+    int pitX = 0, pitY = 0;
+    int blockX = 0, blockY = 0;
     // loop through all the blocks of the piece
     for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
         for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
@@ -142,8 +140,8 @@ BOOL shapeCanMove(char *map, char xDir, char yDir) {
 
 
 void drawNextShape() {
-    unsigned char blockX, blockY;
-    char blockcolour;
+    unsigned char blockX = 0, blockY = 0;
+    char blockcolour = NOBLOCK;
     // loop through all the blocks of the piece
     for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
         for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
@@ -164,7 +162,7 @@ void drawNextShape() {
 
 
 void drawHeader(unsigned char x, unsigned char shift) {
-    unsigned char pos, colour;
+    unsigned char pos = 0, colour = 0;
     const unsigned char colours[] = {2, 3, 4, 5, 6, 7, 8}; // colours available, excluding green
     unsigned char colourCount = sizeof(colours) / sizeof(colours[0]);
 
@@ -246,8 +244,8 @@ char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
     }
     // for other angles, iterate through all blocks
 	char *rotatedMap; // rotated map
-    int newBlockX, newBlockY;
-    int blockX, blockY;
+    int newBlockX = 0, newBlockY = 0;
+    int blockX = 0, blockY = 0;
     for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
         for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
             switch (angle) {
@@ -313,9 +311,9 @@ void createShape() {
 
 
 void drawShape(BOOL eraseShape) {
-    int pitX, pitY;
-    int blockX, blockY;
-    char blockColour;
+    int pitX = 0, pitY = 0;
+    int blockX = 0, blockY = 0;
+    char blockColour = NOBLOCK;
     // iterates through all the blocks of the piece
     for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
         for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
@@ -344,8 +342,8 @@ void drawShape(BOOL eraseShape) {
 
 
 void removeFullRow(unsigned char removedRow) {
-    unsigned char pitX, pitY;
-    char blockColour;
+    unsigned char pitX = 0, pitY = 0;
+    char blockColour = NOBLOCK;
 
     // line selection effect
     for (pitX = 0; pitX < PITWIDTH; pitX++) {
@@ -378,7 +376,7 @@ void removeFullRow(unsigned char removedRow) {
 void checkForFullRows() { // searches for full rows
     BOOL fullRow = FALSE;
     int numLines = 0;
-    unsigned char pitX, pitY;
+    unsigned char pitX = 0, pitY = 0;
     unsigned char j = 5;
     // loops through all the rows in the pit
     for (pitY = 0; pitY < PITHEIGHT; pitY++) {
@@ -417,8 +415,8 @@ void checkForFullRows() { // searches for full rows
 
 
 void settleActiveShapeInPit() {
-    int blockX, blockY;
-    int pitX, pitY;
+    int blockX = 0, blockY = 0;
+    int pitX = 0, pitY = 0;
     for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
         for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
             pitX = shapeX + blockX;
@@ -468,7 +466,7 @@ void dropShape() {
 
 
 void drawHighScores() {
-	unsigned char pos; // TOP 5 position (0-4)
+	unsigned char pos = 0; // TOP 5 position (0-4)
     for(pos = 0; pos < 5; pos++) {
         locate(7, 8+pos);  printf("...............");
         locate(7, 8+pos);  printf("%s", names[pos]);
@@ -511,6 +509,7 @@ void menu() {
         } 
 		else if (key == '3') { // exit
 			cls(1);
+            printf("THANKS FOR PLAYING T4D!\n");
             exit(0);
 		}
         delay(2);
@@ -612,9 +611,14 @@ void mainLoop() {
 // check if the new score is high enough to enter the top 5
 void checkScores() {
     unsigned char i = 5; // 0-1-2-3-4-[current]
-	unsigned char j;
+	unsigned char j = 0;
 
     if (scores[i] > scores[4]) {
+        // partial cls
+        for(j=10; j<16; j++) {
+            locate(12, j);
+            printf("                   ");
+        }
         locate(15, 12); printf("GOOD SCORE!!");
         locate(15, 13); printf("NAME?:");
         locate(14, 20);
