@@ -15,7 +15,7 @@ use xroar to test:
 TODO
 ====
 - BUG se cuelga al rotar pieza en el borde
-- BUG al rotar tras desplazar a la izquierda
+- BUG al rotar si shapeX <= 2
 
 - escribir en memoria de pantalla para el punto 32,16
 - teclado con repetición automática
@@ -57,7 +57,7 @@ unsigned char colourShift = 0;  // colour shift effect in the title
 // pos 0-4: fake values for the initial TOP 5
 // pos 5: values for the current game
 char names[6][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON",""};
-unsigned int scores[6] = {500, 400, 300, 200, 100, 0};
+unsigned int scores[6] = {1800, 1600, 1400, 1200, 1000, 0};
 
 
 
@@ -190,7 +190,7 @@ void displayStatus(void) {
     }
     drawHeader(14, colourShift);
     locate(16, 7); printf("LEVEL:   %2u", level); // draws the level number
-    locate(16, 8); printf("LINES:  %3u", lines); // draws the lines
+    locate(16, 8); printf("LINES:  %3d", lines); // draws the lines
     locate(16, 10); printf("SCORE:%5u", scores[5]); // draws the score
     locate(16, 11); printf("HIGH: %5u", scores[0]); // draws the high score
     locate(16, 13); printf("NEXT:");
@@ -474,7 +474,7 @@ void drawHighScores() {
     for(pos = 0; pos < 5; pos++) {
         locate(7, 8+pos);  printf("...............");
         locate(7, 8+pos);  printf("%s", names[pos]);
-        locate(19, 8+pos); printf("%5d", scores[pos]);
+        locate(19, 8+pos); printf("%5u", scores[pos]);
 	}
 	locate(2, 14); printf("PRESS ANY KEY TO CONTINUE...");
     do {
