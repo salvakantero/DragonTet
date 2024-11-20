@@ -57,7 +57,7 @@ unsigned char colourShift = 0;  // colour shift effect in the title
 // pos 0-4: fake values for the initial TOP 5
 // pos 5: values for the current game
 char names[6][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON",""};
-unsigned int scores[6] = {1400, 1300, 1200, 1100, 1000, 0};
+unsigned int scores[6] = {500, 400, 300, 200, 100, 0};
 
 
 
@@ -188,7 +188,6 @@ void displayStatus(void) {
         locate(0, 8);
         printf("GAME OVER!");
     }
-    //locate(11, 1); printf("=PLAYER 1=");
     drawHeader(14, colourShift);
     locate(16, 7); printf("LEVEL:   %2u", level); // draws the level number
     locate(16, 8); printf("LINES:  %3u", lines); // draws the lines
@@ -351,8 +350,12 @@ void removeFullRow(unsigned char removedRow) {
         locate(pitX, removedRow);
         putchar(207);
     }
-    // sound here <--------------
-    delay(2);
+    // sound and delay here <--------------
+    //delay(2);
+    for(int i = 0; i < 3; i++) {
+        drawHeader(14, ++colourShift);
+    }
+
     // iterate from the removed row upwards
     for (pitY = removedRow; pitY > 0; pitY--) {
         for (pitX = 0; pitX < PITWIDTH; pitX++) {
@@ -611,7 +614,6 @@ void mainLoop() {
 
 // check if the new score is high enough to enter the top 5
 void checkScores() {
-    // indices: 0-1-2-3-4-[current]
 	unsigned char j = 0;
 
     if (scores[5] > scores[4]) {
@@ -629,21 +631,57 @@ void checkScores() {
 
         // find the correct position in the top 5 list for the new score
         for (j = 4; j >= 0; j--) {
-            if (scores[5] >= scores[j]) {
+            if (scores[5] > scores[j]) {
                 // shift scores/names down
-                if (j <= 4) {
+                if (j < 4) {
                     scores[j+1] = scores[j];
                     strncpy(names[j+1], names[j], 10);
                 }
                 newScore = TRUE;
             }
 			else {
-                break;
+                break;  
             }
         }        
         // place the new score and name in the correct position in the top 5
+        scores[j] = scores[5];
+        strncpy(names[j], names[5], 10);
+    }
+}
+
+// check if the new score is high enough to enter the top 5
+void checkScores() {
+    int j; // indices: 0-1-2-3-4-[current]
+    if (scores[5] > scores[4]) {
+        // clear part of the screen
+        for (j = 10; j < 16; j++) {
+            locate(12, j);
+            printf("                   ");
+        }
+        locate(15, 12); printf("GOOD SCORE!!");
+        locate(15, 13); printf("NAME?:");
+        locate(14, 20);
+
+        char *response = readline();
+        strncpy(names[5], response, 10);
+        names[5][10] = '\0'; // ensure the name is null-terminated
+
+        // find the correct position in the top 5 list for the new score
+        for (j = 4; j >= 0; j--) {
+            if (scores[5] > scores[j]) {
+                // shift scores/names down
+                if (j < 4) {
+                    scores[j+1] = scores[j];
+                    strncpy(names[j+1], names[j], 10);
+                }
+            } else {
+                break;
+            }
+        }
+        // insert the new score and name into the correct position
         scores[j+1] = scores[5];
         strncpy(names[j+1], names[5], 10);
+        newScore = TRUE; // the score table has been updated
     }
 }
 
