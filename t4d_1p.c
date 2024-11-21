@@ -20,7 +20,6 @@ TODO
 - escribir en memoria de pantalla para el punto 32,16
 - teclado con repetición automática
 - sonidos
-- limitar tamaño de tipos en lo posible
 
 */
 
