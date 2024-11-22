@@ -559,6 +559,15 @@ void mainLoop() {
                 }
             }
             key = inkey(); // read keypresses
+            // auto-repeat
+            for (unsigned char i = 0; i <= 9; i++) {
+                *((unsigned char *)0x0150 + i) = 0xFF;
+            }
+            // waits 2ms for rotation and 1ms for moving the piece
+            delay(1);
+            if (key == 'W') {
+                delay(1);
+            }
         }
 
         if (key == 'X') { // if X is pressed, exit to the main menu
