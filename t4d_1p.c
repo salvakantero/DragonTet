@@ -17,14 +17,19 @@ TODO
 - BUG se cuelga al rotar pieza en el borde
 - BUG al rotar si shapeX <= 2
 
-- escribir en memoria de pantalla para el punto 32,16
-- teclado con repetición automática
+- redondear bordes de la zona del marcador
+- menú de opciones
+- teclado con repetición automática OPCIONAL. OFF
+- fondo del foso cuadriculado OPCIONAL. ON
 - sonidos
 
 */
 
 #include <cmoc.h>
 #include <coco.h>
+
+#define SCREEN_BASE 0x400  // base address of the video memory in text mode
+#define SCREEN_WIDTH 32    // screen width in characters
 
 #define SIDEBLOCKCOUNT 4 // size of the piece's side (4x4)
 #define LASTSIDEBLOCK 3 // to iterate over the current piece (0 to 3)
@@ -60,6 +65,14 @@ unsigned int scores[6] = {1800, 1600, 1400, 1200, 1000, 0};
 
 
 
+void printBlock(int x, int y, unsigned char ch) {
+    // calculates the memory address based on X and Y coordinates
+    unsigned char *screenPos = (unsigned char *)(SCREEN_BASE + y * SCREEN_WIDTH + x);
+    *screenPos = ch; // write character to video memory
+}
+
+
+
 void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY) {
     /*
     dragon semigraphic characters: 128 to 255  
@@ -72,14 +85,14 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY) {
     +112: orange 
     */
     unsigned char colour = blockColour - NOBLOCK; // (0 to 8)
-    locate(pitX, pitY);
     // black background (empty block)
     if (colour == 0) {
+        locate(pitX, pitY);
         putchar(111); // "O"
         return;
     }
     // coloured filled block
-    putchar(143 + ((colour - 1) * 16));
+    printBlock(pitX, pitY, 143 + ((colour - 1) * 16));
 }
 
 
@@ -87,8 +100,7 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY) {
 void drawPitSeparator() {
     unsigned char y = 0;
     for (y = 0; y < PITHEIGHT; y++) {
-        locate(PITWIDTH, y);
-        putchar(128);
+        printBlock(PITWIDTH, y, 128);
     }
 }
 
@@ -169,12 +181,10 @@ void drawHeader(unsigned char x, unsigned char shift) {
     for (pos = 0; pos < 15; pos++) {
         // colour for the top line (to the right).
         colour = colours[(pos + shift) % colourCount];
-        locate(x + pos, 1);
-        putchar(143 + ((colour - 1) * 16));
+        printBlock(x + pos, 1, 143 + ((colour - 1) * 16));
         // colour for the bottom line (to the left)
         colour = colours[(pos + colourCount - shift) % colourCount];
-        locate(x + pos, 3);
-        putchar(143 + ((colour - 1) * 16));
+        printBlock(x + pos, 3, 143 + ((colour - 1) * 16));
     }
     locate(x, 2); printf("= T E T R I S =");
     locate(x - 1, 5); printf("SALVAKANTERO 2024");
@@ -346,8 +356,7 @@ void removeFullRow(unsigned char removedRow) {
 
     // line selection effect
     for (pitX = 0; pitX < PITWIDTH; pitX++) {
-        locate(pitX, removedRow);
-        putchar(207);
+        printBlock(pitX, removedRow, 207);
     }
     // sound and delay here <--------------
     //delay(2);
@@ -559,6 +568,7 @@ void mainLoop() {
                 }
             }
             key = inkey(); // read keypresses
+            /*
             // auto-repeat
             for (unsigned char i = 0; i <= 9; i++) {
                 *((unsigned char *)0x0150 + i) = 0xFF;
@@ -567,7 +577,7 @@ void mainLoop() {
             delay(1);
             if (key == 'W') {
                 delay(1);
-            }
+            }*/
         }
 
         if (key == 'X') { // if X is pressed, exit to the main menu
