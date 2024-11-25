@@ -354,16 +354,18 @@ void drawShape(BOOL eraseShape) {
 
 
 void removeFullRow(unsigned char removedRow) {
-    unsigned char pitX = 0, pitY = 0;
+    unsigned char pitX = 0, pitY = 0, i = 0;
     char blockColour = NOBLOCK;
 
     // line selection effect
     for (pitX = 0; pitX < PITWIDTH; pitX++) {
         printBlock(pitX, removedRow, 207);
     }
-    // sound and delay here <--------------
-    //delay(2);
-    for(int i = 0; i < 3; i++) {
+
+    sound(130,1);
+    sound(100,1);
+
+    for(i = 0; i < 3; i++) {
         drawHeader(14, ++colourShift);
     }
 
