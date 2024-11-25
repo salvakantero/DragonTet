@@ -17,10 +17,6 @@ TODO
 - BUG se cuelga al rotar pieza en el borde
 - BUG al rotar si shapeX <= 2
 
-- redondear bordes de la zona del marcador
-- menú de opciones
-- teclado con repetición automática OPCIONAL. OFF
-- fondo del foso cuadriculado OPCIONAL. ON
 - sonidos
 
 */
@@ -57,6 +53,8 @@ char *shapeMap = NULL;          // piece design
 char *nextShapeMap = NULL;      // next piece design
 int shapeX = 0, shapeY = 0;		// piece XY position
 unsigned char colourShift = 0;  // colour shift effect in the title
+BOOL chequeredPit = TRUE;       // enables/disables the chequered pit (options menu)
+BOOL autorepeatKeys = FALSE;    // enables/disables the auto-repeat of keys (options menu)
 
 // pos 0-4: fake values for the initial TOP 5
 // pos 5: values for the current game
@@ -85,10 +83,15 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY) {
     +112: orange 
     */
     unsigned char colour = blockColour - NOBLOCK; // (0 to 8)
-    // black background (empty block)
-    if (colour == 0) {
-        locate(pitX, pitY);
-        putchar(111); // "O"
+    // background
+    if (colour == 0) {        
+        if (chequeredPit == TRUE) { // "O"
+            locate(pitX, pitY);
+            putchar(111);
+        }
+        else {
+            printBlock(pitX, pitY, 128);
+        }
         return;
     }
     // coloured filled block
@@ -497,29 +500,79 @@ void drawHighScores() {
 
 
 
+void drawOptionsMenu() {
+	cls(1);
+	locate(4, 8);  printf("1)  AUTOREPEAT KEYS:");
+    locate(4, 9);  printf("2)  CHEQUERED PIT:");
+    locate(4, 10); printf("3)  BACK");
+    locate(7, 14); printf("SELECT OPTION (1-3)");
+    // on/off switches
+    locate(25, 8);
+    if (autorepeatKeys == TRUE) { printf("on "); }
+    else { printf("off"); }
+    locate(25, 9);
+    if (chequeredPit == TRUE) { printf("on "); }
+    else { printf("off"); }
+}
+
+
+
+void optionsMenu() {
+    drawOptionsMenu();
+
+    do {
+        drawHeader(8, colourShift++);
+        key = inkey();		
+        if (key == '1')	{
+            if (autorepeatKeys == TRUE) {
+                autorepeatKeys = FALSE;
+            } else { autorepeatKeys = TRUE; }
+            drawOptionsMenu();
+        }
+        else if (key == '2') {	
+            if (chequeredPit == TRUE) {
+                chequeredPit = FALSE;
+            } else { chequeredPit = TRUE; }
+            drawOptionsMenu();
+        }
+		else if (key == '3') { // back	
+            break;
+        } 
+        delay(2);
+    } while (TRUE);
+}
+
+
+
 void drawMenu() {
 	cls(1);
 	locate(8, 8);  printf("1)  START GAME");
-    locate(8, 9);  printf("2)  HIGH SCORES");
-    locate(8, 10); printf("3)  EXIT");
-    locate(7, 14); printf("SELECT OPTION (1-3)");	
+    locate(8, 9);  printf("2)  OPTIONS");
+    locate(8, 10); printf("3)  HIGH SCORES");
+    locate(8, 11); printf("4)  EXIT");
+    locate(7, 14); printf("SELECT OPTION (1-4)");
 }
 
 
 
 void menu() {
 	drawMenu();
+
     do {
         drawHeader(8, colourShift++);
         key = inkey();		
         if (key == '1')	{ // start game
             break;
-        } 
-		else if (key == '2') { // high scores		
+        }
+        else if (key == '2') { // options menu		
+            optionsMenu();
+			drawMenu();
+        }
+		else if (key == '3') { // high scores		
             drawHighScores();
 			drawMenu();
         } 
-		else if (key == '3') { // exit
+		else if (key == '4') { // exit
 			cls(1);
             printf("THANKS FOR PLAYING T4D!\n");
             exit(0);
@@ -535,6 +588,13 @@ void init() {
     setTimer(0);
     menu();
 	cls(1); // green screen
+
+    // rounds the text window
+    printBlock(PITWIDTH+1, 0, 129);
+    printBlock(SCREEN_WIDTH-1, 0, 130);
+    printBlock(PITWIDTH+1, PITHEIGHT-1, 132);
+    printBlock(SCREEN_WIDTH-1, PITHEIGHT-1, 136);
+
     gameOver = FALSE; // game in progress
     level = 1; // initial level
     lines = 0; // lines cleared
@@ -568,16 +628,16 @@ void mainLoop() {
                 }
             }
             key = inkey(); // read keypresses
-            /*
+                        
             // auto-repeat
-            for (unsigned char i = 0; i <= 9; i++) {
-                *((unsigned char *)0x0150 + i) = 0xFF;
-            }
-            // waits 2ms for rotation and 1ms for moving the piece
-            delay(1);
-            if (key == 'W') {
+            if (autorepeatKeys == TRUE) {
+                for (unsigned char i = 0; i <= 9; i++) {
+                    *((unsigned char *)0x0150 + i) = 0xFF;
+                }
+                // waits 2ms for rotation and 1ms for moving the piece
                 delay(1);
-            }*/
+                if (key == 'W') { delay(1); }
+            }
         }
 
         if (key == 'X') { // if X is pressed, exit to the main menu
