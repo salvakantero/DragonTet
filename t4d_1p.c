@@ -360,8 +360,8 @@ void removeFullRow(unsigned char removedRow) {
         printBlock(pitX, removedRow, 207);
     }
 
-    sound(130,1);
-    sound(100,1);
+    sound(190,1);
+    sound(170,1);
 
     for(i = 0; i < 3; i++) {
         drawHeader(14, ++colourShift);
