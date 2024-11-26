@@ -15,8 +15,7 @@ use xroar to test:
 TODO
 ====
 - BUG se cuelga al rotar pieza en el borde
-- BUG al rotar si shapeX <= 2
-
+- level +5 incluye bloques trampa
 - sonidos
 
 */
@@ -52,6 +51,7 @@ unsigned char shapeAngle = 0; 	// piece rotation (0 to 3)
 char *shapeMap = NULL;          // piece design
 char *nextShapeMap = NULL;      // next piece design
 int shapeX = 0, shapeY = 0;		// piece XY position
+char pieceBuffer[BLOCKCOUNT];   // buffer for the part to be rotated
 unsigned char colourShift = 0;  // colour shift effect in the title
 BOOL chequeredPit = TRUE;       // enables/disables the chequered pit (options menu)
 BOOL autorepeatKeys = FALSE;    // enables/disables the auto-repeat of keys (options menu)
@@ -249,37 +249,35 @@ const char* getShapeMap(unsigned char shape) {
 
 // rotates the piece and returns the resulting map
 char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
-	const char *map = getShapeMap(shape); // unrotated map
-    // if the angle is 0, return the original map
+    const char *map = getShapeMap(shape); // unrotated map
     if (angle == 0) {
-        return (char*) map;
+        return (char*) map; // No rotation needed
     }
     // for other angles, iterate through all blocks
-	char *rotatedMap; // rotated map
-    int newBlockX = 0, newBlockY = 0;
-    int blockX = 0, blockY = 0;
-    for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
-        for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
-            switch (angle) {
-                case 1: // 270 degrees
-                    newBlockX = blockY;
-                    newBlockY = LASTSIDEBLOCK - blockX;
-                    break;
-                case 2: // 180 degrees
-                    newBlockX = LASTSIDEBLOCK - blockX;
-                    newBlockY = LASTSIDEBLOCK - blockY;
-                    break;
-                case 3: // 90 degrees
-                    newBlockX = LASTSIDEBLOCK - blockY;
-                    newBlockY = blockX;
-                    break;
-            }
-            // assign the corresponding block to the rotatedMap for the angle
-            rotatedMap[SIDEBLOCKCOUNT * newBlockY + newBlockX] = 
-                map[SIDEBLOCKCOUNT * blockY + blockX];
+    char *rotatedMap = pieceBuffer;
+    for (int i = 0; i < SIDEBLOCKCOUNT * SIDEBLOCKCOUNT; i++) {
+        int blockX = i % SIDEBLOCKCOUNT;
+        int blockY = i / SIDEBLOCKCOUNT;
+
+        int newBlockX, newBlockY;
+        switch (angle) {
+            case 1: // 270 degrees
+                newBlockX = blockY;
+                newBlockY = LASTSIDEBLOCK - blockX;
+                break;
+            case 2: // 180 degrees
+                newBlockX = LASTSIDEBLOCK - blockX;
+                newBlockY = LASTSIDEBLOCK - blockY;
+                break;
+            case 3: // 90 degrees
+                newBlockX = LASTSIDEBLOCK - blockY;
+                newBlockY = blockX;
+                break;
         }
+        rotatedMap[newBlockY * SIDEBLOCKCOUNT + newBlockX] = 
+            map[blockY * SIDEBLOCKCOUNT + blockX];
     }
-	return rotatedMap;
+    return rotatedMap;
 }
 
 
