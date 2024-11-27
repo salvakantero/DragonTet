@@ -100,6 +100,19 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY) {
 
 
 
+void play(const unsigned char *notes, unsigned char duration) {
+    unsigned char pitch;
+    while (*notes != '\0') {
+        pitch = *notes; // Lee el valor de la nota
+        if (pitch >= 1 && pitch <= 255) { // Verifica si está en el rango válido
+            sound(pitch, duration); // Llama a la función SOUND con los valores correctos
+        }
+        notes++; // Pasa a la siguiente nota
+    }
+}
+
+
+
 void drawPitSeparator() {
     unsigned char y = 0;
     for (y = 0; y < PITHEIGHT; y++) {
