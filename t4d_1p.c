@@ -14,8 +14,8 @@ use xroar to test:
 
 TODO
 ====
-- BUG se cuelga al rotar pieza en el borde
-- level +5 incluye bloques trampa
+- preoptimización del código actual (bucles for y rotaciones no necesarias)
+- level +4 incluye bloques trampa
 - sonidos
 
 */
@@ -48,10 +48,10 @@ int lines = 0; 				    // lines cleared
 unsigned char shape = 255;      // piece type (0 to 6). 255 = piece not defined
 unsigned char nextShape = 255;  // next piece type (0 to 6). 255 = piece not defined
 unsigned char shapeAngle = 0; 	// piece rotation (0 to 3)
-char *shapeMap = NULL;          // piece design
-char *nextShapeMap = NULL;      // next piece design
 int shapeX = 0, shapeY = 0;		// piece XY position
-char pieceBuffer[BLOCKCOUNT];   // buffer for the part to be rotated
+char shapeMap[BLOCKCOUNT];      // piece design
+char nextShapeMap[BLOCKCOUNT];  // next piece design
+char rotatedMap[BLOCKCOUNT];    // piece design rotated
 unsigned char colourShift = 0;  // colour shift effect in the title
 BOOL chequeredPit = TRUE;       // enables/disables the chequered pit (options menu)
 BOOL autorepeatKeys = FALSE;    // enables/disables the auto-repeat of keys (options menu)
@@ -259,7 +259,7 @@ const char* getShapeMap(unsigned char shape) {
 }
 
 
-
+/*
 // rotates the piece and returns the resulting map
 char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
     const char *map = getShapeMap(shape); // unrotated map
@@ -291,13 +291,59 @@ char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
             map[blockY * SIDEBLOCKCOUNT + blockX];
     }
     return rotatedMap;
+} */
+
+
+
+void getRotatedShapeMap(unsigned char shape, unsigned char angle, char *rotatedMap) {
+    const char *map = getShapeMap(shape); // Unrotated map
+
+    // Clear the rotatedMap array
+    for (int i = 0; i < BLOCKCOUNT; i++) {
+        rotatedMap[i] = NOBLOCK; // Assuming NOBLOCK is the default empty block
+    }
+
+    // No rotation needed, copy map directly
+    if (angle == 0) {
+        for (int i = 0; i < BLOCKCOUNT; i++) {
+            rotatedMap[i] = map[i];
+        }
+        return;
+    }
+
+    // Perform rotation for other angles
+    for (int i = 0; i < BLOCKCOUNT; i++) {
+        int blockX = i % SIDEBLOCKCOUNT;
+        int blockY = i / SIDEBLOCKCOUNT;
+
+        int newBlockX = 0, newBlockY = 0;
+        switch (angle) {
+            case 1: // 270 degrees
+                newBlockX = blockY;
+                newBlockY = LASTSIDEBLOCK - blockX;
+                break;
+            case 2: // 180 degrees
+                newBlockX = LASTSIDEBLOCK - blockX;
+                newBlockY = LASTSIDEBLOCK - blockY;
+                break;
+            case 3: // 90 degrees
+                newBlockX = LASTSIDEBLOCK - blockY;
+                newBlockY = blockX;
+                break;
+        }
+        rotatedMap[newBlockY * SIDEBLOCKCOUNT + newBlockX] = 
+            map[blockY * SIDEBLOCKCOUNT + blockX];
+    }
 }
 
 
 
 void createNextShape() {
 	nextShape = (unsigned char) rand() % 7; // piece type (0 to 6)
-	nextShapeMap = getRotatedShapeMap(nextShape, 0); // piece composition
+	getRotatedShapeMap(nextShape, 0, rotatedMap); // piece composition
+    for (int i = 0; i < BLOCKCOUNT; i++) {
+        nextShapeMap[i] = rotatedMap[i];
+    }
 }
 
 
@@ -323,7 +369,10 @@ void createShape() {
         shape = (unsigned char) rand() % 7;  // new random piece (0 to 6)
     }    
     shapeAngle = 0;
-    shapeMap = getRotatedShapeMap(shape, 0);
+    getRotatedShapeMap(shape, 0, rotatedMap);
+    for (int i = 0; i < SIDEBLOCKCOUNT * SIDEBLOCKCOUNT; i++) {
+        shapeMap[i] = rotatedMap[i];
+    }
     // initial position (centre of the pit in X, fully hidden in Y)
     shapeX = 3;
     shapeY = -LASTSIDEBLOCK;
@@ -668,10 +717,12 @@ void mainLoop() {
                             // increases the angle by 90 degrees
                             newAngle = shapeAngle + 1;
                         }
-                        rotatedMap = getRotatedShapeMap(shape, newAngle);
+                        getRotatedShapeMap(shape, newAngle, rotatedMap);
                         if (shapeCanMove(rotatedMap, 0, 0)) {
                             shapeAngle = newAngle;
-                            shapeMap = rotatedMap;
+                            for (int i = 0; i < SIDEBLOCKCOUNT * SIDEBLOCKCOUNT; i++) {
+                                shapeMap[i] = rotatedMap[i];
+                            }
                         }
                         drawShape(FALSE); 
                         break;
