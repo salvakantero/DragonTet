@@ -15,9 +15,7 @@ use xroar to test:
 TODO
 ====
 - simplificación por IA
-- level 4+ incluye bloques trampa
-- sonidos
-- pasar algunas funciones a ASM
+- botón de pausa
 
 */
 
@@ -72,24 +70,15 @@ void printBlock(int x, int y, unsigned char ch) {
 
 
 void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY) {
-    /*
-    dragon semigraphic characters: 128 to 255  
-    +16: yellow  
-    +32: blue  
-    +48: red  
-    +64: white 
-    +80: cyan  
-    +96: magenta  
-    +112: orange 
-    */
+    // dragon semigraphic characters: 128 to 255  
+    // +16:yellow +32:blue +48:red +64:white +80:cyan +96:magenta +112:orange 
     unsigned char colour = blockColour - NO_BLOCK; // (0 a 8)
     if (colour == 0) { // background
         if (chequeredPit) {
             locate(pitX, pitY);
             putchar(111); // "O" inverted
-        } else {
+        } else
             printBlock(pitX, pitY, EMPTY_BLOCK);
-        }
         return;
     }
     printBlock(pitX, pitY, FILLED_BLOCK + ((colour - 1) << 4)); // <<4 = x16
@@ -97,37 +86,19 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY) {
 
 
 
-void play(const unsigned char *notes, unsigned char duration) {
-    unsigned char pitch;
-    while (*notes != '\0') {
-        pitch = *notes; // Lee el valor de la nota
-        if (pitch >= 1 && pitch <= 255) {
-            sound(pitch, duration);
-        }
-        notes++;
-    }
-}
-
-
-
 void drawPitSeparator() {
-    unsigned char y = 0;
-    for (y = 0; y < PIT_HEIGHT; y++) {
+    for (unsigned char y = 0; y < PIT_HEIGHT; y++)
         printBlock(PIT_WIDTH, y, EMPTY_BLOCK);
-    }
 }
 
 
 
 void drawPit() {
-    unsigned char pitY = 0, pitX = 0;
     // loop through and repaint the contents of the pit
-    for (pitY = 0; pitY < PIT_HEIGHT; pitY++) {
-        for (pitX = 0; pitX < PIT_WIDTH; pitX++) {
-            // get the colour of the block at the current position
-            char blockcolour = pit[(PIT_WIDTH * pitY) + pitX];
-            // draw the block with the specified colour
-            drawBlock(blockcolour, pitX, pitY);
+    for (unsigned char pitY = 0; pitY < PIT_HEIGHT; pitY++) {
+        unsigned char rowOffset = PIT_WIDTH * pitY;
+        for (unsigned char pitX = 0; pitX < PIT_WIDTH; pitX++) {
+            drawBlock(pit[rowOffset + pitX], pitX, pitY);
         }
     }
 }
@@ -136,26 +107,24 @@ void drawPit() {
 
 // check if a shape can move in the specified direction
 BOOL shapeCanMove(char *map, char xDir, char yDir) {
-    int pitX = 0, pitY = 0;
-    int blockX = 0, blockY = 0;
+    int pitX, pitY;
     // loop through all the blocks of the piece
-    for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
-        for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
+    for (int blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
+        for (int blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
             if (map[(SIDE_BLOCK_COUNT * blockY) + blockX] != NO_BLOCK) {
                 // calculate the position in the pit
                 pitX = (shapeX + blockX) + xDir;
                 pitY = (shapeY + blockY) + yDir;
+                if (pitY < 0) return TRUE; // new piece appears at the top
                 // check if the block is within the pit boundaries
-                if (pitX >= 0 && pitX < PIT_WIDTH && pitY >= 0 && pitY < PIT_HEIGHT) {
+                if (pitX >= 0 && pitX < PIT_WIDTH && pitY < PIT_HEIGHT) {
                     // if the position in the pit is not empty, it cannot move
                     if (pit[(PIT_WIDTH * pitY) + pitX] != NO_BLOCK) {
                         return FALSE;
                     }
                 } 
-                // if it is out of bounds, it cannot move
-                else if (pitX < 0 || pitX >= PIT_WIDTH || pitY >= PIT_HEIGHT) {                    
-                    return FALSE;
-                }
+                // if it is out of bounds, it cannot move 
+                else return FALSE;
             }
         }
     }
@@ -165,21 +134,13 @@ BOOL shapeCanMove(char *map, char xDir, char yDir) {
 
 
 void drawNextShape() {
-    unsigned char blockX = 0, blockY = 0;
-    char blockcolour = NO_BLOCK;
-    // loop through all the blocks of the piece
-    for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
-        for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
-            // piece colour
-            blockcolour = nextShapeMap[(SIDE_BLOCK_COUNT * blockY) + blockX];
-            if (blockcolour == NO_BLOCK) {
-                // green background
-                blockcolour = '1';
-            }
-            else { // white pieces
-                blockcolour = '5';
-            }
-            drawBlock(blockcolour, blockX + 23, blockY + 12);
+    // loop through all the blocks of the piece (4x4 grid)
+    for (unsigned char blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
+        for (unsigned char blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
+            char blockColour = nextShapeMap[(SIDE_BLOCK_COUNT * blockY) + blockX];
+            // determine the block type (1 = green, 5 = white)
+            blockColour = (blockColour == NO_BLOCK) ? '1' : '5';
+            drawBlock(blockColour, blockX + 23, blockY + 12);
         }
     }
 }
@@ -368,9 +329,6 @@ void removeFullRow(unsigned char removedRow) {
     for (pitX = 0; pitX < PIT_WIDTH; pitX++) {
         printBlock(pitX, removedRow, 207);
     }
-
-    sound(190,1);
-    sound(170,1);
 
     for(i = 0; i < 2; i++) {
         drawHeader(14, ++colourShift);
