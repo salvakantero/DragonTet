@@ -15,8 +15,9 @@ use xroar to test:
 TODO
 ====
 - preoptimización del código actual (bucles for y rotaciones no necesarias)
-- level +4 incluye bloques trampa
+- level 4+ incluye bloques trampa
 - sonidos
+- pasar algunas funciones a ASM
 
 */
 
@@ -26,9 +27,9 @@ TODO
 #define SCREEN_BASE 0x400  // base address of the video memory in text mode
 #define SCREEN_WIDTH 32    // screen width in characters
 
-#define SIDEBLOCKCOUNT 4 // size of the piece's side (4x4)
+#define SIDEBLOCKCOUNT 4 // size of the piece's side (piece = 4x4 blocks)
 #define LASTSIDEBLOCK 3 // to iterate over the current piece (0 to 3)
-#define BLOCKCOUNT 16 // size of the piece in blocks
+#define BLOCKCOUNT 16 // size of the piece in blocks (piece = 4x4 blocks)
 #define NOBLOCK '0' // character representing an empty block
 #define PITWIDTH 10 // width of the pit in blocks
 #define PITHEIGHT 16 // height of the pit in blocks
@@ -51,15 +52,15 @@ unsigned char shapeAngle = 0; 	// piece rotation (0 to 3)
 int shapeX = 0, shapeY = 0;		// piece XY position
 char shapeMap[BLOCKCOUNT];      // piece design
 char nextShapeMap[BLOCKCOUNT];  // next piece design
-char rotatedMap[BLOCKCOUNT];    // piece design rotated
+char rotatedMap[BLOCKCOUNT];    // design of the already rotated piece
 unsigned char colourShift = 0;  // colour shift effect in the title
 BOOL chequeredPit = TRUE;       // enables/disables the chequered pit (options menu)
 BOOL autorepeatKeys = FALSE;    // enables/disables the auto-repeat of keys (options menu)
 
 // pos 0-4: fake values for the initial TOP 5
 // pos 5: values for the current game
-char names[6][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON",""};
-unsigned int scores[6] = {1800, 1600, 1400, 1200, 1000, 0};
+char names[7][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","DRAGON",""};
+unsigned int scores[7] = {2000, 1800, 1600, 1400, 1200, 1000, 0};
 
 
 
@@ -104,10 +105,10 @@ void play(const unsigned char *notes, unsigned char duration) {
     unsigned char pitch;
     while (*notes != '\0') {
         pitch = *notes; // Lee el valor de la nota
-        if (pitch >= 1 && pitch <= 255) { // Verifica si está en el rango válido
-            sound(pitch, duration); // Llama a la función SOUND con los valores correctos
+        if (pitch >= 1 && pitch <= 255) {
+            sound(pitch, duration);
         }
-        notes++; // Pasa a la siguiente nota
+        notes++;
     }
 }
 
@@ -216,12 +217,10 @@ void displayStatus(void) {
     drawHeader(14, colourShift);
     locate(16, 7); printf("LEVEL:   %2u", level); // draws the level number
     locate(16, 8); printf("LINES:  %3d", lines); // draws the lines
-    locate(16, 10); printf("SCORE:%5u", scores[5]); // draws the score
+    locate(16, 10); printf("SCORE:%5u", scores[6]); // draws the score
     locate(16, 11); printf("HIGH: %5u", scores[0]); // draws the high score
     locate(16, 13); printf("NEXT:");
-    if (gameOver == FALSE) {
-        drawNextShape();
-    }
+    drawNextShape();
 }
 
 
@@ -259,58 +258,16 @@ const char* getShapeMap(unsigned char shape) {
 }
 
 
-/*
-// rotates the piece and returns the resulting map
-char* getRotatedShapeMap(unsigned char shape, unsigned char angle) {
-    const char *map = getShapeMap(shape); // unrotated map
-    if (angle == 0) {
-        return (char*) map; // No rotation needed
-    }
-    // for other angles, iterate through all blocks
-    char *rotatedMap = pieceBuffer;
-    for (int i = 0; i < SIDEBLOCKCOUNT * SIDEBLOCKCOUNT; i++) {
-        int blockX = i % SIDEBLOCKCOUNT;
-        int blockY = i / SIDEBLOCKCOUNT;
-
-        int newBlockX, newBlockY;
-        switch (angle) {
-            case 1: // 270 degrees
-                newBlockX = blockY;
-                newBlockY = LASTSIDEBLOCK - blockX;
-                break;
-            case 2: // 180 degrees
-                newBlockX = LASTSIDEBLOCK - blockX;
-                newBlockY = LASTSIDEBLOCK - blockY;
-                break;
-            case 3: // 90 degrees
-                newBlockX = LASTSIDEBLOCK - blockY;
-                newBlockY = blockX;
-                break;
-        }
-        rotatedMap[newBlockY * SIDEBLOCKCOUNT + newBlockX] = 
-            map[blockY * SIDEBLOCKCOUNT + blockX];
-    }
-    return rotatedMap;
-} */
-
-
 
 void getRotatedShapeMap(unsigned char shape, unsigned char angle, char *rotatedMap) {
     const char *map = getShapeMap(shape); // Unrotated map
-
-    // Clear the rotatedMap array
-    for (int i = 0; i < BLOCKCOUNT; i++) {
-        rotatedMap[i] = NOBLOCK; // Assuming NOBLOCK is the default empty block
-    }
-
-    // No rotation needed, copy map directly
+    // clear the rotatedMap array
+    memset(rotatedMap, NOBLOCK, BLOCKCOUNT);
+    // no rotation needed, copy map directly
     if (angle == 0) {
-        for (int i = 0; i < BLOCKCOUNT; i++) {
-            rotatedMap[i] = map[i];
-        }
+        strncpy(rotatedMap, map, BLOCKCOUNT);
         return;
     }
-
     // Perform rotation for other angles
     for (int i = 0; i < BLOCKCOUNT; i++) {
         int blockX = i % SIDEBLOCKCOUNT;
@@ -340,24 +297,22 @@ void getRotatedShapeMap(unsigned char shape, unsigned char angle, char *rotatedM
 
 void createNextShape() {
 	nextShape = (unsigned char) rand() % 7; // piece type (0 to 6)
-	getRotatedShapeMap(nextShape, 0, rotatedMap); // piece composition
-    for (int i = 0; i < BLOCKCOUNT; i++) {
-        nextShapeMap[i] = rotatedMap[i];
-    }
+    strncpy(nextShapeMap, getShapeMap(nextShape), BLOCKCOUNT);
 }
 
 
 
 void createShape() {
     /* calculates the fall speed based on the level
-        level 1: 30 delay ticks
-        level 2: 25   "
-        level 3: 20   "
-        level 4: 15   "
-        level 5: 10   "
+        level 1: 35 delay ticks
+        level 2: 30   "
+        level 3: 25   "
+        level 4: 20   "
+        level 5: 15   "
+        level 6: 10   "
         level x:  5   "
     */
-    dropRate = 35 - (level * 5);
+    dropRate = 40 - (level * 5);
     // minimum fall speed limit
     if (dropRate <= 0) {
         dropRate = 1;
@@ -367,15 +322,11 @@ void createShape() {
         shape = nextShape;
     } else {
         shape = (unsigned char) rand() % 7;  // new random piece (0 to 6)
-    }    
-    shapeAngle = 0;
-    getRotatedShapeMap(shape, 0, rotatedMap);
-    for (int i = 0; i < SIDEBLOCKCOUNT * SIDEBLOCKCOUNT; i++) {
-        shapeMap[i] = rotatedMap[i];
-    }
-    // initial position (centre of the pit in X, fully hidden in Y)
-    shapeX = 3;
-    shapeY = -LASTSIDEBLOCK;
+    }        
+    shapeX = 3; // centre of the pit
+    shapeY = -LASTSIDEBLOCK; // fully hidden
+    shapeAngle = 0; // unrotated
+    strncpy(shapeMap, getShapeMap(shape), BLOCKCOUNT);
     // generates the next piece
     createNextShape();
 }
@@ -425,7 +376,7 @@ void removeFullRow(unsigned char removedRow) {
     sound(190,1);
     sound(170,1);
 
-    for(i = 0; i < 3; i++) {
+    for(i = 0; i < 2; i++) {
         drawHeader(14, ++colourShift);
     }
 
@@ -454,7 +405,7 @@ void checkForFullRows() { // searches for full rows
     BOOL fullRow = FALSE;
     int numLines = 0;
     unsigned char pitX = 0, pitY = 0;
-    unsigned char j = 5;
+    unsigned char j = 6;
     // loops through all the rows in the pit
     for (pitY = 0; pitY < PITHEIGHT; pitY++) {
         fullRow = TRUE;
@@ -520,7 +471,7 @@ void dropShape() {
         drawShape(FALSE);     // redraws the piece at the new position
         // 1 point for each line in rapid drop
         if (dropRate == 0) {
-            scores[5]++;
+            scores[6]++;
         }
     } else {
         settleActiveShapeInPit();
@@ -544,10 +495,10 @@ void dropShape() {
 
 void drawHighScores() {
 	unsigned char pos = 0; // TOP 5 position (0-4)
-    for(pos = 0; pos < 5; pos++) {
-        locate(7, 8+pos);  printf("...............");
-        locate(7, 8+pos);  printf("%s", names[pos]);
-        locate(19, 8+pos); printf("%5u", scores[pos]);
+    for(pos = 0; pos < 6; pos++) {
+        locate(7, 7+pos);  printf("...............");
+        locate(7, 7+pos);  printf("%s", names[pos]);
+        locate(19, 7+pos); printf("%5u", scores[pos]);
 	}
 	locate(2, 14); printf("PRESS ANY KEY TO CONTINUE...");
     do {
@@ -652,15 +603,15 @@ void init() {
 	cls(1); // green screen
 
     // rounds the text window
-    printBlock(PITWIDTH+1, 0, 129);
-    printBlock(SCREEN_WIDTH-1, 0, 130);
-    printBlock(PITWIDTH+1, PITHEIGHT-1, 132);
-    printBlock(SCREEN_WIDTH-1, PITHEIGHT-1, 136);
+    printBlock(PITWIDTH+1, 0, 129); // upper left corner
+    printBlock(SCREEN_WIDTH-1, 0, 130); // upper right corner
+    printBlock(PITWIDTH+1, PITHEIGHT-1, 132); // bottom left corner
+    printBlock(SCREEN_WIDTH-1, PITHEIGHT-1, 136); // bottom right corner
 
     gameOver = FALSE; // game in progress
     level = 1; // initial level
     lines = 0; // lines cleared
-    scores[5] = 0; // current score
+    scores[6] = 0; // current score
     nextShape = 255; // piece generation will be required
     memset(pit, NOBLOCK, PITWIDTH * PITHEIGHT); // initialize the empty pit
     createShape(); // generate piece (shape, position)
@@ -684,7 +635,7 @@ void mainLoop() {
         while (key == '\0') {
             if (gameOver == FALSE) { // game in progress
                 // if the falling time has been exceeded
-                if (getTimer() >= startTime + dropRate || startTime > getTimer()) {
+                if (getTimer() >= startTime + dropRate || startTime > getTimer()) { // <---- DEBUG
                     dropShape(); // the piece moves down
                     startTime = getTimer(); // reset the fall timer
                 }
@@ -707,8 +658,7 @@ void mainLoop() {
         } else {
             if (gameOver == FALSE) { // game in progress
                 switch (key) {
-                    case 'W': // rotate key
-                        drawShape(TRUE); // erase piece                            
+                    case 'W': // rotate key                      
                         if (shapeAngle == 3) {
                             // 270 degrees. Reset angle
                             newAngle = 0;
@@ -720,11 +670,10 @@ void mainLoop() {
                         getRotatedShapeMap(shape, newAngle, rotatedMap);
                         if (shapeCanMove(rotatedMap, 0, 0)) {
                             shapeAngle = newAngle;
-                            for (int i = 0; i < SIDEBLOCKCOUNT * SIDEBLOCKCOUNT; i++) {
-                                shapeMap[i] = rotatedMap[i];
-                            }
-                        }
-                        drawShape(FALSE); 
+                            drawShape(TRUE); // erase piece                            
+                            strncpy(shapeMap, rotatedMap, BLOCKCOUNT);
+                            drawShape(FALSE);
+                        }                         
                         break;
 
                     case 'A': // move left
@@ -754,10 +703,10 @@ void mainLoop() {
 
 
 
-// check if the new score is high enough to enter the top 5
+// check if the new score is high enough to enter the top 6
 void checkScores() {
-    int j; // indices: 0-1-2-3-4-[current]
-    if (scores[5] > scores[4]) {
+    int j; // indices: 0-1-2-3-4-5-[current]
+    if (scores[6] > scores[5]) {
         // clear part of the screen
         for (j = 10; j < 16; j++) {
             locate(12, (unsigned char)j);
@@ -768,14 +717,14 @@ void checkScores() {
         locate(14, 20);
 
         char *response = readline();
-        strncpy(names[5], response, 10);
-        names[5][10] = '\0'; // ensure the name is null-terminated
+        strncpy(names[6], response, 10);
+        names[6][10] = '\0'; // ensure the name is null-terminated
 
         // find the correct position in the top 5 list for the new score
-        for (j = 4; j >= 0; j--) {
-            if (scores[5] > scores[j]) {
+        for (j = 5; j >= 0; j--) {
+            if (scores[6] > scores[j]) {
                 // shift scores/names down
-                if (j < 4) {
+                if (j < 5) {
                     scores[j+1] = scores[j];
                     strncpy(names[j+1], names[j], 10);
                 }
@@ -784,8 +733,8 @@ void checkScores() {
             }
         }
         // insert the new score and name into the correct position
-        scores[j+1] = scores[5];
-        strncpy(names[j+1], names[5], 10);
+        scores[j+1] = scores[6];
+        strncpy(names[j+1], names[6], 10);
         newScore = TRUE; // the score table has been updated
     }
 }
