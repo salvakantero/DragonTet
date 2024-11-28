@@ -14,7 +14,7 @@ use xroar to test:
 
 TODO
 ====
-- preoptimización del código actual (bucles for y rotaciones no necesarias)
+- simplificación por IA
 - level 4+ incluye bloques trampa
 - sonidos
 - pasar algunas funciones a ASM
@@ -24,35 +24,34 @@ TODO
 #include <cmoc.h>
 #include <coco.h>
 
-#define SCREEN_BASE 0x400  // base address of the video memory in text mode
-#define SCREEN_WIDTH 32    // screen width in characters
+#define SCREEN_BASE 0x400 // base address of the video memory in text mode
+#define SCREEN_WIDTH 32 // screen width in characters
 
-#define SIDEBLOCKCOUNT 4 // size of the piece's side (piece = 4x4 blocks)
-#define LASTSIDEBLOCK 3 // to iterate over the current piece (0 to 3)
-#define BLOCKCOUNT 16 // size of the piece in blocks (piece = 4x4 blocks)
-#define NOBLOCK '0' // character representing an empty block
-#define PITWIDTH 10 // width of the pit in blocks
-#define PITHEIGHT 16 // height of the pit in blocks
-#define LINESLEVEL 10 // lines per level
-
-#define DEBUGX 12
-#define DEBUGY 15
+#define EMPTY_BLOCK 128 // black block, no pixels
+#define FILLED_BLOCK 143 // all pixels in the block are active
+#define SIDE_BLOCK_COUNT 4 // size of the piece's side (piece = 4x4 blocks)
+#define LAST_SIDE_BLOCK 3 // to iterate over the current piece (0 to 3)
+#define BLOCK_COUNT 16 // size of the piece in blocks (piece = 4x4 blocks)
+#define NO_BLOCK '0' // character representing an empty block
+#define PIT_WIDTH 10 // width of the pit in blocks
+#define PIT_HEIGHT 16 // height of the pit in blocks
+#define LINES_LEVEL 10 // lines per level
 
 char key = '\0';                // key pressed
 BOOL newScore = FALSE;          // TRUE = redraws the best scores table
 BOOL gameOver = FALSE; 			// FALSE = game in progress, TRUE = finished
 int dropRate = 0; 			    // 0 = lower the piece one position
 int startTime = 0;              // system ticks since the piece has moved
-char pit[PITWIDTH * PITHEIGHT]; // content of each pit in blocks
+char pit[PIT_WIDTH * PIT_HEIGHT]; // content of each pit in blocks
 unsigned char level = 1; 		// game levels (increases the speed)
 int lines = 0; 				    // lines cleared
 unsigned char shape = 255;      // piece type (0 to 6). 255 = piece not defined
 unsigned char nextShape = 255;  // next piece type (0 to 6). 255 = piece not defined
 unsigned char shapeAngle = 0; 	// piece rotation (0 to 3)
 int shapeX = 0, shapeY = 0;		// piece XY position
-char shapeMap[BLOCKCOUNT];      // piece design
-char nextShapeMap[BLOCKCOUNT];  // next piece design
-char rotatedMap[BLOCKCOUNT];    // design of the already rotated piece
+char shapeMap[BLOCK_COUNT];      // piece design
+char nextShapeMap[BLOCK_COUNT];  // next piece design
+char rotatedMap[BLOCK_COUNT];    // design of the already rotated piece
 unsigned char colourShift = 0;  // colour shift effect in the title
 BOOL chequeredPit = TRUE;       // enables/disables the chequered pit (options menu)
 BOOL autorepeatKeys = FALSE;    // enables/disables the auto-repeat of keys (options menu)
@@ -83,20 +82,17 @@ void drawBlock(char blockColour, unsigned char pitX, unsigned char pitY) {
     +96: magenta  
     +112: orange 
     */
-    unsigned char colour = blockColour - NOBLOCK; // (0 to 8)
-    // background
-    if (colour == 0) {        
-        if (chequeredPit == TRUE) { // "O"
+    unsigned char colour = blockColour - NO_BLOCK; // (0 a 8)
+    if (colour == 0) { // background
+        if (chequeredPit) {
             locate(pitX, pitY);
-            putchar(111);
-        }
-        else {
-            printBlock(pitX, pitY, 128);
+            putchar(111); // "O" inverted
+        } else {
+            printBlock(pitX, pitY, EMPTY_BLOCK);
         }
         return;
     }
-    // coloured filled block
-    printBlock(pitX, pitY, 143 + ((colour - 1) * 16));
+    printBlock(pitX, pitY, FILLED_BLOCK + ((colour - 1) << 4)); // <<4 = x16
 }
 
 
@@ -116,8 +112,8 @@ void play(const unsigned char *notes, unsigned char duration) {
 
 void drawPitSeparator() {
     unsigned char y = 0;
-    for (y = 0; y < PITHEIGHT; y++) {
-        printBlock(PITWIDTH, y, 128);
+    for (y = 0; y < PIT_HEIGHT; y++) {
+        printBlock(PIT_WIDTH, y, EMPTY_BLOCK);
     }
 }
 
@@ -126,10 +122,10 @@ void drawPitSeparator() {
 void drawPit() {
     unsigned char pitY = 0, pitX = 0;
     // loop through and repaint the contents of the pit
-    for (pitY = 0; pitY < PITHEIGHT; pitY++) {
-        for (pitX = 0; pitX < PITWIDTH; pitX++) {
+    for (pitY = 0; pitY < PIT_HEIGHT; pitY++) {
+        for (pitX = 0; pitX < PIT_WIDTH; pitX++) {
             // get the colour of the block at the current position
-            char blockcolour = pit[(PITWIDTH * pitY) + pitX];
+            char blockcolour = pit[(PIT_WIDTH * pitY) + pitX];
             // draw the block with the specified colour
             drawBlock(blockcolour, pitX, pitY);
         }
@@ -143,21 +139,21 @@ BOOL shapeCanMove(char *map, char xDir, char yDir) {
     int pitX = 0, pitY = 0;
     int blockX = 0, blockY = 0;
     // loop through all the blocks of the piece
-    for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
-        for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
-            if (map[(SIDEBLOCKCOUNT * blockY) + blockX] != NOBLOCK) {
+    for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
+        for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
+            if (map[(SIDE_BLOCK_COUNT * blockY) + blockX] != NO_BLOCK) {
                 // calculate the position in the pit
                 pitX = (shapeX + blockX) + xDir;
                 pitY = (shapeY + blockY) + yDir;
                 // check if the block is within the pit boundaries
-                if (pitX >= 0 && pitX < PITWIDTH && pitY >= 0 && pitY < PITHEIGHT) {
+                if (pitX >= 0 && pitX < PIT_WIDTH && pitY >= 0 && pitY < PIT_HEIGHT) {
                     // if the position in the pit is not empty, it cannot move
-                    if (pit[(PITWIDTH * pitY) + pitX] != NOBLOCK) {
+                    if (pit[(PIT_WIDTH * pitY) + pitX] != NO_BLOCK) {
                         return FALSE;
                     }
                 } 
                 // if it is out of bounds, it cannot move
-                else if (pitX < 0 || pitX >= PITWIDTH || pitY >= PITHEIGHT) {                    
+                else if (pitX < 0 || pitX >= PIT_WIDTH || pitY >= PIT_HEIGHT) {                    
                     return FALSE;
                 }
             }
@@ -170,13 +166,13 @@ BOOL shapeCanMove(char *map, char xDir, char yDir) {
 
 void drawNextShape() {
     unsigned char blockX = 0, blockY = 0;
-    char blockcolour = NOBLOCK;
+    char blockcolour = NO_BLOCK;
     // loop through all the blocks of the piece
-    for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
-        for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
+    for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
+        for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
             // piece colour
-            blockcolour = nextShapeMap[(SIDEBLOCKCOUNT * blockY) + blockX];
-            if (blockcolour == NOBLOCK) {
+            blockcolour = nextShapeMap[(SIDE_BLOCK_COUNT * blockY) + blockX];
+            if (blockcolour == NO_BLOCK) {
                 // green background
                 blockcolour = '1';
             }
@@ -198,10 +194,10 @@ void drawHeader(unsigned char x, unsigned char shift) {
     for (pos = 0; pos < 15; pos++) {
         // colour for the top line (to the right).
         colour = colours[(pos + shift) % colourCount];
-        printBlock(x + pos, 1, 143 + ((colour - 1) * 16));
+        printBlock(x + pos, 1, FILLED_BLOCK + ((colour - 1) << 4)); // <<4 = x16
         // colour for the bottom line (to the left)
         colour = colours[(pos + colourCount - shift) % colourCount];
-        printBlock(x + pos, 3, 143 + ((colour - 1) * 16));
+        printBlock(x + pos, 3, FILLED_BLOCK + ((colour - 1) << 4));
     }
     locate(x, 2); printf("= T E T R I S =");
     locate(x - 1, 5); printf("SALVAKANTERO 2024");
@@ -262,34 +258,34 @@ const char* getShapeMap(unsigned char shape) {
 void getRotatedShapeMap(unsigned char shape, unsigned char angle, char *rotatedMap) {
     const char *map = getShapeMap(shape); // Unrotated map
     // clear the rotatedMap array
-    memset(rotatedMap, NOBLOCK, BLOCKCOUNT);
+    memset(rotatedMap, NO_BLOCK, BLOCK_COUNT);
     // no rotation needed, copy map directly
     if (angle == 0) {
-        strncpy(rotatedMap, map, BLOCKCOUNT);
+        strncpy(rotatedMap, map, BLOCK_COUNT);
         return;
     }
     // Perform rotation for other angles
-    for (int i = 0; i < BLOCKCOUNT; i++) {
-        int blockX = i % SIDEBLOCKCOUNT;
-        int blockY = i / SIDEBLOCKCOUNT;
+    for (int i = 0; i < BLOCK_COUNT; i++) {
+        int blockX = i % SIDE_BLOCK_COUNT;
+        int blockY = i / SIDE_BLOCK_COUNT;
 
         int newBlockX = 0, newBlockY = 0;
         switch (angle) {
             case 1: // 270 degrees
                 newBlockX = blockY;
-                newBlockY = LASTSIDEBLOCK - blockX;
+                newBlockY = LAST_SIDE_BLOCK - blockX;
                 break;
             case 2: // 180 degrees
-                newBlockX = LASTSIDEBLOCK - blockX;
-                newBlockY = LASTSIDEBLOCK - blockY;
+                newBlockX = LAST_SIDE_BLOCK - blockX;
+                newBlockY = LAST_SIDE_BLOCK - blockY;
                 break;
             case 3: // 90 degrees
-                newBlockX = LASTSIDEBLOCK - blockY;
+                newBlockX = LAST_SIDE_BLOCK - blockY;
                 newBlockY = blockX;
                 break;
         }
-        rotatedMap[newBlockY * SIDEBLOCKCOUNT + newBlockX] = 
-            map[blockY * SIDEBLOCKCOUNT + blockX];
+        rotatedMap[newBlockY * SIDE_BLOCK_COUNT + newBlockX] = 
+            map[blockY * SIDE_BLOCK_COUNT + blockX];
     }
 }
 
@@ -297,7 +293,7 @@ void getRotatedShapeMap(unsigned char shape, unsigned char angle, char *rotatedM
 
 void createNextShape() {
 	nextShape = (unsigned char) rand() % 7; // piece type (0 to 6)
-    strncpy(nextShapeMap, getShapeMap(nextShape), BLOCKCOUNT);
+    strncpy(nextShapeMap, getShapeMap(nextShape), BLOCK_COUNT);
 }
 
 
@@ -324,9 +320,9 @@ void createShape() {
         shape = (unsigned char) rand() % 7;  // new random piece (0 to 6)
     }        
     shapeX = 3; // centre of the pit
-    shapeY = -LASTSIDEBLOCK; // fully hidden
+    shapeY = -LAST_SIDE_BLOCK; // fully hidden
     shapeAngle = 0; // unrotated
-    strncpy(shapeMap, getShapeMap(shape), BLOCKCOUNT);
+    strncpy(shapeMap, getShapeMap(shape), BLOCK_COUNT);
     // generates the next piece
     createNextShape();
 }
@@ -336,23 +332,23 @@ void createShape() {
 void drawShape(BOOL eraseShape) {
     int pitX = 0, pitY = 0;
     int blockX = 0, blockY = 0;
-    char blockColour = NOBLOCK;
+    char blockColour = NO_BLOCK;
     // iterates through all the blocks of the piece
-    for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
-        for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
+    for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
+        for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
             pitX = shapeX + blockX;
             pitY = shapeY + blockY;
             // check if the block is within the pit boundaries
-            if (pitX >= 0 && pitX < PITWIDTH && pitY >= 0 && pitY < PITHEIGHT) {
+            if (pitX >= 0 && pitX < PIT_WIDTH && pitY >= 0 && pitY < PIT_HEIGHT) {
                 if (eraseShape == TRUE) {
                     // gets the colour of the pit at the current position
-                    blockColour = pit[(PITWIDTH * pitY) + pitX];
+                    blockColour = pit[(PIT_WIDTH * pitY) + pitX];
                 } else {
                     // gets the colour of the piece's block
-                    blockColour = shapeMap[(SIDEBLOCKCOUNT * blockY) + blockX];
+                    blockColour = shapeMap[(SIDE_BLOCK_COUNT * blockY) + blockX];
                     // if the block is empty, take the colour of the pit at that position
-                    if (blockColour == NOBLOCK) {
-                        blockColour = pit[(PITWIDTH * pitY) + pitX];
+                    if (blockColour == NO_BLOCK) {
+                        blockColour = pit[(PIT_WIDTH * pitY) + pitX];
                     }
                 }
                 // draw or erase the block
@@ -366,10 +362,10 @@ void drawShape(BOOL eraseShape) {
 
 void removeFullRow(unsigned char removedRow) {
     unsigned char pitX = 0, pitY = 0, i = 0;
-    char blockColour = NOBLOCK;
+    char blockColour = NO_BLOCK;
 
     // line selection effect
-    for (pitX = 0; pitX < PITWIDTH; pitX++) {
+    for (pitX = 0; pitX < PIT_WIDTH; pitX++) {
         printBlock(pitX, removedRow, 207);
     }
 
@@ -382,20 +378,20 @@ void removeFullRow(unsigned char removedRow) {
 
     // iterate from the removed row upwards
     for (pitY = removedRow; pitY > 0; pitY--) {
-        for (pitX = 0; pitX < PITWIDTH; pitX++) {
+        for (pitX = 0; pitX < PIT_WIDTH; pitX++) {
             if (pitY == 0) {
-                blockColour = NOBLOCK; // the topmost line becomes empty
+                blockColour = NO_BLOCK; // the topmost line becomes empty
             } else {
                 // copy the top row to the current one
-                blockColour = pit[(pitY - 1) * PITWIDTH + pitX];
+                blockColour = pit[(pitY - 1) * PIT_WIDTH + pitX];
             }
             // assign the colour to the current row
-            pit[pitY * PITWIDTH + pitX] = blockColour;
+            pit[pitY * PIT_WIDTH + pitX] = blockColour;
         }
     }
     // clear the first row after shifting all rows down
-    for (pitX = 0; pitX < PITWIDTH; pitX++) {
-        pit[pitX] = NOBLOCK;
+    for (pitX = 0; pitX < PIT_WIDTH; pitX++) {
+        pit[pitX] = NO_BLOCK;
     }
 }
 
@@ -407,11 +403,11 @@ void checkForFullRows() { // searches for full rows
     unsigned char pitX = 0, pitY = 0;
     unsigned char j = 6;
     // loops through all the rows in the pit
-    for (pitY = 0; pitY < PITHEIGHT; pitY++) {
+    for (pitY = 0; pitY < PIT_HEIGHT; pitY++) {
         fullRow = TRUE;
         // checks each block in the row
-        for (pitX = 0; pitX < PITWIDTH; pitX++) {
-            if (pit[pitY * PITWIDTH + pitX] == NOBLOCK) {
+        for (pitX = 0; pitX < PIT_WIDTH; pitX++) {
+            if (pit[pitY * PIT_WIDTH + pitX] == NO_BLOCK) {
                 fullRow = FALSE; // finds an empty space
                 break;
             }
@@ -436,7 +432,7 @@ void checkForFullRows() { // searches for full rows
         }
         // updates the total completed rows and calculates the level
         lines += numLines;
-        level = (unsigned char)(lines / LINESLEVEL) + 1;
+        level = (unsigned char)(lines / LINES_LEVEL) + 1;
     }
 }
 
@@ -445,16 +441,16 @@ void checkForFullRows() { // searches for full rows
 void settleActiveShapeInPit() {
     int blockX = 0, blockY = 0;
     int pitX = 0, pitY = 0;
-    for (blockY = 0; blockY <= LASTSIDEBLOCK; blockY++) {
-        for (blockX = 0; blockX <= LASTSIDEBLOCK; blockX++) {
+    for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
+        for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
             pitX = shapeX + blockX;
             pitY = shapeY + blockY;
             // checks that the block is within the pit boundaries
-            if (pitX >= 0 && pitX < PITWIDTH && pitY >= 0 && pitY < PITHEIGHT) {
+            if (pitX >= 0 && pitX < PIT_WIDTH && pitY >= 0 && pitY < PIT_HEIGHT) {
                 // checks that the block is not an empty space
-                if (shapeMap[blockY * SIDEBLOCKCOUNT + blockX] != NOBLOCK) {
+                if (shapeMap[blockY * SIDE_BLOCK_COUNT + blockX] != NO_BLOCK) {
                     // fixes the piece's block in the pit
-                    pit[pitY * PITWIDTH + pitX] = shapeMap[blockY * SIDEBLOCKCOUNT + blockX];
+                    pit[pitY * PIT_WIDTH + pitX] = shapeMap[blockY * SIDE_BLOCK_COUNT + blockX];
                 }
             }
         }
@@ -603,17 +599,17 @@ void init() {
 	cls(1); // green screen
 
     // rounds the text window
-    printBlock(PITWIDTH+1, 0, 129); // upper left corner
+    printBlock(PIT_WIDTH+1, 0, 129); // upper left corner
     printBlock(SCREEN_WIDTH-1, 0, 130); // upper right corner
-    printBlock(PITWIDTH+1, PITHEIGHT-1, 132); // bottom left corner
-    printBlock(SCREEN_WIDTH-1, PITHEIGHT-1, 136); // bottom right corner
+    printBlock(PIT_WIDTH+1, PIT_HEIGHT-1, 132); // bottom left corner
+    printBlock(SCREEN_WIDTH-1, PIT_HEIGHT-1, 136); // bottom right corner
 
     gameOver = FALSE; // game in progress
     level = 1; // initial level
     lines = 0; // lines cleared
     scores[6] = 0; // current score
     nextShape = 255; // piece generation will be required
-    memset(pit, NOBLOCK, PITWIDTH * PITHEIGHT); // initialize the empty pit
+    memset(pit, NO_BLOCK, PIT_WIDTH * PIT_HEIGHT); // initialize the empty pit
     createShape(); // generate piece (shape, position)
     drawPit();
     displayStatus();
@@ -635,7 +631,7 @@ void mainLoop() {
         while (key == '\0') {
             if (gameOver == FALSE) { // game in progress
                 // if the falling time has been exceeded
-                if (getTimer() >= startTime + dropRate || startTime > getTimer()) { // <---- DEBUG
+                if (getTimer() >= startTime + dropRate) {
                     dropShape(); // the piece moves down
                     startTime = getTimer(); // reset the fall timer
                 }
@@ -671,7 +667,7 @@ void mainLoop() {
                         if (shapeCanMove(rotatedMap, 0, 0)) {
                             shapeAngle = newAngle;
                             drawShape(TRUE); // erase piece                            
-                            strncpy(shapeMap, rotatedMap, BLOCKCOUNT);
+                            strncpy(shapeMap, rotatedMap, BLOCK_COUNT);
                             drawShape(FALSE);
                         }                         
                         break;
