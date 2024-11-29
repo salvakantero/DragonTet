@@ -148,15 +148,15 @@ void drawNextShape() {
 
 
 void drawHeader(unsigned char x, unsigned char shift) {
-    unsigned char pos = 0, colour = 0;
+    unsigned char colour;
     const unsigned char colours[] = {2, 3, 4, 5, 6, 7, 8}; // colours available, excluding green
     unsigned char colourCount = sizeof(colours) / sizeof(colours[0]);
 
-    for (pos = 0; pos < 15; pos++) {
-        // colour for the top line (to the right).
+    for (unsigned char pos = 0; pos < 15; pos++) {
+        // colour for the top line (to the left).
         colour = colours[(pos + shift) % colourCount];
         printBlock(x + pos, 1, FILLED_BLOCK + ((colour - 1) << 4)); // <<4 = x16
-        // colour for the bottom line (to the left)
+        // colour for the bottom line (to the right)
         colour = colours[(pos + colourCount - shift) % colourCount];
         printBlock(x + pos, 3, FILLED_BLOCK + ((colour - 1) << 4));
     }
@@ -170,6 +170,7 @@ void displayStatus(void) {
     if (gameOver == TRUE) {
         locate(0, 8);
         printf("GAME OVER!");
+        return;
     }
     drawHeader(14, colourShift);
     locate(16, 7); printf("LEVEL:   %2u", level); // draws the level number
