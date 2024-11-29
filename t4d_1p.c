@@ -98,9 +98,8 @@ void drawPit() {
     // loop through and repaint the contents of the pit
     for (unsigned char pitY = 0; pitY < PIT_HEIGHT; pitY++) {
         unsigned char rowOffset = PIT_WIDTH * pitY;
-        for (unsigned char pitX = 0; pitX < PIT_WIDTH; pitX++) {
+        for (unsigned char pitX = 0; pitX < PIT_WIDTH; pitX++)
             drawBlock(pit[rowOffset + pitX], pitX, pitY);
-        }
     }
 }
 
@@ -120,9 +119,8 @@ BOOL shapeCanMove(char *map, char xDir, char yDir) {
                 // check if the block is within the pit boundaries
                 if (pitX >= 0 && pitX < PIT_WIDTH && pitY < PIT_HEIGHT) {
                     // if the position in the pit is not empty, it cannot move
-                    if (pit[(PIT_WIDTH * pitY) + pitX] != NO_BLOCK) {
+                    if (pit[(PIT_WIDTH * pitY) + pitX] != NO_BLOCK)
                         return FALSE;
-                    }
                 } 
                 // if it is out of bounds, it cannot move 
                 else return FALSE;
@@ -252,11 +250,11 @@ void createShape() {
         level x:  5   " */
     dropRate = (level < 7) ? (40 - (level * 5)) : 5;
     // if it's not the first piece, take the value of nextShape
-    if (nextShape != 255) {
+    if (nextShape != 255)
         shape = nextShape;
-    } else {
-        shape = (unsigned char) rand() % 7;  // new random piece (0 to 6)
-    }        
+    else // new random piece (0 to 6)
+        shape = (unsigned char) rand() % 7;
+       
     shapeX = 3; // centre of the pit
     shapeY = -LAST_SIDE_BLOCK; // fully hidden
     shapeAngle = 0; // unrotated
@@ -285,9 +283,8 @@ void drawShape(BOOL eraseShape) {
                     // gets the colour of the piece's block
                     blockColour = shapeMap[blockY * SIDE_BLOCK_COUNT + blockX];
                     // if the block is empty, take the colour of the pit at that position
-                    if (blockColour == NO_BLOCK) {
+                    if (blockColour == NO_BLOCK)
                         blockColour = pit[pitY * PIT_WIDTH + pitX];
-                    }
                 }
                 // draw or erase the block
                 drawBlock(blockColour, (unsigned char)pitX, (unsigned char)pitY); 
@@ -307,6 +304,7 @@ void removeFullRow(unsigned char removedRow) {
         printBlock(pitX, removedRow, WHITE_BLOCK);
 
     drawHeader(14, ++colourShift);
+    delay(1);
 
     // iterate from the removed row upwards
     for (pitY = removedRow; pitY > 0; pitY--) {
@@ -317,18 +315,17 @@ void removeFullRow(unsigned char removedRow) {
         }
     }
     // clear the first row after shifting all rows down
-    for (pitX = 0; pitX < PIT_WIDTH; pitX++) {
+    for (pitX = 0; pitX < PIT_WIDTH; pitX++)
         pit[pitX] = NO_BLOCK;
-    }
 }
 
 
 
 void checkForFullRows() { // searches for full rows
-    BOOL fullRow = FALSE;
+    BOOL fullRow;
     int numLines = 0;
-    unsigned char pitX = 0, pitY = 0;
-    unsigned char j = 6;
+    unsigned char pitX, pitY;
+    unsigned char j = 6; // indices: 0-1-2-3-4-5-[current score]
     // loops through all the rows in the pit
     for (pitY = 0; pitY < PIT_HEIGHT; pitY++) {
         fullRow = TRUE;
@@ -348,14 +345,10 @@ void checkForFullRows() { // searches for full rows
     // updates the score if rows were completed
     if (numLines > 0) {
         switch (numLines) {
-            case 1:
-                scores[j] += (100 * level); break;
-            case 2:
-                scores[j] += (300 * level); break;
-            case 3:
-                scores[j] += (500 * level); break;
-            case 4:
-                scores[j] += (800 * level);
+            case 1: scores[j] += (100 * level); break;
+            case 2: scores[j] += (300 * level); break;
+            case 3: scores[j] += (500 * level); break;
+            case 4: scores[j] += (800 * level);
         }
         // updates the total completed rows and calculates the level
         lines += numLines;
@@ -366,20 +359,17 @@ void checkForFullRows() { // searches for full rows
 
 
 void settleActiveShapeInPit() {
-    int blockX = 0, blockY = 0;
-    int pitX = 0, pitY = 0;
+    int blockX, blockY, pitX, pitY;
+    char blockColour;
     for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
         for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
             pitX = shapeX + blockX;
             pitY = shapeY + blockY;
-            // checks that the block is within the pit boundaries
-            if (pitX >= 0 && pitX < PIT_WIDTH && pitY >= 0 && pitY < PIT_HEIGHT) {
-                // checks that the block is not an empty space
-                if (shapeMap[blockY * SIDE_BLOCK_COUNT + blockX] != NO_BLOCK) {
-                    // fixes the piece's block in the pit
-                    pit[pitY * PIT_WIDTH + pitX] = shapeMap[blockY * SIDE_BLOCK_COUNT + blockX];
-                }
-            }
+            blockColour = shapeMap[blockY * SIDE_BLOCK_COUNT + blockX];
+            // checks that the block is within the pit boundaries and not an empty space
+            if (blockColour != NO_BLOCK && pitX >= 0 && pitX < PIT_WIDTH && pitY >= 0 && pitY < PIT_HEIGHT)
+                // fixes the piece's block in the pit
+                pit[pitY * PIT_WIDTH + pitX] = blockColour;
         }
     }
 }
@@ -393,19 +383,15 @@ void dropShape() {
         shapeY += 1;          // moves the piece down by one position
         drawShape(FALSE);     // redraws the piece at the new position
         // 1 point for each line in rapid drop
-        if (dropRate == 0) {
-            scores[6]++;
-        }
+        if (dropRate == 0) scores[6]++;
     } else {
         settleActiveShapeInPit();
-        // checks if the piece has reached the top and the game is lost
-        gameOver = (shapeY < 0);
-
-        checkForFullRows();
-        drawPit();
-
-        // if the game is not over, creates a new piece and draws it
-        if (gameOver == FALSE) {
+        // checks if the piece has reached the top (the game is lost)
+        if (shapeY < 0)
+            gameOver = TRUE;
+        else {
+            checkForFullRows();
+            drawPit();
             createShape();
             drawShape(FALSE);
         }
@@ -417,21 +403,18 @@ void dropShape() {
 
 
 void drawHighScores() {
-	unsigned char pos = 0; // TOP 5 position (0-4)
-    for(pos = 0; pos < 6; pos++) {
-        locate(7, 7+pos);  printf("...............");
-        locate(7, 7+pos);  printf("%s", names[pos]);
+	// TOP 6 position (0-5)
+    for(unsigned char pos = 0; pos < 6; pos++) {
+        locate( 7, 7+pos); printf("...............");
+        locate( 7, 7+pos); printf("%s", names[pos]);
         locate(19, 7+pos); printf("%5u", scores[pos]);
 	}
 	locate(2, 14); printf("PRESS ANY KEY TO CONTINUE...");
-    do {
-        if (inkey() != '') {
-            break;
-        }
+    while (TRUE) {
+        if (inkey() != 0) break;
         drawHeader(8, colourShift++);
         delay(2);
     }
-	while (TRUE);
 }
 
 
@@ -444,38 +427,33 @@ void drawOptionsMenu() {
     locate(7, 14); printf("SELECT OPTION (1-3)");
     // on/off switches
     locate(25, 8);
-    if (autorepeatKeys == TRUE) { printf("on "); }
-    else { printf("off"); }
+    if (autorepeatKeys) printf("on ");
+    else printf("off");
     locate(25, 9);
-    if (chequeredPit == TRUE) { printf("on "); }
-    else { printf("off"); }
+    if (chequeredPit) printf("on ");
+    else printf("off");
 }
 
 
 
 void optionsMenu() {
     drawOptionsMenu();
-
-    do {
+    while (TRUE) {
         drawHeader(8, colourShift++);
         key = inkey();		
         if (key == '1')	{
-            if (autorepeatKeys == TRUE) {
-                autorepeatKeys = FALSE;
-            } else { autorepeatKeys = TRUE; }
+            autorepeatKeys = !autorepeatKeys;
             drawOptionsMenu();
         }
         else if (key == '2') {	
-            if (chequeredPit == TRUE) {
-                chequeredPit = FALSE;
-            } else { chequeredPit = TRUE; }
+            chequeredPit = !chequeredPit;
             drawOptionsMenu();
         }
 		else if (key == '3') { // back	
             break;
         } 
         delay(2);
-    } while (TRUE);
+    }
 }
 
 
