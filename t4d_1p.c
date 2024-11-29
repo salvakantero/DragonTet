@@ -27,6 +27,7 @@ TODO
 
 #define EMPTY_BLOCK 128 // black block, no pixels
 #define FILLED_BLOCK 143 // all pixels in the block are active
+#define WHITE_BLOCK 207 // to mark a completed line
 #define SIDE_BLOCK_COUNT 4 // size of the piece's side (piece = 4x4 blocks)
 #define LAST_SIDE_BLOCK 3 // to iterate over the current piece (0 to 3)
 #define BLOCK_COUNT 16 // size of the piece in blocks (piece = 4x4 blocks)
@@ -184,53 +185,33 @@ void displayStatus(void) {
 
 
 const char* getShapeMap(unsigned char shape) {
-    /* colours:
-        0 - black
-        1 - green
-        2 - yellow
-        3 - blue
-        4 - red
-        5 - white
-        6 - cyan
-        7 - magenta
-        8 - orange
-    */
-    switch (shape) {
-        case 0:
-            return "0000444400000000"; // | red
-        case 1:
-            return "0000222000200000"; // _| yellow
-        case 2:
-            return "0000777070000000"; // |_ magenta
-        case 3:
-            return "0000033003300000"; // [] blue
-        case 4:
-            return "0000066066000000"; // S cyan
-        case 5:
-            return "0000880008800000"; // Z orange
-        case 6:
-            return "0000111001000000"; // T green
-        default:
-            return "";
-    }
+    static const char* shapeMaps[] = {
+        "0000444400000000", // | red
+        "0000222000200000", // _| yellow
+        "0000777070000000", // |_ magenta
+        "0000033003300000", // [] blue
+        "0000066066000000", // S cyan
+        "0000880008800000", // Z orange
+        "0000111001000000"  // T green
+    };
+    return shapeMaps[shape];
 }
 
 
 
 void getRotatedShapeMap(unsigned char shape, unsigned char angle, char *rotatedMap) {
     const char *map = getShapeMap(shape); // Unrotated map
-    // clear the rotatedMap array
-    memset(rotatedMap, NO_BLOCK, BLOCK_COUNT);
     // no rotation needed, copy map directly
     if (angle == 0) {
         strncpy(rotatedMap, map, BLOCK_COUNT);
         return;
     }
+    // clear the rotatedMap array
+    memset(rotatedMap, NO_BLOCK, BLOCK_COUNT);
     // Perform rotation for other angles
     for (int i = 0; i < BLOCK_COUNT; i++) {
         int blockX = i % SIDE_BLOCK_COUNT;
         int blockY = i / SIDE_BLOCK_COUNT;
-
         int newBlockX = 0, newBlockY = 0;
         switch (angle) {
             case 1: // 270 degrees
@@ -268,13 +249,8 @@ void createShape() {
         level 4: 20   "
         level 5: 15   "
         level 6: 10   "
-        level x:  5   "
-    */
-    dropRate = 40 - (level * 5);
-    // minimum fall speed limit
-    if (dropRate <= 0) {
-        dropRate = 1;
-    }
+        level x:  5   " */
+    dropRate = (level < 7) ? (40 - (level * 5)) : 5;
     // if it's not the first piece, take the value of nextShape
     if (nextShape != 255) {
         shape = nextShape;
@@ -292,9 +268,9 @@ void createShape() {
 
 
 void drawShape(BOOL eraseShape) {
-    int pitX = 0, pitY = 0;
-    int blockX = 0, blockY = 0;
-    char blockColour = NO_BLOCK;
+    int pitX, pitY;
+    int blockX, blockY;
+    char blockColour;
     // iterates through all the blocks of the piece
     for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
         for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
@@ -302,15 +278,15 @@ void drawShape(BOOL eraseShape) {
             pitY = shapeY + blockY;
             // check if the block is within the pit boundaries
             if (pitX >= 0 && pitX < PIT_WIDTH && pitY >= 0 && pitY < PIT_HEIGHT) {
-                if (eraseShape == TRUE) {
+                if (eraseShape) {
                     // gets the colour of the pit at the current position
-                    blockColour = pit[(PIT_WIDTH * pitY) + pitX];
+                    blockColour = pit[pitY * PIT_WIDTH + pitX];
                 } else {
                     // gets the colour of the piece's block
-                    blockColour = shapeMap[(SIDE_BLOCK_COUNT * blockY) + blockX];
+                    blockColour = shapeMap[blockY * SIDE_BLOCK_COUNT + blockX];
                     // if the block is empty, take the colour of the pit at that position
                     if (blockColour == NO_BLOCK) {
-                        blockColour = pit[(PIT_WIDTH * pitY) + pitX];
+                        blockColour = pit[pitY * PIT_WIDTH + pitX];
                     }
                 }
                 // draw or erase the block
@@ -323,28 +299,20 @@ void drawShape(BOOL eraseShape) {
 
 
 void removeFullRow(unsigned char removedRow) {
-    unsigned char pitX = 0, pitY = 0, i = 0;
-    char blockColour = NO_BLOCK;
+    unsigned char pitX, pitY;
+    char blockColour;
 
     // line selection effect
-    for (pitX = 0; pitX < PIT_WIDTH; pitX++) {
-        printBlock(pitX, removedRow, 207);
-    }
+    for (pitX = 0; pitX < PIT_WIDTH; pitX++)
+        printBlock(pitX, removedRow, WHITE_BLOCK);
 
-    for(i = 0; i < 2; i++) {
-        drawHeader(14, ++colourShift);
-    }
+    drawHeader(14, ++colourShift);
 
     // iterate from the removed row upwards
     for (pitY = removedRow; pitY > 0; pitY--) {
         for (pitX = 0; pitX < PIT_WIDTH; pitX++) {
-            if (pitY == 0) {
-                blockColour = NO_BLOCK; // the topmost line becomes empty
-            } else {
-                // copy the top row to the current one
-                blockColour = pit[(pitY - 1) * PIT_WIDTH + pitX];
-            }
-            // assign the colour to the current row
+            // copy the top row to the current one
+            blockColour = pit[(pitY - 1) * PIT_WIDTH + pitX];
             pit[pitY * PIT_WIDTH + pitX] = blockColour;
         }
     }
