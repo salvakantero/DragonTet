@@ -14,8 +14,7 @@ use xroar to test:
 
 TODO
 ====
-- simplificación por IA
-- botón de pausa
+
 
 */
 
@@ -115,13 +114,15 @@ BOOL shapeCanMove(char *map, char xDir, char yDir) {
                 // calculate the position in the pit
                 pitX = (shapeX + blockX) + xDir;
                 pitY = (shapeY + blockY) + yDir;
-                if (pitY < 0) return TRUE; // new piece appears at the top
+                // new piece appears at the top
+                if (pitY < 0) // Allow only vertical movement until fully visible
+                    return (xDir == 0);
                 // check if the block is within the pit boundaries
                 if (pitX >= 0 && pitX < PIT_WIDTH && pitY < PIT_HEIGHT) {
                     // if the position in the pit is not empty, it cannot move
                     if (pit[(PIT_WIDTH * pitY) + pitX] != NO_BLOCK)
                         return FALSE;
-                } 
+                }
                 // if it is out of bounds, it cannot move 
                 else return FALSE;
             }
@@ -550,6 +551,17 @@ void mainLoop() {
                     *((unsigned char *)0x0150 + i) = 0xFF;
                 delay(2);
             }
+            continue;
+        }
+
+        // Pause
+        if (key == 'H') { // empties the input buffer
+            while (inkey() != '\0');
+            // Wait until a key is pressed to exit the pause.
+            while (inkey() == '\0')
+                delay(1);
+            // Set the timer after the pause
+            startTime = getTimer();
             continue;
         }
 
