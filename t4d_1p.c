@@ -471,28 +471,40 @@ void drawMenu() {
 
 void menu() {
 	drawMenu();
-
     do {
         drawHeader(8, colourShift++);
-        key = inkey();		
-        if (key == '1')	{ // start game
-            break;
+        key = inkey();	
+
+        switch (key) {
+            case '1':
+                return; // start game
+            case '2':
+                optionsMenu();
+                drawMenu(); // options menu
+                break;
+            case '3':
+                drawHighScores();
+                drawMenu(); // high scores
+                break;
+            case '4':
+			    cls(1);
+                printf("THANKS FOR PLAYING T4D!\n");
+                exit(0);
+            default:
+                break;
         }
-        else if (key == '2') { // options menu		
-            optionsMenu();
-			drawMenu();
-        }
-		else if (key == '3') { // high scores		
-            drawHighScores();
-			drawMenu();
-        } 
-		else if (key == '4') { // exit
-			cls(1);
-            printf("THANKS FOR PLAYING T4D!\n");
-            exit(0);
-		}
         delay(2);
     } while (TRUE);
+}
+
+
+
+// rounds the text window
+void roundWindow() {
+    printBlock(PIT_WIDTH+1, 0, 129); // upper left corner
+    printBlock(SCREEN_WIDTH-1, 0, 130); // upper right corner
+    printBlock(PIT_WIDTH+1, PIT_HEIGHT-1, 132); // bottom left corner
+    printBlock(SCREEN_WIDTH-1, PIT_HEIGHT-1, 136); // bottom right corner
 }
 
 
@@ -502,13 +514,7 @@ void init() {
     setTimer(0);
     menu();
 	cls(1); // green screen
-
-    // rounds the text window
-    printBlock(PIT_WIDTH+1, 0, 129); // upper left corner
-    printBlock(SCREEN_WIDTH-1, 0, 130); // upper right corner
-    printBlock(PIT_WIDTH+1, PIT_HEIGHT-1, 132); // bottom left corner
-    printBlock(SCREEN_WIDTH-1, PIT_HEIGHT-1, 136); // bottom right corner
-
+    roundWindow();
     gameOver = FALSE; // game in progress
     level = 1; // initial level
     lines = 0; // lines cleared
@@ -525,49 +531,37 @@ void init() {
 
 void mainLoop() {
     unsigned char newAngle = 0;
-    char *rotatedMap;
 
     // save the start time
     startTime = getTimer();
 
     while (TRUE) {
-        key = '\0';
-        // loop until a key is pressed
-        while (key == '\0') {
-            if (gameOver == FALSE) { // game in progress
-                // if the falling time has been exceeded
-                if (getTimer() >= startTime + dropRate) {
-                    dropShape(); // the piece moves down
-                    startTime = getTimer(); // reset the fall timer
-                }
-            }
-            key = inkey(); // read keypresses
-                        
-            // auto-repeat
-            if (autorepeatKeys == TRUE) {
-                for (unsigned char i = 0; i <= 9; i++) {
-                    *((unsigned char *)0x0150 + i) = 0xFF;
-                }
-                // waits 2ms for rotation and 1ms for moving the piece
-                delay(1);
-                if (key == 'W') { delay(1); }
-            }
+        // if the falling time has been exceeded
+        if (!gameOver && getTimer() >= startTime + dropRate) {
+            dropShape(); // the piece moves down
+            startTime = getTimer(); // reset the fall timer
         }
 
-        if (key == 'X') { // if X is pressed, exit to the main menu
+        key = inkey(); // read keypresses
+        
+        if (key == '\0') {
+            if (autorepeatKeys == TRUE) { // auto-repeat
+                for (unsigned char i = 0; i <= 9; i++)
+                    *((unsigned char *)0x0150 + i) = 0xFF;
+                delay(2);
+            }
+            continue;
+        }
+
+        if (key == 'X') // if X is pressed, exit to the main menu
             break;
-        } else {
+
+        if (!gameOver) {
             if (gameOver == FALSE) { // game in progress
                 switch (key) {
                     case 'W': // rotate key                      
-                        if (shapeAngle == 3) {
-                            // 270 degrees. Reset angle
-                            newAngle = 0;
-                        }
-                        else {
-                            // increases the angle by 90 degrees
-                            newAngle = shapeAngle + 1;
-                        }
+                        // reset the angle or increase it by 90 degrees
+                        newAngle = (shapeAngle == 3) ? 0 : shapeAngle + 1;
                         getRotatedShapeMap(shape, newAngle, rotatedMap);
                         if (shapeCanMove(rotatedMap, 0, 0)) {
                             shapeAngle = newAngle;
@@ -576,7 +570,6 @@ void mainLoop() {
                             drawShape(FALSE);
                         }                         
                         break;
-
                     case 'A': // move left
                         if (shapeCanMove(shapeMap, -1, 0)) {
                             drawShape(TRUE); // erase piece
@@ -584,7 +577,6 @@ void mainLoop() {
                             drawShape(FALSE);
                         }
                         break;
-
                     case 'D': // move right
                         if (shapeCanMove(shapeMap, 1, 0)) {
                             drawShape(TRUE); // erase piece
@@ -592,7 +584,6 @@ void mainLoop() {
                             drawShape(FALSE);
                         }
                         break;
-
                     case 'S': // set the descent time to 0
                         dropRate = 0;
                         break;
@@ -607,6 +598,7 @@ void mainLoop() {
 // check if the new score is high enough to enter the top 6
 void checkScores() {
     int j; // indices: 0-1-2-3-4-5-[current]
+    newScore = FALSE;
     if (scores[6] > scores[5]) {
         // clear part of the screen
         for (j = 10; j < 16; j++) {
@@ -629,9 +621,8 @@ void checkScores() {
                     scores[j+1] = scores[j];
                     strncpy(names[j+1], names[j], 10);
                 }
-            } else {
+            } else
                 break;
-            }
         }
         // insert the new score and name into the correct position
         scores[j+1] = scores[6];
@@ -648,10 +639,9 @@ int main() {
         init();		
 		mainLoop();
 		// check the scores of the last game
-        newScore = FALSE;
         checkScores();
         // draw the scoreboard
-        if (newScore == TRUE) {
+        if (newScore) {
 		    cls(1);
 		    drawHeader(8, colourShift);
 		    drawHighScores();
