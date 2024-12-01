@@ -254,14 +254,14 @@ void getRotatedPieceMap(unsigned char shape, unsigned char angle, char *rotatedM
 
 
 
-void createNextShape() {
-	nextShape = (unsigned char) rand() % 7; // piece type (0 to 6)
-    strncpy(nextShapeMap, getPieceMap(nextShape), BLOCK_COUNT);
+void createNextPiece(unsigned char i) {
+	nextShape[i] = (unsigned char) rand() % 7; // piece type (0 to 6)
+    strncpy(nextShapeMap[i], getPieceMap(nextShape[i]), BLOCK_COUNT);
 }
 
 
 
-void createShape() {
+void createPiece(unsigned char i) {
     /* calculates the fall speed based on the level
         level 1: 35 delay ticks
         level 2: 30   "
@@ -270,46 +270,45 @@ void createShape() {
         level 5: 15   "
         level 6: 10   "
         level x:  5   " */
-    dropRate = (level < 7) ? (40 - (level * 5)) : 5;
+    dropRate[i] = (level[i] < 7) ? (40 - (level[i] * 5)) : 5;
     // if it's not the first piece, take the value of nextShape
-    if (nextShape != 255)
-        shape = nextShape;
+    if (nextShape[i] != 255)
+        shape[i] = nextShape[i];
     else // new random piece (0 to 6)
-        shape = (unsigned char) rand() % 7;
+        shape[i] = (unsigned char) rand() % 7;
        
-    shapeX = 3; // centre of the pit
-    shapeY = -LAST_SIDE_BLOCK; // fully hidden
-    shapeAngle = 0; // unrotated
-    strncpy(shapeMap, getPieceMap(shape), BLOCK_COUNT);
+    shapeX[i] = 3; // centre of the pit
+    shapeY[i] = -LAST_SIDE_BLOCK; // fully hidden
+    shapeAngle[i] = 0; // unrotated
+    strncpy(shapeMap[i], getPieceMap(shape[i]), BLOCK_COUNT);
     // generates the next piece
-    createNextShape();
+    createNextPiece(i);
 }
 
 
 
-void drawShape(BOOL eraseShape) {
-    int pitX, pitY;
-    int blockX, blockY;
+void drawShape(BOOL eraseShape, unsigned char i) {
+    int x, y;
     char blockColour;
     // iterates through all the blocks of the piece
-    for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
-        for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
-            pitX = shapeX + blockX;
-            pitY = shapeY + blockY;
+    for (int blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
+        for (int blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
+            x = shapeX[i] + blockX;
+            y = shapeY[i] + blockY;
             // check if the block is within the pit boundaries
-            if (pitX >= 0 && pitX < PIT_WIDTH && pitY >= 0 && pitY < PIT_HEIGHT) {
+            if (x >= 0 && x < PIT_WIDTH && y >= 0 && y < PIT_HEIGHT) {
                 if (eraseShape) {
                     // gets the colour of the pit at the current position
-                    blockColour = pit[pitY * PIT_WIDTH + pitX];
+                    blockColour = pit[i][y * PIT_WIDTH + x];
                 } else {
                     // gets the colour of the piece's block
-                    blockColour = shapeMap[blockY * SIDE_BLOCK_COUNT + blockX];
+                    blockColour = shapeMap[i][blockY * SIDE_BLOCK_COUNT + blockX];
                     // if the block is empty, take the colour of the pit at that position
                     if (blockColour == NO_BLOCK)
-                        blockColour = pit[pitY * PIT_WIDTH + pitX];
+                        blockColour = pit[i][y * PIT_WIDTH + x];
                 }
                 // draw or erase the block
-                drawBlock(blockColour, (unsigned char)pitX, (unsigned char)pitY); 
+                drawBlock((unsigned char)x, (unsigned char)y, blockColour, i); 
             }
         }
     }
@@ -317,64 +316,62 @@ void drawShape(BOOL eraseShape) {
 
 
 
-void removeFullRow(unsigned char removedRow) {
-    unsigned char pitX, pitY;
+void removeFullRow(unsigned char removedRow, unsigned char i) {
+    unsigned char x, y;
     char blockColour;
 
     // line selection effect
-    for (pitX = 0; pitX < PIT_WIDTH; pitX++)
-        printBlock(pitX, removedRow, WHITE_BLOCK);
-
-    drawHeader(14, ++colourShift);
-    delay(1);
+    for (x = 0; x < PIT_WIDTH; x++)
+        printBlock(x, removedRow, WHITE_BLOCK);
+    delay(2);
 
     // iterate from the removed row upwards
-    for (pitY = removedRow; pitY > 0; pitY--) {
-        for (pitX = 0; pitX < PIT_WIDTH; pitX++) {
+    for (y = removedRow; y > 0; y--) {
+        for (x = 0; x < PIT_WIDTH; x++) {
             // copy the top row to the current one
-            blockColour = pit[(pitY - 1) * PIT_WIDTH + pitX];
-            pit[pitY * PIT_WIDTH + pitX] = blockColour;
+            blockColour = pit[i][(y - 1) * PIT_WIDTH + x];
+            pit[i][y * PIT_WIDTH + x] = blockColour;
         }
     }
     // clear the first row after shifting all rows down
-    for (pitX = 0; pitX < PIT_WIDTH; pitX++)
-        pit[pitX] = NO_BLOCK;
+    for (x = 0; x < PIT_WIDTH; x++)
+        pit[i][x] = NO_BLOCK;
 }
 
 
 
-void checkForFullRows() { // searches for full rows
+void checkForFullRows(unsigned char i) { // searches for full rows
     BOOL fullRow;
     int numLines = 0;
-    unsigned char pitX, pitY;
-    unsigned char j = 6; // indices: 0-1-2-3-4-5-[current score]
+    unsigned char x, y;
+    unsigned char j = i + 6; // indices: 0-1-2-3-4-5-[score p1]-[score p2]
     // loops through all the rows in the pit
-    for (pitY = 0; pitY < PIT_HEIGHT; pitY++) {
+    for (y = 0; y < PIT_HEIGHT; y++) {
         fullRow = TRUE;
         // checks each block in the row
-        for (pitX = 0; pitX < PIT_WIDTH; pitX++) {
-            if (pit[pitY * PIT_WIDTH + pitX] == NO_BLOCK) {
+        for (x = 0; x < PIT_WIDTH; x++) {
+            if (pit[i][y * PIT_WIDTH + x] == NO_BLOCK) {
                 fullRow = FALSE; // finds an empty space
                 break;
             }
         }
         // if the row is full, it gets removed
         if (fullRow) {
-            removeFullRow(pitY);
+            removeFullRow(y, i);
             numLines++;
         }
     }
     // updates the score if rows were completed
     if (numLines > 0) {
         switch (numLines) {
-            case 1: scores[j] += (100 * level); break;
-            case 2: scores[j] += (300 * level); break;
-            case 3: scores[j] += (500 * level); break;
-            case 4: scores[j] += (800 * level);
+            case 1: scores[j] += (100 * level[i]); break;
+            case 2: scores[j] += (300 * level[i]); break;
+            case 3: scores[j] += (500 * level[i]); break;
+            case 4: scores[j] += (800 * level[i]);
         }
         // updates the total completed rows and calculates the level
-        lines += numLines;
-        level = (unsigned char)(lines / LINES_LEVEL) + 1;
+        lines[i] += numLines;
+        level[i] = (unsigned char)(lines[i] / LINES_LEVEL) + 1;
     }
 }
 
@@ -414,7 +411,7 @@ void dropShape() {
         else {
             checkForFullRows();
             drawPit();
-            createShape();
+            createPiece();
             drawShape(FALSE);
         }
         // displays the current game status, such as points or messages
@@ -543,7 +540,7 @@ void init() {
     scores[6] = 0; // current score
     nextShape = 255; // piece generation will be required
     memset(pit, NO_BLOCK, PIT_WIDTH * PIT_HEIGHT); // initialize the empty pit
-    createShape(); // generate piece (shape, position)
+    createPiece(); // generate piece (shape, position)
     drawPit();
     displayStatus();
     drawPitSeparator();
