@@ -15,7 +15,8 @@ use xroar to test:
 
 TODO
 ====
-- añadir 2º jugador simultaneos
+- añadir 2º jugador simultaneo
+- marcador para un player
 - redondear menús
 - función PLAY
 - efectos FX
@@ -103,7 +104,7 @@ void drawPit(unsigned char i) {
     for (unsigned char y = 0; y < PIT_HEIGHT; y++) {
         unsigned char rowOffset = y * PIT_WIDTH;
         for (unsigned char x = 0; x < PIT_WIDTH; x++)
-            drawBlock(pit[i][x + rowOffset], x, y, i);
+            drawBlock(x, y, pit[i][x + rowOffset], i);
     }
 }
 
@@ -143,11 +144,11 @@ void drawNextPiece(unsigned char i) {
     for (unsigned char blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
         for (unsigned char blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
             char blockColour = nextShapeMap[i][(blockY * SIDE_BLOCK_COUNT) + blockX];
-            // determine the block type (1 = green, 5 = white)
-            blockColour = (blockColour == NO_BLOCK) ? '1' : '5';
+            // green background
+            if (blockColour == NO_BLOCK) blockColour = '1';
             // different heights depending on the player
-            if (i == 0) drawBlock(blockColour, blockX + 17, blockY + 4, i);
-            else drawBlock(blockColour, blockX - 5, blockY + 12, i);
+            if (i == 0) drawBlock(blockX + 17, blockY + 4, blockColour, i);
+            else drawBlock(blockX - 5, blockY + 12, blockColour, i);
         }
     }
 }
@@ -182,7 +183,7 @@ void displayStatus() {
     locate(11, 0); printf("=PLAYER 1=");
     locate(11, 1); printf("LEVEL:  %2u", level[0]);
     locate(11, 2); printf("LINES: %3d", lines[0]);
-    locate(11, 3); printf("SCORE:%5u", scores[6]);
+    locate(11, 3); printf("SCR: %5u", scores[6]);
     locate(11, 4); printf("NEXT:");
 
     // player 2
@@ -194,7 +195,7 @@ void displayStatus() {
         locate(11, 8);  printf("=PLAYER 2=");
         locate(11, 9);  printf("LEVEL:  %2u", level[1]);
         locate(11, 10); printf("LINES: %3d", lines[1]);
-        locate(11, 11); printf("SCORE:%5u", scores[7]);
+        locate(11, 11); printf("SCR: %5u", scores[7]);
         locate(11, 12); printf("NEXT:");
     }
     
@@ -212,7 +213,7 @@ const char* getPieceMap(unsigned char shape) {
         "0000033003300000", // [] blue
         "0000066066000000", // S cyan
         "0000880008800000", // Z orange
-        "0000111001000000"  // T green
+        "0000555005000000"  // T white
     };
     return shapeMaps[shape];
 }
@@ -424,14 +425,14 @@ void dropShape(unsigned char i) {
 void drawHighScores() {
 	// TOP 6 position (0-5)
     for(unsigned char pos = 0; pos < 6; pos++) {
-        locate( 7, 7+pos); printf("...............");
-        locate( 7, 7+pos); printf("%s", names[pos]);
-        locate(19, 7+pos); printf("%5u", scores[pos]);
+        locate( 8, 7+pos); printf("...............");
+        locate( 8, 7+pos); printf("%s", names[pos]);
+        locate(20, 7+pos); printf("%5u", scores[pos]);
 	}
-	locate(2, 14); printf("PRESS ANY KEY TO CONTINUE...");
+	locate(3, 14); printf("PRESS ANY KEY TO CONTINUE!");
     while (TRUE) {
         if (inkey() != 0) break;
-        drawHeader(8, colourShift++);
+        drawHeader(9, colourShift++);
         delay(2);
     }
 }
@@ -458,7 +459,7 @@ void drawOptionsMenu() {
 void optionsMenu() {
     drawOptionsMenu();
     while (TRUE) {
-        drawHeader(8, colourShift++);
+        drawHeader(9, colourShift++);
         key = inkey();		
         if (key == '1')	{
             autorepeatKeys = !autorepeatKeys;
@@ -477,13 +478,25 @@ void optionsMenu() {
 
 
 
+// rounds the text window
+void roundWindow(int ulx, int urx) {
+    printBlock(ulx, 0, 129); // upper left corner
+    printBlock(urx, 0, 130); // upper right corner
+    printBlock(ulx, 15, 132); // bottom left corner
+    printBlock(urx, 15, 136); // bottom right corner
+}
+
+
+
 void drawMenu() {
 	cls(1);
-	locate(8, 8);  printf("1)  START GAME");
-    locate(8, 9);  printf("2)  OPTIONS");
-    locate(8, 10); printf("3)  HIGH SCORES");
-    locate(8, 11); printf("4)  EXIT");
-    locate(7, 14); printf("SELECT OPTION (1-4)");
+    roundWindow(0, 31);
+	locate(8, 7);  printf("1)  1 PLAYER GAME");
+    locate(8, 8);  printf("2)  2 PLAYER GAME");
+    locate(8, 9);  printf("3)  HIGH SCORES");
+    locate(8, 10); printf("4)  OPTIONS");
+    locate(8, 11); printf("5)  EXIT");
+    locate(7, 14); printf("SELECT OPTION (1-5)");
 }
 
 
@@ -491,7 +504,7 @@ void drawMenu() {
 void menu() {
 	drawMenu();
     do {
-        drawHeader(8, colourShift++);
+        drawHeader(9, colourShift++);
         key = inkey();	
 
         switch (key) {
@@ -499,14 +512,17 @@ void menu() {
                 numPlayers = 0;
                 return; // start game
             case '2':
-                optionsMenu();
-                drawMenu(); // options menu
-                break;
+                numPlayers = 1;
+                return; // start game
             case '3':
                 drawHighScores();
                 drawMenu(); // high scores
                 break;
             case '4':
+                optionsMenu();
+                drawMenu(); // options menu
+                break;
+            case '5':
 			    cls(1);
                 printf("THANKS FOR PLAYING T4D!\n");
                 exit(0);
@@ -515,16 +531,6 @@ void menu() {
         }
         delay(2);
     } while (TRUE);
-}
-
-
-
-// rounds the text window
-void roundWindow() {
-    printBlock(PIT_WIDTH+1, 0, 129); // upper left corner
-    printBlock(SCREEN_WIDTH-1, 0, 130); // upper right corner
-    printBlock(PIT_WIDTH+1, PIT_HEIGHT-1, 132); // bottom left corner
-    printBlock(SCREEN_WIDTH-1, PIT_HEIGHT-1, 136); // bottom right corner
 }
 
 
@@ -555,13 +561,15 @@ void mainLoop() {
     unsigned char i;
 
     // save the start time
-    startTime = getTimer();
+    startTime[0] = getTimer();
+    if (numPlayers > 0)
+        startTime[1] = getTimer();
 
     while (TRUE) {
         // if the falling time has been exceeded
-        if (!gameOver && getTimer() >= startTime + dropRate) {
-            dropShape(); // the piece moves down
-            startTime = getTimer(); // reset the fall timer
+        if (!gameOver[0] && getTimer() >= startTime[0] + dropRate[0]) {
+            dropShape(0); // the piece moves down
+            startTime[0] = getTimer(); // reset the fall timer
         }
 
         key = inkey(); // read keypresses
@@ -582,45 +590,43 @@ void mainLoop() {
             while (inkey() == '\0')
                 delay(1);
             // Set the timer after the pause
-            startTime = getTimer();
+            startTime[0] = getTimer();
             continue;
         }
 
         if (key == 'X') // if X is pressed, exit to the main menu
             break;
 
-        if (!gameOver) {
-            if (gameOver == FALSE) { // game in progress
-                switch (key) {
-                    case 'W': // rotate key                      
-                        // reset the angle or increase it by 90 degrees
-                        newAngle = (shapeAngle == 3) ? 0 : shapeAngle + 1;
-                        getRotatedPieceMap(shape, newAngle, rotatedMap);
-                        if (PieceCanMove(rotatedMap, 0, 0)) {
-                            shapeAngle = newAngle;
-                            drawShape(TRUE); // erase piece                            
-                            strncpy(shapeMap, rotatedMap, BLOCK_COUNT);
-                            drawShape(FALSE);
-                        }                         
-                        break;
-                    case 'A': // move left
-                        if (PieceCanMove(shapeMap, -1, 0)) {
-                            drawShape(TRUE); // erase piece
-                            shapeX--;
-                            drawShape(FALSE);
-                        }
-                        break;
-                    case 'D': // move right
-                        if (PieceCanMove(shapeMap, 1, 0)) {
-                            drawShape(TRUE); // erase piece
-                            shapeX++;
-                            drawShape(FALSE);
-                        }
-                        break;
-                    case 'S': // set the descent time to 0
-                        dropRate = 0;
-                        break;
-                }
+        if (!gameOver[0]) { // game in progress
+            switch (key) {
+                case 'W': // rotate key                      
+                    // reset the angle or increase it by 90 degrees
+                    newAngle = (shapeAngle[0] == 3) ? 0 : shapeAngle[0] + 1;
+                    getRotatedPieceMap(shape[0], newAngle, rotatedMap[0]);
+                    if (PieceCanMove(rotatedMap[0], 0, 0, 0)) {
+                        shapeAngle[0] = newAngle;
+                        drawShape(TRUE, 0); // erase piece                            
+                        strncpy(shapeMap[0], rotatedMap[0], BLOCK_COUNT);
+                        drawShape(FALSE, 0);
+                    }                         
+                    break;
+                case 'A': // move left
+                    if (PieceCanMove(shapeMap[0], -1, 0, 0)) {
+                        drawShape(TRUE, 0); // erase piece
+                        shapeX[0]--;
+                        drawShape(FALSE, 0);
+                    }
+                    break;
+                case 'D': // move right
+                    if (PieceCanMove(shapeMap[0], 1, 0, 0)) {
+                        drawShape(TRUE, 0); // erase piece
+                        shapeX[0]++;
+                        drawShape(FALSE, 0);
+                    }
+                    break;
+                case 'S': // set the descent time to 0
+                    dropRate[0] = 0;
+                    break;
             }
         }
     }
@@ -636,13 +642,13 @@ void checkScores(unsigned char player) {
     newScore = FALSE;
     if (scores[i] > scores[5]) {
         // clear part of the screen
-        for (j = 10; j < 16; j++) {
-            locate(12, (unsigned char)j);
-            printf("                   ");
-        }
-        locate(15, 12); printf("GOOD SCORE PLAYER %d", player + 1);
-        locate(15, 13); printf("NAME?:");
-        locate(14, 20);
+        //for (j = 10; j < 16; j++) {
+        //    locate(12, (unsigned char)j);
+        //    printf("                   ");
+        //}
+        locate(5, 12); printf("GOOD SCORE PLAYER %d", player + 1);
+        locate(5, 13); printf("NAME?:");
+        //locate(4, 20);
 
         char *response = readline();
         strncpy(names[i], response, 10);
@@ -680,7 +686,7 @@ int main() {
         // draw the scoreboard
         if (newScore) {
 		    cls(1);
-		    drawHeader(8, colourShift);
+		    drawHeader(9, colourShift);
 		    drawHighScores();
         }
     }
