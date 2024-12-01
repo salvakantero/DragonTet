@@ -377,42 +377,42 @@ void checkForFullRows(unsigned char i) { // searches for full rows
 
 
 
-void settleActiveShapeInPit() {
-    int blockX, blockY, pitX, pitY;
+void settleActiveShapeInPit(unsigned char i) {
+    int x, y;
     char blockColour;
-    for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
-        for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
-            pitX = shapeX + blockX;
-            pitY = shapeY + blockY;
-            blockColour = shapeMap[blockY * SIDE_BLOCK_COUNT + blockX];
+    for (int blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
+        for (int blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
+            x = shapeX[i] + blockX;
+            y = shapeY[i] + blockY;
+            blockColour = shapeMap[i][blockY * SIDE_BLOCK_COUNT + blockX];
             // checks that the block is within the pit boundaries and not an empty space
-            if (blockColour != NO_BLOCK && pitX >= 0 && pitX < PIT_WIDTH && pitY >= 0 && pitY < PIT_HEIGHT)
+            if (blockColour != NO_BLOCK && x >= 0 && x < PIT_WIDTH && y >= 0 && y < PIT_HEIGHT)
                 // fixes the piece's block in the pit
-                pit[pitY * PIT_WIDTH + pitX] = blockColour;
+                pit[i][y * PIT_WIDTH + x] = blockColour;
         }
     }
 }
 
 
 
-void dropShape() {
+void dropShape(unsigned char i) {
     // checks if the piece can move down
-    if (PieceCanMove(shapeMap, 0, 1)) {
-        drawShape(TRUE);      // erases the current piece
-        shapeY += 1;          // moves the piece down by one position
-        drawShape(FALSE);     // redraws the piece at the new position
+    if (PieceCanMove(shapeMap[i], 0, 1, i)) {
+        drawShape(TRUE, i);      // erases the current piece
+        shapeY[i] += 1;          // moves the piece down by one position
+        drawShape(FALSE, i);     // redraws the piece at the new position
         // 1 point for each line in rapid drop
-        if (dropRate == 0) scores[6]++;
+        if (dropRate[i] == 0) scores[6+i]++;
     } else {
-        settleActiveShapeInPit();
+        settleActiveShapeInPit(i);
         // checks if the piece has reached the top (the game is lost)
-        if (shapeY < 0)
-            gameOver = TRUE;
+        if (shapeY[i] < 0)
+            gameOver[i] = TRUE;
         else {
-            checkForFullRows();
-            drawPit();
-            createPiece();
-            drawShape(FALSE);
+            checkForFullRows(i);
+            drawPit(i);
+            createPiece(i);
+            drawShape(FALSE, i);
         }
         // displays the current game status, such as points or messages
         displayStatus();
@@ -496,6 +496,7 @@ void menu() {
 
         switch (key) {
             case '1':
+                numPlayers = 0;
                 return; // start game
             case '2':
                 optionsMenu();
@@ -533,23 +534,25 @@ void init() {
     setTimer(0);
     menu();
 	cls(1); // green screen
-    roundWindow();
-    gameOver = FALSE; // game in progress
-    level = 1; // initial level
-    lines = 0; // lines cleared
-    scores[6] = 0; // current score
-    nextShape = 255; // piece generation will be required
-    memset(pit, NO_BLOCK, PIT_WIDTH * PIT_HEIGHT); // initialize the empty pit
-    createPiece(); // generate piece (shape, position)
-    drawPit();
+    //roundWindow();
+    for (unsigned char i = 0; i <= numPlayers; i++) {
+        gameOver[i] = FALSE; // game in progress
+        level[i] = 1; // initial level
+        lines[i] = 0; // lines cleared
+        scores[6+i] = 0; // current score
+        nextShape[i] = 255; // piece generation will be required
+        createPiece(i); // generate piece (shape, position)
+        memset(pit[i], NO_BLOCK, PIT_WIDTH * PIT_HEIGHT); // initialize the empty pit
+        drawPit(i);
+    }
     displayStatus();
-    drawPitSeparator();
 }
 
 
 
 void mainLoop() {
     unsigned char newAngle = 0;
+    unsigned char i;
 
     // save the start time
     startTime = getTimer();
@@ -626,26 +629,28 @@ void mainLoop() {
 
 
 // check if the new score is high enough to enter the top 6
-void checkScores() {
-    int j; // indices: 0-1-2-3-4-5-[current]
+void checkScores(unsigned char player) {
+    // indices: 0-1-2-3-4-5-[score p1]-[score p2]
+    int i = player + 6;
+    int j;
     newScore = FALSE;
-    if (scores[6] > scores[5]) {
+    if (scores[i] > scores[5]) {
         // clear part of the screen
         for (j = 10; j < 16; j++) {
             locate(12, (unsigned char)j);
             printf("                   ");
         }
-        locate(15, 12); printf("GOOD SCORE!!");
+        locate(15, 12); printf("GOOD SCORE PLAYER %d", player + 1);
         locate(15, 13); printf("NAME?:");
         locate(14, 20);
 
         char *response = readline();
-        strncpy(names[6], response, 10);
-        names[6][10] = '\0'; // ensure the name is null-terminated
+        strncpy(names[i], response, 10);
+        names[i][10] = '\0'; // ensure the name is null-terminated
 
-        // find the correct position in the top 5 list for the new score
+        // find the correct position in the top 6 list for the new score
         for (j = 5; j >= 0; j--) {
-            if (scores[6] > scores[j]) {
+            if (scores[i] > scores[j]) {
                 // shift scores/names down
                 if (j < 5) {
                     scores[j+1] = scores[j];
@@ -655,8 +660,8 @@ void checkScores() {
                 break;
         }
         // insert the new score and name into the correct position
-        scores[j+1] = scores[6];
-        strncpy(names[j+1], names[6], 10);
+        scores[j+1] = scores[i];
+        strncpy(names[j+1], names[i], 10);
         newScore = TRUE; // the score table has been updated
     }
 }
@@ -669,7 +674,9 @@ int main() {
         init();		
 		mainLoop();
 		// check the scores of the last game
-        checkScores();
+        checkScores(0);
+        if (numPlayers > 0)
+            checkScores(1);
         // draw the scoreboard
         if (newScore) {
 		    cls(1);
