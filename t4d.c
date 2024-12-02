@@ -16,8 +16,10 @@ use xroar to test:
 TODO
 ====
 - añadir 2º jugador simultaneo
-- marcador para un player
-- redondear menús
+- marcador específico para un player
+- ayuda en pantalla (controles)
+- putchar en (31,15)?
+
 - función PLAY
 - efectos FX
   - pulsación de menú
@@ -86,9 +88,10 @@ void drawBlock(unsigned char x, unsigned char y, char blockColour, unsigned char
     // dragon semigraphic characters: 128 to 255  
     // +16:yellow +32:blue +48:red +64:white +80:cyan +96:magenta +112:orange 
     unsigned char colour = blockColour - NO_BLOCK; // (0 a 8)
+    x += pitLeft[i];
     if (colour == 0) { // background
         if (chequeredPit) {
-            locate(x + pitLeft[i], y);
+            locate(x, y);
             putchar(111); // "O" inverted
         } else
             printBlock(x, y, EMPTY_BLOCK);
@@ -111,7 +114,7 @@ void drawPit(unsigned char i) {
 
 
 // check if a piece can move in the specified direction (i = player pit)
-BOOL PieceCanMove(char *map, char xDir, char yDir, unsigned char i) {
+BOOL pieceCanMove(char *map, char xDir, char yDir, unsigned char i) {
     int x, y;
     // loop through all the blocks of the piece
     for (int blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
@@ -183,7 +186,7 @@ void displayStatus() {
     locate(11, 0); printf("=PLAYER 1=");
     locate(11, 1); printf("LEVEL:  %2u", level[0]);
     locate(11, 2); printf("LINES: %3d", lines[0]);
-    locate(11, 3); printf("SCR: %5u", scores[6]);
+    locate(11, 3); printf("SC: %6u", scores[6]);
     locate(11, 4); printf("NEXT:");
 
     // player 2
@@ -195,7 +198,7 @@ void displayStatus() {
         locate(11, 8);  printf("=PLAYER 2=");
         locate(11, 9);  printf("LEVEL:  %2u", level[1]);
         locate(11, 10); printf("LINES: %3d", lines[1]);
-        locate(11, 11); printf("SCR: %5u", scores[7]);
+        locate(11, 11); printf("SC: %6u", scores[7]);
         locate(11, 12); printf("NEXT:");
     }
     
@@ -398,7 +401,7 @@ void settleActiveShapeInPit(unsigned char i) {
 
 void dropShape(unsigned char i) {
     // checks if the piece can move down
-    if (PieceCanMove(shapeMap[i], 0, 1, i)) {
+    if (pieceCanMove(shapeMap[i], 0, 1, i)) {
         drawShape(TRUE, i);      // erases the current piece
         shapeY[i] += 1;          // moves the piece down by one position
         drawShape(FALSE, i);     // redraws the piece at the new position
@@ -422,6 +425,16 @@ void dropShape(unsigned char i) {
 
 
 
+// rounds the text window
+void roundWindow(int ulx, int urx) {
+    printBlock(ulx, 0, 129); // upper left corner
+    printBlock(urx, 0, 130); // upper right corner
+    printBlock(ulx, 15, 132); // bottom left corner
+    printBlock(urx, 15, 136); // bottom right corner
+}
+
+
+
 void drawHighScores() {
 	// TOP 6 position (0-5)
     for(unsigned char pos = 0; pos < 6; pos++) {
@@ -441,6 +454,7 @@ void drawHighScores() {
 
 void drawOptionsMenu() {
 	cls(1);
+    roundWindow(0, 31);
 	locate(4, 8);  printf("1)  AUTOREPEAT KEYS:");
     locate(4, 9);  printf("2)  CHEQUERED PIT:");
     locate(4, 10); printf("3)  BACK");
@@ -474,16 +488,6 @@ void optionsMenu() {
         } 
         delay(2);
     }
-}
-
-
-
-// rounds the text window
-void roundWindow(int ulx, int urx) {
-    printBlock(ulx, 0, 129); // upper left corner
-    printBlock(urx, 0, 130); // upper right corner
-    printBlock(ulx, 15, 132); // bottom left corner
-    printBlock(urx, 15, 136); // bottom right corner
 }
 
 
@@ -540,7 +544,7 @@ void init() {
     setTimer(0);
     menu();
 	cls(1); // green screen
-    //roundWindow();
+    roundWindow(PIT_WIDTH, pitLeft[1]-1);
     for (unsigned char i = 0; i <= numPlayers; i++) {
         gameOver[i] = FALSE; // game in progress
         level[i] = 1; // initial level
@@ -603,7 +607,7 @@ void mainLoop() {
                     // reset the angle or increase it by 90 degrees
                     newAngle = (shapeAngle[0] == 3) ? 0 : shapeAngle[0] + 1;
                     getRotatedPieceMap(shape[0], newAngle, rotatedMap[0]);
-                    if (PieceCanMove(rotatedMap[0], 0, 0, 0)) {
+                    if (pieceCanMove(rotatedMap[0], 0, 0, 0)) {
                         shapeAngle[0] = newAngle;
                         drawShape(TRUE, 0); // erase piece                            
                         strncpy(shapeMap[0], rotatedMap[0], BLOCK_COUNT);
@@ -611,14 +615,14 @@ void mainLoop() {
                     }                         
                     break;
                 case 'A': // move left
-                    if (PieceCanMove(shapeMap[0], -1, 0, 0)) {
+                    if (pieceCanMove(shapeMap[0], -1, 0, 0)) {
                         drawShape(TRUE, 0); // erase piece
                         shapeX[0]--;
                         drawShape(FALSE, 0);
                     }
                     break;
                 case 'D': // move right
-                    if (PieceCanMove(shapeMap[0], 1, 0, 0)) {
+                    if (pieceCanMove(shapeMap[0], 1, 0, 0)) {
                         drawShape(TRUE, 0); // erase piece
                         shapeX[0]++;
                         drawShape(FALSE, 0);

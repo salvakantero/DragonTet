@@ -1,25 +1,19 @@
-$Debug
-
 'TETRIS.BAS:
-'   - codigo original QBasic de Peter Swinkels (QBBlocks v1.0)
-'TETRIS_STEP1:
-'   - comprension y comentarios en el codigo
-'   - se habilita la pieza 7
-'TETRIS_STEP2:
-'   - se convierte a modo texto
-'TETRIS_STEP3:
-'   - se reordenan las funciones
-'   - se anaden niveles
-'   - se usan los cursores
-'   - se amplia el marcador
-'TETRIS_STEP4:
-'   - se elimina la posicion X inicial aleatoria
-'   - se elimina la rotacion inicial aleatoria
-'   - se cambia el sentido de rotacion a la izquierda
-'   - se implementa la funcion NEXT
-'TETRIS_STEP5:
-'   - 2 jugadores
-'   - 32x16 caracteres en pantalla
+'   - original QBasic code by Peter Swinkels (QBBlocks v1.0)
+'TETRIS_QB.BAS:
+'   - understanding and comments
+'   - shape 7 is enabled
+'   - converts to text mode
+'   - levels are added
+'   - the score is widened
+'   - the random initial X position is deleted
+'   - the initial random rotation is eliminated
+'   - the direction of rotation is changed to the left
+'   - the NEXT PIECE function is implemented.
+'   - 2 players
+'   - 32x16 characters on screen, compatible with DRAGON 32/64
+'   - menu
+'   - score table
 
 DefInt A-Z
 
@@ -30,12 +24,14 @@ Const LASTSIDEBLOCK = 3 'para recorrer con bucles la pieza actual (0 a 3)
 Const SIDEBLOCKCOUNT = 4 'tamano del lado de la pieza (4x4)
 Const NOBLOCK$ = "0" 'caracter vacio en el foso
 
-Const PITTOP = 1 'pos Y de la parte de arriba del foso (justo arriba de la pantalla)
+Const PITTOP = 0 'pos Y de la parte de arriba del foso (justo arriba de la pantalla)
 Const PITWIDTH = 10 'ancho del foso
 Const PITHEIGHT = 16 'alto del foso
 
 'NumPlayers     Jugadores(0-1)
-Common Shared NumPlayers
+'Names          Los 5 mejores jugadores
+'Scores         Las 5 mejores puntuaciones + las 2 actuales
+Common Shared NumPlayers, Names$(), Scores()
 
 'GameOver       0=juego en curso -1=finalizado
 'DropDate!      1=cayendo 0=parada al fondo del foso
@@ -43,9 +39,8 @@ Common Shared NumPlayers
 'Pit$           Contenido de los fosos
 'Level          Niveles de juego (velocidad)
 'Lines          Lineas conseguidas
-'Score          Puntuaciones
 'PITLEFT        pos X del lado izquierdo de cada foso
-Common Shared GameOver(), DropRate!(), StartTime!(), Pit$(), Level(), Lines(), Score(), PITLEFT()
+Common Shared GameOver(), DropRate!(), StartTime!(), Pit$(), Level(), Lines(), PITLEFT()
 
 'Shape          Tipo de pieza (0 a 6)
 'ShapeAngle     Rotacion de la pieza (0 a 3)
@@ -61,8 +56,22 @@ Common Shared NextShape(), NextShapeMap$()
 
 
 
-Init 'inicializa el sistema y el foso
-Main 'bucle principal
+'tabla fake de las 5 mejores puntuaciones
+'array de 0 a 6. Las dos ultimas son los puntos en juego
+ReDim Names$(6)
+ReDim Scores(6)
+For i = 0 To 4
+    Names$(i) = "DRAGON"
+    Scores(i) = 1400 - (i * 100)
+Next i
+
+While TRUE
+    Init 'inicializa el sistema y los fosos, y arranca el bucle principal
+    'finalizado el bucle principal mira si las puntuaciones son de TOP 5
+    For i = 0 To NumPlayers
+        CheckScores i
+    Next i
+Wend
 
 
 
@@ -78,7 +87,7 @@ Function GetShapeMap$ (Shape) 'formas de las figuras
         Case 3
             Map$ = "00000EE00EE00000" ' cubo
         Case 4
-            Map$ = "0000022022000000" ' S 1
+            Map$ = "00000AA0AA000000" ' S 1
         Case 5
             Map$ = "0000440004400000" ' S 2
         Case 6
@@ -93,14 +102,7 @@ End Function
 
 
 Sub DisplayStatus ()
-    Color 7, 8
-    ' Bucle para pintar una columna en el centro
-    For y = 1 To 17
-        For x = 11 To 22
-            Locate y, x
-            Print " "; ' Imprimir un espacio con el color de fondo
-        Next x
-    Next y
+    Color 0, 2
 
     'player 1
     If GameOver(0) = TRUE Then
@@ -110,7 +112,7 @@ Sub DisplayStatus ()
     Locate 2, 12: Print "=PLAYER 1="
     Locate 3, 12: Print "Level:" + Str$(Level(0)) 'pinta el num. de nivel
     Locate 4, 12: Print "Lines:" + Str$(Lines(0)) 'pinta las lineas
-    Locate 5, 12: Print "Sc:" + Str$(Score(0)) 'pinta la puntuacion
+    Locate 5, 12: Print "Sc:" + Str$(Scores(5)) 'pinta la puntuacion
     Locate 6, 12: Print "Next:"
 
     'player 2
@@ -122,7 +124,7 @@ Sub DisplayStatus ()
         Locate 10, 12: Print "=PLAYER 2="
         Locate 11, 12: Print "Level:" + Str$(Level(1)) 'pinta el num. de nivel
         Locate 12, 12: Print "Lines:" + Str$(Lines(1)) 'pinta las lineas
-        Locate 13, 12: Print "Sc:" + Str$(Score(1)) 'pinta la puntuacion
+        Locate 13, 12: Print "Sc:" + Str$(Scores(6)) 'pinta la puntuacion
         Locate 14, 12: Print "Next:"
     End If
 
@@ -235,7 +237,7 @@ Sub DrawNextShape (i)
         For BlockY = 0 To LASTSIDEBLOCK
             'color de la pieza
             BlockColor$ = Mid$(NextShapeMap$(i), ((SIDEBLOCKCOUNT * BlockY) + BlockX) + 1, 1)
-            If BlockColor$ = NOBLOCK$ Then BlockColor$ = "8"
+            If BlockColor$ = NOBLOCK$ Then BlockColor$ = "2"
             If i = 0 Then
                 DrawBlock BlockColor$, BlockX + 17, BlockY + 4, i 'pinta el bloque
             Else
@@ -367,10 +369,11 @@ Sub CheckForFullRows (i) 'busca filas completas
     Next PitY
     If NumLines > 0 Then
         'puntuacion segun el numero de lineas conseguidas
-        If NumLines = 1 Then Score(i) = Score(i) + (100 * Level(i))
-        If NumLines = 2 Then Score(i) = Score(i) + (300 * Level(i))
-        If NumLines = 3 Then Score(i) = Score(i) + (500 * Level(i))
-        If NumLines = 4 Then Score(i) = Score(i) + (800 * Level(i)) 'tetris!
+        j = i + 5
+        If NumLines = 1 Then Scores(j) = Scores(j) + (100 * Level(i))
+        If NumLines = 2 Then Scores(j) = Scores(j) + (300 * Level(i))
+        If NumLines = 3 Then Scores(j) = Scores(j) + (500 * Level(i))
+        If NumLines = 4 Then Scores(j) = Scores(j) + (800 * Level(i)) 'tetris!
         'actualiza el total de lineas completadas
         Lines(i) = Lines(i) + NumLines
         'calcula el nivel basado en el total de lineas completadas
@@ -381,23 +384,109 @@ End Sub
 
 
 
+Sub HighScores ()
+    For i = 0 To 4
+        Locate 9 + i, 9
+        Print "................"
+        Locate 9 + i, 9
+        Print Names$(i)
+        Locate 9 + i, 21
+        Print Using "#####"; Scores(i)
+    Next i
+    Locate 15, 4
+    Print "Press any key to continue..."
+    While InKey$ = ""
+    Wend
+    Exit Sub
+End Sub
+
+
+
+
+Sub DrawHeader ()
+    Color 0, 2
+    Cls
+    Locate 2, 10: Print "***************"
+    Locate 3, 10: Print "* T E T R I S *"
+    Locate 4, 10: Print "***************"
+    Locate 6, 9: Print "SALVAKANTERO 2024"
+End Sub
+
+
+
+
+Sub Menu ()
+    DrawHeader
+    Locate 9, 9: Print "1) 1 PLAYER GAME"
+    Locate 10, 9: Print "2) 2 PLAYER GAME"
+    Locate 11, 9: Print "3) HIGH SCORES"
+    Locate 12, 9: Print "4) EXIT"
+    Locate 15, 8: Print "SELECT OPTION (1-4)"
+    Do
+        Key$ = ""
+        Do While Key$ = "" 'mientras no se pulse una tecla
+            Key$ = InKey$
+        Loop
+        If Key$ = "1" Then
+            NumPlayers = 0
+            Exit Do
+        ElseIf Key$ = "2" Then
+            NumPlayers = 1
+            Exit Do
+        ElseIf Key$ = "3" Then
+            HighScores
+            Menu
+        ElseIf Key$ = "4" Then
+            End
+        End If
+    Loop
+End Sub
+
+
+
+
+Sub CheckScores (i) 'mejores puntuaciones
+    Dim idx As Integer
+    'calcula el indice de la nueva puntuacion basada en el jugador
+    '(5 para player1, 6 para player2)
+    idx = i + 5
+
+    'verifica si la nueva puntuacion es lo suficientemente alta para entrar en el top 5
+    If Scores(idx) > Scores(4) Then
+        DrawHeader
+        Locate 10, 6: Print "BUENA PUNTUACION JUGADOR " + Str$(i + 1)
+        Locate 11, 6: Input "NOMBRE?: ", Names$(idx)
+        If Len(Names$(idx)) > 10 Then Names$(idx) = Left$(Names$(idx), 10)
+
+        'inserta la nueva puntuacion en la lista de high scores
+        For j = 4 To 0 Step -1
+            If Scores(idx) > Scores(j) Then
+                'desplaza puntuaciones y nombres hacia abajo
+                If j < 4 Then
+                    Scores(j + 1) = Scores(j)
+                    Names$(j + 1) = Names$(j)
+                End If
+            Else
+                Exit For
+            End If
+        Next j
+        'coloca la nueva puntuacion en su lugar correcto
+        Scores(j + 1) = Scores(idx)
+        Names$(j + 1) = Names$(idx)
+    End If
+End Sub
+
+
+
+
 Sub Init () 'inicializa sistema y foso
     Randomize Timer 'semilla de aleatoriedad
     Screen 13 '320x200 256 colores MCGA
-    Color 7, 0
+    Menu
     Cls
-
-    NumPlayers = 0
-    While NumPlayers < 1 Or NumPlayers > 2
-        Input "Numero de jugadores (1-2)", NumPlayers
-    Wend
-    NumPlayers = NumPlayers - 1
-    Cls
-
     ReDim GameOver(NumPlayers)
     ReDim Level(NumPlayers)
     ReDim Lines(NumPlayers)
-    ReDim Score(NumPlayers)
     ReDim Pit$(NumPlayers)
     ReDim DropRate!(NumPlayers)
     ReDim StartTime!(NumPlayers)
@@ -417,7 +506,7 @@ Sub Init () 'inicializa sistema y foso
         GameOver(i) = FALSE 'partida en curso
         Level(i) = 1 'nivel inicial
         Lines(i) = 0 'lineas conseguidas
-        Score(i) = 0 'puntuacion actual
+        Scores(i + 5) = 0 'puntuacion actual
         NextShape(i) = -1 'sera necesario generar pieza
         Pit$(i) = String$(PITWIDTH * PITHEIGHT, NOBLOCK$) 'inicializa el foso vacio (tabla de 0)
         CreateShape (i) 'genera pieza (forma, posicion)
@@ -425,12 +514,13 @@ Sub Init () 'inicializa sistema y foso
     Next i
 
     DisplayStatus 'pinta el marcador comun
+    MainLoop
 End Sub
 
 
 
 
-Sub Main () 'bucle principal
+Sub MainLoop () 'bucle principal
     StartTime!(0) = Timer 'guarda el tiempo de inicio para jugador 0
     If NumPlayers > 0 Then
         StartTime!(1) = Timer 'guarda el tiempo de inicio para jugador 1
@@ -451,12 +541,13 @@ Sub Main () 'bucle principal
             Key$ = InKey$ 'lee pulsaciones del teclado
         Loop
         If Key$ = Chr$(27) Then 'si se pulsa ESC sale
-            Screen 0
-            End
+            Exit Sub
         Else
             For i = 0 To NumPlayers 'bucle para ambos jugadores
                 If GameOver(i) = TRUE Then 'fuera de juego
-                    If Key$ = Chr$(13) Then Init 'si se pulsa ENTER inicia juego
+                    If Key$ = Chr$(13) Then
+                        Exit Sub 'si se pulsa ENTER reinicia juego
+                    End If
                 Else
                     ' Asignar teclas para cada jugador
                     If i = 0 Then
@@ -465,15 +556,15 @@ Sub Main () 'bucle principal
                         DownKey$ = "s"
                         RightKey$ = "d"
                     Else
-                        RotateKey$ = "o"
-                        LeftKey$ = "k"
-                        DownKey$ = "l"
-                        RightKey$ = "ñ"
+                        RotateKey$ = "i"
+                        LeftKey$ = "j"
+                        DownKey$ = "k"
+                        RightKey$ = "l"
                     End If
                     Select Case Key$
-                        Case RotateKey$ 'al pulsar la tecla de rotación, gira la pieza
+                        Case RotateKey$ 'al pulsar la tecla de rotaciï¿½n, gira la pieza
                             DrawShape i, TRUE 'borra pieza
-                            'cambia el ángulo de la pieza
+                            'cambia el ï¿½ngulo de la pieza
                             If ShapeAngle(i) = 3 Then NewAngle = 0 Else NewAngle = ShapeAngle(i) + 1
                             'modifica la pieza
                             RotatedMap$ = GetRotatedShapeMap(Shape(i), NewAngle)
