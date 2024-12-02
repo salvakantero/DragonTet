@@ -4,6 +4,10 @@
    salvaKantero2024
 
     TEST ZONE
+    15
+    42
+    43
+    46
 */
 
 #include <cmoc.h>
@@ -19,7 +23,14 @@ void printBlock(int x, int y, unsigned char ch) {
 }
 
 int main() {
-    while(TRUE) {
+    // Recorrer todas las posiciones válidas de la pantalla
+    unsigned char ch = 0;
+    cls(1);
+    for (int y = 0; y < 16; y++) { // Desde 0 hasta la altura de la pantalla
+        for (int x = 0; x < 32; x++) { // Desde 0 hasta el ancho de la pantalla
+            printBlock(x, y, ch); // Imprime valores de prueba, ajustados al rango de caracteres
+            if (ch < 256) ch++;
+        }
     }
     return 0;
 }

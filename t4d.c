@@ -18,7 +18,6 @@ TODO
 - añadir 2º jugador simultaneo
 - marcador específico para un player
 - ayuda en pantalla (controles)
-- putchar en (31,15)?
 
 - función PLAY
 - efectos FX
@@ -90,10 +89,9 @@ void drawBlock(unsigned char x, unsigned char y, char blockColour, unsigned char
     unsigned char colour = blockColour - NO_BLOCK; // (0 a 8)
     x += pitLeft[i];
     if (colour == 0) { // background
-        if (chequeredPit) {
-            locate(x, y);
-            putchar(111); // "O" inverted
-        } else
+        if (chequeredPit)
+            printBlock(x, y, 42); // "*" inverted
+        else
             printBlock(x, y, EMPTY_BLOCK);
         return;
     }
@@ -183,7 +181,7 @@ void displayStatus() {
         locate(pitLeft[0], 8);
         printf("GAME OVER!");
     }
-    locate(11, 0); printf("=PLAYER 1=");
+    locate(12, 0); printf("PLAYER 1");
     locate(11, 1); printf("LEVEL:  %2u", level[0]);
     locate(11, 2); printf("LINES: %3d", lines[0]);
     locate(11, 3); printf("SC: %6u", scores[6]);
@@ -195,7 +193,7 @@ void displayStatus() {
 			locate(pitLeft[1], 8);
 			printf("GAME OVER!");
         }
-        locate(11, 8);  printf("=PLAYER 2=");
+        locate(12, 8);  printf("PLAYER 2");
         locate(11, 9);  printf("LEVEL:  %2u", level[1]);
         locate(11, 10); printf("LINES: %3d", lines[1]);
         locate(11, 11); printf("SC: %6u", scores[7]);
