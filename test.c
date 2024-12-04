@@ -24,8 +24,7 @@ void printBlock(int x, int y, unsigned char ch) {
 
 int main() {
     cls(1);
-
-    /*
+    
     // Recorrer todas las posiciones válidas de la pantalla
     unsigned char ch = 0;
     for (int y = 0; y < 16; y++) { // Desde 0 hasta la altura de la pantalla
@@ -33,11 +32,7 @@ int main() {
             printBlock(x, y, ch); // Imprime valores de prueba, ajustados al rango de caracteres
             if (ch < 256) ch++;
         }
-    }*/
+    }
 
-    printf("TEST");
-    screen(0,1);    
-    printf("TEST");
-    waitkey(FALSE);
     return 0;
 }

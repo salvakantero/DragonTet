@@ -18,7 +18,8 @@ TODO
 - añadir 2º jugador simultaneo
 - marcador específico para un player
 - ayuda en pantalla (controles)
-- texto con colores
+- teclas definitivas (cursores: 94, 10, 8, 9)
+- joystick
 
 - función PLAY
 - efectos FX
@@ -141,22 +142,22 @@ BOOL shapeCanMove(char *map, char xDir, char yDir, unsigned char i) {
 
 
 
-void drawNextShape(unsigned char i) {
+void drawNextShape(unsigned char y, unsigned char i) {
     // loop through all the blocks of the shape (4x4 grid)
     for (unsigned char blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
         for (unsigned char blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
             char blockColour = nextShapeMap[i][(blockY * SIDE_BLOCK_SIZE) + blockX];
             // green background
             if (blockColour == NO_BLOCK) blockColour = '1';
-            // different heights depending on the player
-            if (i == 0) drawBlock(blockX + 17, blockY + 4, blockColour, i);
-            else drawBlock(blockX - 5, blockY + 12, blockColour, i);
+            // different position depending on the player
+            if (i == 0) drawBlock(blockX + 17, blockY + y, blockColour, i);
+            else drawBlock(blockX - 5, blockY + y, blockColour, i);
         }
     }
 }
 
 
-
+/*
 void drawHeader(unsigned char x, unsigned char shift) {
     unsigned char colour;
     const unsigned char colours[] = {2, 3, 4, 5, 6, 7, 8}; // colours available, excluding green
@@ -176,33 +177,88 @@ void drawHeader(unsigned char x, unsigned char shift) {
 
 
 
-void displayStatus() {
-    // player 1
-    if (gameOver[0] == TRUE) {
-        locate(pitLeft[0], 8);
-        printf("GAME OVER!");
-    }
-    locate(12, 0); printf("PLAYER 1");
-    locate(11, 1); printf("LEVEL:  %2u", level[0]);
-    locate(11, 2); printf("LINES: %3d", lines[0]);
-    locate(11, 3); printf("SC: %6u", scores[6]);
-    locate(11, 4); printf("NEXT:");
+void drawIngameHeader(unsigned char shift) {
+    unsigned char x = 11;
+    unsigned char colour;
+    const unsigned char colours[] = {2, 3, 4, 5, 6, 7, 8}; // colours available, excluding green
+    unsigned char colourCount = sizeof(colours) / sizeof(colours[0]);
 
-    // player 2
-    if (numPlayers == 1) {
-        if (gameOver[1] == TRUE) {
-			locate(pitLeft[1], 8);
-			printf("GAME OVER!");
+    for (unsigned char pos = 0; pos < 10; pos++) {
+        // colour for the top line (to the left).
+        colour = colours[(pos + shift) % colourCount];
+        printBlock(x + pos, 1, FILLED_BLOCK + ((colour - 1) << 4)); // <<4 = x16
+        // colour for the bottom line (to the right)
+        colour = colours[(pos + colourCount - shift) % colourCount];
+        printBlock(x + pos, 3, FILLED_BLOCK + ((colour - 1) << 4));
+    }
+    locate(x, 2); printf("=  T4D!  =");
+    locate(x - 1, 5); printf("SALVAKANTERO");
+    locate(x + 3, 6); printf("2024");
+}*/
+
+
+
+void drawHeader(BOOL ingame, unsigned char shift) {
+    unsigned char colour;
+    const unsigned char colours[] = {2, 3, 4, 5, 6, 7, 8}; // colours available, excluding green
+    unsigned char colourCount = sizeof(colours) / sizeof(colours[0]);
+    unsigned char x = ingame ? 11 : 8;
+    unsigned char width = ingame ? 10 : 16;
+
+    for (unsigned char pos = 0; pos < width; pos++) {
+        // colour for the top line (to the left).
+        colour = colours[(pos + shift) % colourCount];
+        printBlock(x + pos, 1, FILLED_BLOCK + ((colour - 1) << 4)); // <<4 = x16
+        // colour for the bottom line (to the right)
+        colour = colours[(pos + colourCount - shift) % colourCount];
+        printBlock(x + pos, 3, FILLED_BLOCK + ((colour - 1) << 4));
+    }
+    if (ingame) {
+        locate(x, 2); printf("=  T 4 D  =");
+        locate(x - 1, 5); printf("SALVAKANTERO");
+        locate(x + 3, 6); printf("2024");
+    }
+    else {
+        locate(x, 2); printf("= TETRIS =");
+        locate(x, 5); printf("SALVAKANTERO2024");
+    }
+}
+
+
+
+void displayStatus() {
+    unsigned char i;
+    for (i = 0; i <= numPlayers; i++) {
+        if (gameOver[i] == TRUE) {
+            locate(pitLeft[i], 8);
+            printf("GAME OVER!");
         }
+    }
+    if (numPlayers == 0) {
+        drawHeader(TRUE, ++colourShift);
+        locate(11, 8);  printf("LEVEL:  %2u", level[0]);
+        locate(11, 9); printf("LINES: %3d", lines[0]);
+        locate(11, 10); printf("SC: %6u", scores[6]);
+        locate(11, 11); printf("HI: %6u", scores[0]);
+        locate(11, 12); printf("NEXT:");
+        drawNextShape(12, 0);
+    }
+    else {
+        // player 1
+        locate(12, 0); printf("PLAYER 1");
+        locate(11, 1); printf("LEVEL:  %2u", level[0]);
+        locate(11, 2); printf("LINES: %3d", lines[0]);
+        locate(11, 3); printf("SC: %6u", scores[6]);
+        locate(11, 4); printf("NEXT:");
+        // player 2
         locate(12, 8);  printf("PLAYER 2");
         locate(11, 9);  printf("LEVEL:  %2u", level[1]);
         locate(11, 10); printf("LINES: %3d", lines[1]);
         locate(11, 11); printf("SC: %6u", scores[7]);
         locate(11, 12); printf("NEXT:");
+        drawNextShape(4, 0);
+        drawNextShape(12, 1);
     }
-    
-    for (unsigned char i = 0; i <= numPlayers; i++)
-        if (!gameOver[i]) drawNextShape(i); // DEBUG
 }
 
 
@@ -438,13 +494,13 @@ void drawHighScores() {
 	// TOP 6 position (0-5)
     for(unsigned char pos = 0; pos < 6; pos++) {
         locate( 8, 7+pos); printf("...............");
-        locate( 8, 7+pos); printf("%s", names[pos]);
+        locate( 7, 7+pos); printf("%s", names[pos]);
         locate(20, 7+pos); printf("%5u", scores[pos]);
 	}
 	locate(3, 14); printf("PRESS ANY KEY TO CONTINUE!");
     while (TRUE) {
         if (inkey() != 0) break;
-        drawHeader(9, colourShift++);
+        drawHeader(FALSE, colourShift++);
         delay(2);
     }
 }
@@ -454,9 +510,9 @@ void drawHighScores() {
 void drawOptionsMenu() {
 	cls(1);
     roundWindow(0, 31);
-	locate(4, 8);  printf("1)  AUTOREPEAT KEYS:");
-    locate(4, 9);  printf("2)  CHEQUERED PIT:");
-    locate(4, 10); printf("3)  BACK");
+	locate(4, 8);  printf("1) AUTOREPEAT KEYS:");
+    locate(4, 9);  printf("2) CHEQUERED PIT:");
+    locate(4, 10); printf("3) BACK");
     locate(7, 14); printf("SELECT OPTION (1-3)");
     // on/off switches
     locate(25, 8);
@@ -472,7 +528,7 @@ void drawOptionsMenu() {
 void optionsMenu() {
     drawOptionsMenu();
     while (TRUE) {
-        drawHeader(9, colourShift++);
+        drawHeader(FALSE, colourShift++);
         key = inkey();		
         if (key == '1')	{
             autorepeatKeys = !autorepeatKeys;
@@ -494,11 +550,11 @@ void optionsMenu() {
 void drawMenu() {
 	cls(1);
     roundWindow(0, 31);
-	locate(8, 7);  printf("1)  1 PLAYER GAME");
-    locate(8, 8);  printf("2)  2 PLAYER GAME");
-    locate(8, 9);  printf("3)  HIGH SCORES");
-    locate(8, 10); printf("4)  OPTIONS");
-    locate(8, 11); printf("5)  EXIT");
+	locate(8, 7);  printf("1) 1 PLAYER GAME");
+    locate(8, 8);  printf("2) 2 PLAYER GAME");
+    locate(8, 9);  printf("3) HIGH SCORES");
+    locate(8, 10); printf("4) OPTIONS");
+    locate(8, 11); printf("5) EXIT");
     locate(7, 14); printf("SELECT OPTION (1-5)");
 }
 
@@ -507,7 +563,7 @@ void drawMenu() {
 void menu() {
 	drawMenu();
     do {
-        drawHeader(9, colourShift++);
+        drawHeader(FALSE, colourShift++);
         key = inkey();	
 
         switch (key) {
@@ -544,7 +600,7 @@ void init() {
     menu();
 	cls(1); // green screen
     roundWindow(PIT_WIDTH, pitLeft[1]-1);
-    for (unsigned char i = 0; i <= numPlayers; i++) {
+    for (unsigned char i = 0; i < 2; i++) {
         gameOver[i] = FALSE; // game in progress
         level[i] = 1; // initial level
         lines[i] = 0; // lines cleared
@@ -689,7 +745,7 @@ int main() {
         // draw the scoreboard
         if (newScore) {
 		    cls(1);
-		    drawHeader(9, colourShift);
+		    drawHeader(FALSE, colourShift);
 		    drawHighScores();
         }
     }
