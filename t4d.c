@@ -16,7 +16,6 @@ use xroar to test:
 TODO
 ====
 - añadir 2º jugador simultaneo
-- marcador específico para un player
 - ayuda en pantalla (controles)
 - joystick
 
@@ -467,8 +466,32 @@ void drawHighScores() {
 
 
 void drawHelp() {
-    cls(1);
-	locate(3, 14); printf("PRESS ANY KEY TO CONTINUE!");
+    cls(0);
+    printf(                 "   PLAYER 1*  ");
+
+    locate(0, 2); printf(   " w ROTATE     ");
+    locate(0, 3);  printf(  " s DROP       ");
+    locate(0, 4);  printf(  " a MOVE LEFT  ");
+    locate(0, 5);  printf(  " d MOVE RIGHT ");
+    locate(0, 6);  printf(  "              ");
+    locate(0, 7);  printf(  " * +CURSORS   ");
+    locate(0, 8);  printf(  " * +JOYSTICK1 ");
+    locate(0, 9);  printf(  "              ");
+
+    locate(18, 0);printf(   "   PLAYER 2*  ");
+
+    locate(18, 2); printf(  " i ROTATE     ");
+    locate(18, 3);  printf( " k DROP       ");
+    locate(18, 4);  printf( " j MOVE LEFT  ");
+    locate(18, 5);  printf( " l MOVE RIGHT ");
+    locate(18, 6);  printf( "              ");
+    locate(18, 7);  printf( " * +JOYSTICK2 ");
+    locate(18, 8);  printf( "              ");
+
+    locate(0, 11); printf(" X = CANCEL/RETURN TO MAIN MENU ");
+    locate(0, 12); printf(" H = PAUSE THE GAME             ");
+	locate(0, 14); printf("    PRESS ANY KEY TO CONTINUE!  ");
+    screen(0,0);
     waitkey(FALSE);
 }
 
@@ -478,7 +501,7 @@ void drawOptionsMenu() {
 	cls(1);
     roundWindow(0, 31);
 	locate(4, 8);  printf("1) AUTOREPEAT KEYS:");
-    locate(4, 9);  printf("2) CHEQUERED PIT:");
+    locate(4, 9);  printf("2) MARKED PIT:");
     locate(4, 10); printf("3) BACK");
     locate(7, 14); printf("SELECT OPTION (1-3)");
     // on/off switches
@@ -587,7 +610,7 @@ void init() {
         locate(23,6); printf(" PLEASE ");
         locate(23,7); printf("  WAIT  ");
         locate(23,8); printf(" PLAYER ");
-        locate(23,9); printf("  TWO!  ");
+        locate(23,9); printf("   2!   ");
     }
 }
 
