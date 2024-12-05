@@ -18,7 +18,6 @@ TODO
 - añadir 2º jugador simultaneo
 - marcador específico para un player
 - ayuda en pantalla (controles)
-- teclas definitivas (cursores: 94, 10, 8, 9)
 - joystick
 
 - función PLAY
@@ -157,46 +156,6 @@ void drawNextShape(unsigned char y, unsigned char i) {
 }
 
 
-/*
-void drawHeader(unsigned char x, unsigned char shift) {
-    unsigned char colour;
-    const unsigned char colours[] = {2, 3, 4, 5, 6, 7, 8}; // colours available, excluding green
-    unsigned char colourCount = sizeof(colours) / sizeof(colours[0]);
-
-    for (unsigned char pos = 0; pos < 15; pos++) {
-        // colour for the top line (to the left).
-        colour = colours[(pos + shift) % colourCount];
-        printBlock(x + pos, 1, FILLED_BLOCK + ((colour - 1) << 4)); // <<4 = x16
-        // colour for the bottom line (to the right)
-        colour = colours[(pos + colourCount - shift) % colourCount];
-        printBlock(x + pos, 3, FILLED_BLOCK + ((colour - 1) << 4));
-    }
-    locate(x, 2); printf("= T E T R I S =");
-    locate(x - 1, 5); printf("SALVAKANTERO 2024");
-}
-
-
-
-void drawIngameHeader(unsigned char shift) {
-    unsigned char x = 11;
-    unsigned char colour;
-    const unsigned char colours[] = {2, 3, 4, 5, 6, 7, 8}; // colours available, excluding green
-    unsigned char colourCount = sizeof(colours) / sizeof(colours[0]);
-
-    for (unsigned char pos = 0; pos < 10; pos++) {
-        // colour for the top line (to the left).
-        colour = colours[(pos + shift) % colourCount];
-        printBlock(x + pos, 1, FILLED_BLOCK + ((colour - 1) << 4)); // <<4 = x16
-        // colour for the bottom line (to the right)
-        colour = colours[(pos + colourCount - shift) % colourCount];
-        printBlock(x + pos, 3, FILLED_BLOCK + ((colour - 1) << 4));
-    }
-    locate(x, 2); printf("=  T4D!  =");
-    locate(x - 1, 5); printf("SALVAKANTERO");
-    locate(x + 3, 6); printf("2024");
-}*/
-
-
 
 void drawHeader(BOOL ingame, unsigned char shift) {
     unsigned char colour;
@@ -214,12 +173,12 @@ void drawHeader(BOOL ingame, unsigned char shift) {
         printBlock(x + pos, 3, FILLED_BLOCK + ((colour - 1) << 4));
     }
     if (ingame) {
-        locate(x, 2); printf("=  T 4 D  =");
+        locate(x, 2); printf("= TETRIS =");
         locate(x - 1, 5); printf("SALVAKANTERO");
         locate(x + 3, 6); printf("2024");
     }
     else {
-        locate(x, 2); printf("= TETRIS =");
+        locate(x, 2); printf("=TETRIS4DRAGONS=");
         locate(x, 5); printf("SALVAKANTERO2024");
     }
 }
@@ -507,6 +466,14 @@ void drawHighScores() {
 
 
 
+void drawHelp() {
+    cls(1);
+	locate(3, 14); printf("PRESS ANY KEY TO CONTINUE!");
+    waitkey(FALSE);
+}
+
+
+
 void drawOptionsMenu() {
 	cls(1);
     roundWindow(0, 31);
@@ -554,8 +521,9 @@ void drawMenu() {
     locate(8, 8);  printf("2) 2 PLAYER GAME");
     locate(8, 9);  printf("3) HIGH SCORES");
     locate(8, 10); printf("4) OPTIONS");
-    locate(8, 11); printf("5) EXIT");
-    locate(7, 14); printf("SELECT OPTION (1-5)");
+    locate(8, 11); printf("5) HELP");
+    locate(8, 12); printf("6) EXIT");
+    locate(7, 14); printf("SELECT OPTION (1-6)");
 }
 
 
@@ -567,21 +535,25 @@ void menu() {
         key = inkey();	
 
         switch (key) {
-            case '1':
+            case '1': // 1p start game
                 numPlayers = 0;
-                return; // start game
-            case '2':
+                return;
+            case '2': // 2p start game
                 numPlayers = 1;
-                return; // start game
-            case '3':
+                return;
+            case '3': // high scores
                 drawHighScores();
-                drawMenu(); // high scores
+                drawMenu();
                 break;
-            case '4':
+            case '4': // options menu
                 optionsMenu();
-                drawMenu(); // options menu
+                drawMenu();
                 break;
-            case '5':
+            case '5': // show controls
+                drawHelp();
+                drawMenu();
+                break;                
+            case '6': // bye
 			    cls(1);
                 printf("THANKS FOR PLAYING T4D!\n");
                 exit(0);
@@ -611,6 +583,12 @@ void init() {
         drawPit(i);
     }
     displayStatus();
+    if (numPlayers == 0) {
+        locate(23,6); printf(" PLEASE ");
+        locate(23,7); printf("  WAIT  ");
+        locate(23,8); printf(" PLAYER ");
+        locate(23,9); printf("  TWO!  ");
+    }
 }
 
 
@@ -652,13 +630,17 @@ void mainLoop() {
             startTime[0] = getTimer();
             continue;
         }
-
-        if (key == 'X') // if X is pressed, exit to the main menu
+        // if X is pressed, exit to the main menu
+        if (key == 'X')
+            break;
+        // if ENTER is pressed and both players are finished, exit to the main menu
+        if (key == 13 && gameOver[0] && gameOver[1])
             break;
 
         if (!gameOver[0]) { // game in progress
             switch (key) {
-                case 'W': // rotate key                      
+                case 'W': // rotate key 
+                case 94: // cursor up                     
                     // reset the angle or increase it by 90 degrees
                     newAngle = (shapeAngle[0] == 3) ? 0 : shapeAngle[0] + 1;
                     getRotatedShapeMap(shape[0], newAngle, rotatedMap[0]);
@@ -670,6 +652,7 @@ void mainLoop() {
                     }                         
                     break;
                 case 'A': // move left
+                case 8: // cursor left
                     if (shapeCanMove(shapeMap[0], -1, 0, 0)) {
                         drawShape(TRUE, 0); // erase shape
                         shapeX[0]--;
@@ -677,6 +660,7 @@ void mainLoop() {
                     }
                     break;
                 case 'D': // move right
+                case 9: // cursor right
                     if (shapeCanMove(shapeMap[0], 1, 0, 0)) {
                         drawShape(TRUE, 0); // erase shape
                         shapeX[0]++;
@@ -684,6 +668,7 @@ void mainLoop() {
                     }
                     break;
                 case 'S': // set the descent time to 0
+                case 10: // cursor down
                     dropRate[0] = 0;
                     break;
             }
