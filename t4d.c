@@ -16,7 +16,6 @@ use xroar to test:
 TODO
 ====
 - añadir 2º jugador simultaneo
-- ayuda en pantalla (controles)
 - joystick
 
 - función PLAY
@@ -467,31 +466,31 @@ void drawHighScores() {
 
 void drawHelp() {
     cls(0);
-    printf(                 "   PLAYER 1*  ");
-
-    locate(0, 2); printf(   " w ROTATE     ");
+    printf(                 "   PLAYER 1   ");
+    locate(0, 1);  printf(  " ============ ");
+    locate(0, 2);  printf(  " w ROTATE     ");
     locate(0, 3);  printf(  " s DROP       ");
     locate(0, 4);  printf(  " a MOVE LEFT  ");
     locate(0, 5);  printf(  " d MOVE RIGHT ");
     locate(0, 6);  printf(  "              ");
-    locate(0, 7);  printf(  " * +CURSORS   ");
-    locate(0, 8);  printf(  " * +JOYSTICK1 ");
+    locate(0, 7);  printf(  " + CURSORS    ");
+    locate(0, 8);  printf(  " + JOYSTICK1  ");
     locate(0, 9);  printf(  "              ");
 
-    locate(18, 0);printf(   "   PLAYER 2*  ");
-
+    locate(18, 0); printf(  "   PLAYER 2   ");
+    locate(18, 1); printf(  " ============ ");
     locate(18, 2); printf(  " i ROTATE     ");
-    locate(18, 3);  printf( " k DROP       ");
-    locate(18, 4);  printf( " j MOVE LEFT  ");
-    locate(18, 5);  printf( " l MOVE RIGHT ");
-    locate(18, 6);  printf( "              ");
-    locate(18, 7);  printf( " * +JOYSTICK2 ");
-    locate(18, 8);  printf( "              ");
+    locate(18, 3); printf(  " k DROP       ");
+    locate(18, 4); printf(  " j MOVE LEFT  ");
+    locate(18, 5); printf(  " l MOVE RIGHT ");
+    locate(18, 6); printf(  "              ");
+    locate(18, 7); printf(  " + JOYSTICK2  ");
+    locate(18, 8); printf(  "              ");
 
     locate(0, 11); printf(" X = CANCEL/RETURN TO MAIN MENU ");
     locate(0, 12); printf(" H = PAUSE THE GAME             ");
-	locate(0, 14); printf("    PRESS ANY KEY TO CONTINUE!  ");
-    screen(0,0);
+	locate(0, 14); printf("   PRESS ANY KEY TO CONTINUE!   ");
+    screen(0,1);
     waitkey(FALSE);
 }
 
