@@ -1,17 +1,17 @@
 
 /*
 
-*** TETRIS4DRAGONS ***
-   salvaKantero2024
+= DRAGON BLOCKS =
+salvaKantero 2024
 
 2 player game version
 Compatible with Dragon 32/64 and COCO
 Based on Peter Swinkels' PC Qbasic code. (QBBlocks v1.0)
 
 use the CMOC compiler 0.1.89 or higher:
-"cmoc --dragon -o t4d.bin t4d.c"
+"cmoc --dragon -o dblocks.bin dblocks.c"
 use xroar to test:
-"xroar -run t4d.bin"
+"xroar -run dblocks.bin"
 
 TODO
 ====
@@ -159,8 +159,8 @@ void drawHeader(BOOL ingame, unsigned char shift) {
     unsigned char colour;
     const unsigned char colours[] = {2, 3, 4, 5, 6, 7, 8}; // colours available, excluding green
     unsigned char colourCount = sizeof(colours) / sizeof(colours[0]);
-    unsigned char x = ingame ? 11 : 8;
-    unsigned char width = ingame ? 10 : 16;
+    unsigned char x = ingame ? 11 : 9;
+    unsigned char width = ingame ? 10 : 15;
 
     for (unsigned char pos = 0; pos < width; pos++) {
         // colour for the top line (to the left).
@@ -171,13 +171,13 @@ void drawHeader(BOOL ingame, unsigned char shift) {
         printBlock(x + pos, 3, FILLED_BLOCK + ((colour - 1) << 4));
     }
     if (ingame) {
-        locate(x, 2); printf("= TETRIS =");
+        locate(x, 2); printf("=D-BLOCKS=");
         locate(x - 1, 5); printf("SALVAKANTERO");
         locate(x + 3, 6); printf("2024");
     }
     else {
-        locate(x, 2); printf("=TETRIS4DRAGONS=");
-        locate(x, 5); printf("SALVAKANTERO2024");
+        locate(x, 2); printf("=DRAGON BLOCKS=");
+        locate(x - 1, 5); printf("SALVAKANTERO 2024");
     }
 }
 
@@ -577,7 +577,7 @@ void menu() {
                 break;                
             case '6': // bye
 			    cls(1);
-                printf("THANKS FOR PLAYING T4D!\n");
+                printf("THANKS FOR PLAYING D-BLOCKS!\n");
                 exit(0);
             default:
                 break;
