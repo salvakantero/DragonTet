@@ -626,16 +626,18 @@ void mainLoop() {
 
     while (TRUE) {
         // if the falling time has been exceeded
-        if (!gameOver[0] && getTimer() >= startTime[0] + dropRate[0]) {
-            dropShape(0); // the shape moves down
-            startTime[0] = getTimer(); // reset the fall timer
-        }
+        //for (i = 0; i <= numPlayers; i++) {
+            if (!gameOver[0] && getTimer() >= startTime[0] + dropRate[0]) {
+                dropShape(0); // the shape moves down
+                startTime[0] = getTimer(); // reset the fall timer
+            }
+        //}
 
         key = inkey(); // read keypresses
         
         if (key == '\0') {
             if (autorepeatKeys == TRUE) { // auto-repeat
-                for (unsigned char i = 0; i <= 9; i++)
+                for (i = 0; i <= 9; i++)
                     *((unsigned char *)0x0150 + i) = 0xFF;
                 delay(2);
             }
@@ -650,13 +652,14 @@ void mainLoop() {
                 delay(1);
             // Set the timer after the pause
             startTime[0] = getTimer();
+            startTime[1] = getTimer();
             continue;
         }
         // if X is pressed, exit to the main menu
         if (key == 'X')
             break;
         // if ENTER is pressed and both players are finished, exit to the main menu
-        if (key == 13 && gameOver[0] && gameOver[1])
+        if (key == 13 && gameOver[0] == TRUE && gameOver[1] == TRUE)
             break;
 
         if (!gameOver[0]) { // game in progress
@@ -701,7 +704,7 @@ void mainLoop() {
 
 
 // check if the new score is high enough to enter the top 6
-void checkScores(unsigned char player) {
+void checkScore(unsigned char player) {
     // indices: 0-1-2-3-4-5-[score p1]-[score p2]
     int i = player + 6;
     int j;
@@ -746,9 +749,9 @@ int main() {
         init();		
 		mainLoop();
 		// check the scores of the last game
-        checkScores(0);
+        checkScore(0);
         if (numPlayers > 0)
-            checkScores(1);
+            checkScore(1);
         // draw the scoreboard
         if (newScore) {
 		    cls(1);
