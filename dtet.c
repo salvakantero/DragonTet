@@ -16,6 +16,7 @@ use xroar to test:
 TODO
 ====
 - añadir 2º jugador simultaneo
+- cualquier tecla para volver al menú principal
 - joystick
 
 - función PLAY
@@ -182,7 +183,7 @@ void drawHeader(BOOL ingame, unsigned char shift) {
 void displayStatus() {
     unsigned char i;
     for (i = 0; i <= numPlayers; i++) {
-        if (gameOver[i] == TRUE) {
+        if (gameOver[i]) {
             locate(pitLeft[i], 8);
             printf("GAME OVER!");
         }
@@ -463,7 +464,7 @@ void drawHighScores() {
 void drawHelp() {
     cls(0);
     printf(                 "   DRAGON 1   ");
-    locate(0, 1);  printf(  " ============ ");
+    locate(0, 1);  printf(  "   ========   ");
     locate(0, 2);  printf(  " w ROTATE     ");
     locate(0, 3);  printf(  " s DROP       ");
     locate(0, 4);  printf(  " a MOVE LEFT  ");
@@ -474,7 +475,7 @@ void drawHelp() {
     locate(0, 9);  printf(  "              ");
 
     locate(18, 0); printf(  "   DRAGON 2   ");
-    locate(18, 1); printf(  " ============ ");
+    locate(18, 1); printf(  "   ========   ");
     locate(18, 2); printf(  " i ROTATE     ");
     locate(18, 3); printf(  " k DROP       ");
     locate(18, 4); printf(  " j MOVE LEFT  ");
@@ -616,9 +617,7 @@ void mainLoop() {
     unsigned char i;
 
     // save the start time
-    startTime[0] = getTimer();
-    if (numPlayers > 0)
-        startTime[1] = getTimer();
+    startTime[0] = startTime[1] = getTimer();
 
     while (TRUE) {
         // if the falling time has been exceeded
@@ -631,6 +630,7 @@ void mainLoop() {
 
         key = inkey(); // read keypresses
         
+        /*
         if (key == '\0') {
             if (autorepeatKeys == TRUE) { // auto-repeat
                 for (i = 0; i <= 9; i++)
@@ -638,7 +638,7 @@ void mainLoop() {
                 delay(2);
             }
             continue;
-        }
+        }*/
 
         // Pause
         if (key == 'H') { // empties the input buffer
@@ -647,15 +647,14 @@ void mainLoop() {
             while (inkey() == '\0')
                 delay(1);
             // Set the timer after the pause
-            startTime[0] = getTimer();
-            startTime[1] = getTimer();
+            startTime[0] = startTime[1] = getTimer();
             continue;
         }
         // if X is pressed, exit to the main menu
         if (key == 'X')
             break;
         // if ENTER is pressed and both players are finished, exit to the main menu
-        if (key == 13 && gameOver[0] == TRUE && gameOver[1] == TRUE)
+        if (key == 13 && gameOver[0] && gameOver[1])
             break;
 
         if (!gameOver[0]) { // game in progress
