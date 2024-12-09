@@ -47,7 +47,7 @@ TODO
 #define LINES_LEVEL 10 // lines per level
 
 char key = '\0'; // key pressed
-unsigned char numPlayers; // 0 = player1  1 = player2
+unsigned char numPlayers; // 0 = dragon1  1 = dragon2
 BOOL newScore = FALSE; // TRUE = redraws the best scores table
 BOOL gameOver[2] = {FALSE, FALSE}; // FALSE = game in progress, TRUE = finished
 int dropRate[2] = {0, 0}; // 0 = lower the shape one position
@@ -73,13 +73,11 @@ char names[8][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","", "
 unsigned int scores[8] = {2000, 1800, 1600, 1400, 1200, 1000, 0, 0};
 
 
-
 void printBlock(int x, int y, unsigned char ch) {
     // calculates the memory address based on X and Y coordinates
     unsigned char *screenPos = (unsigned char *)(SCREEN_BASE + y * SCREEN_WIDTH + x);
     *screenPos = ch; // write character to video memory
 }
-
 
 
 void drawBlock(unsigned char x, unsigned char y, char blockColour, unsigned char i) {
@@ -98,9 +96,8 @@ void drawBlock(unsigned char x, unsigned char y, char blockColour, unsigned char
 }
 
 
-
 void drawPit(unsigned char i) {
-    // loop through and repaint the contents of the pit (i = player pit)
+    // loop through and repaint the contents of the pit (i = dragon pit)
     for (unsigned char y = 0; y < PIT_HEIGHT; y++) {
         unsigned char rowOffset = y * PIT_WIDTH;
         for (unsigned char x = 0; x < PIT_WIDTH; x++)
@@ -109,8 +106,7 @@ void drawPit(unsigned char i) {
 }
 
 
-
-// check if a shape can move in the specified direction (i = player pit)
+// check if a shape can move in the specified direction (i = dragon pit)
 BOOL shapeCanMove(char *map, char xDir, char yDir, unsigned char i) {
     int x, y;
     // loop through all the blocks of the shape
@@ -202,13 +198,13 @@ void displayStatus() {
     }
     else {
         // player 1
-        locate(12, 0); printf("PLAYER 1");
+        locate(12, 0); printf("DRAGON 1");
         locate(11, 1); printf("LEVEL:  %2u", level[0]);
         locate(11, 2); printf("LINES: %3d", lines[0]);
         locate(11, 3); printf("SC: %6u", scores[6]);
         locate(11, 4); printf("NEXT:");
         // player 2
-        locate(12, 8);  printf("PLAYER 2");
+        locate(12, 8);  printf("DRAGON 2");
         locate(11, 9);  printf("LEVEL:  %2u", level[1]);
         locate(11, 10); printf("LINES: %3d", lines[1]);
         locate(11, 11); printf("SC: %6u", scores[7]);
@@ -466,7 +462,7 @@ void drawHighScores() {
 
 void drawHelp() {
     cls(0);
-    printf(                 "   PLAYER 1   ");
+    printf(                 "   DRAGON 1   ");
     locate(0, 1);  printf(  " ============ ");
     locate(0, 2);  printf(  " w ROTATE     ");
     locate(0, 3);  printf(  " s DROP       ");
@@ -477,7 +473,7 @@ void drawHelp() {
     locate(0, 8);  printf(  " + JOYSTICK1  ");
     locate(0, 9);  printf(  "              ");
 
-    locate(18, 0); printf(  "   PLAYER 2   ");
+    locate(18, 0); printf(  "   DRAGON 2   ");
     locate(18, 1); printf(  " ============ ");
     locate(18, 2); printf(  " i ROTATE     ");
     locate(18, 3); printf(  " k DROP       ");
@@ -539,8 +535,8 @@ void optionsMenu() {
 void drawMenu() {
 	cls(1);
     roundWindow(0, 31);
-	locate(8, 7);  printf("1) 1 PLAYER GAME");
-    locate(8, 8);  printf("2) 2 PLAYER GAME");
+	locate(8, 7);  printf("1) 1 DRAGON GAME");
+    locate(8, 8);  printf("2) 2 DRAGONS GAME");
     locate(8, 9);  printf("3) HIGH SCORES");
     locate(8, 10); printf("4) OPTIONS");
     locate(8, 11); printf("5) HELP");
@@ -715,7 +711,7 @@ void checkScore(unsigned char player) {
         //    locate(12, (unsigned char)j);
         //    printf("                   ");
         //}
-        locate(5, 12); printf("GOOD SCORE PLAYER %d", player + 1);
+        locate(5, 12); printf("GOOD SCORE DRAGON %d", player + 1);
         locate(5, 13); printf("NAME?:");
         //locate(4, 20);
 
