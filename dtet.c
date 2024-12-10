@@ -17,6 +17,7 @@ TODO
 ====
 - añadir 2º jugador simultaneo
 - cualquier tecla para volver al menú principal
+- menu con cursores/ENTER -> 45+62  <- 60+45
 - joystick
 
 - función PLAY
@@ -548,11 +549,13 @@ void drawMenu() {
 
 
 void menu() {
+    char opt = 0;
 	drawMenu();
+    printBlock(6, 7 + opt, 62);
     do {
         drawHeader(FALSE, colourShift++);
+        /*
         key = inkey();	
-
         switch (key) {
             case '1': // 1p start game
                 numPlayers = 0;
@@ -578,6 +581,45 @@ void menu() {
                 exit(0);
             default:
                 break;
+        }*/
+        key = inkey();
+        if (key == 10) { // cursor down
+            printBlock(6, 7 + opt, ' ');
+            if (opt++ > 4) opt = 0;
+            printBlock(6, 7 + opt, 62);
+        }
+        else if (key == 94) { // cursor up
+            printBlock(6, 7 + opt, ' ');
+            if (opt-- < 0) opt = 5;
+            printBlock(6, 7 + opt, 62);
+        }
+        else if (key == 13 || key == 32) { // enter or space bar
+            switch (opt) {
+                case 0: // 1p start game
+                    numPlayers = 0;
+                    return;
+                case 1: // 2p start game
+                    numPlayers = 1;
+                    return;
+                case 2: // high scores
+                    drawHighScores();
+                    drawMenu();
+                    break;
+                case 3: // options menu
+                    optionsMenu();
+                    drawMenu();
+                    break;
+                case 4: // show controls
+                    drawHelp();
+                    drawMenu();
+                    break;                
+                case 5: // bye
+                    cls(1);
+                    printf("THANKS FOR PLAYING DRAGONTET!\n");
+                    exit(0);
+                default:
+                    break;
+            }        
         }
         delay(2);
     } while (TRUE);
