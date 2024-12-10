@@ -17,7 +17,9 @@ TODO
 ====
 - añadir 2º jugador simultaneo
 - cualquier tecla para volver al menú principal
-- menu con cursores/ENTER -> 45+62  <- 60+45
+- menu con cursores/ENTER
+- todas las pantallas con CLS
+- redondeador de ventanas universal
 - joystick
 
 - función PLAY
@@ -452,7 +454,7 @@ void drawHighScores() {
         locate( 7, 7+pos); printf("%s", names[pos]);
         locate(20, 7+pos); printf("%5u", scores[pos]);
 	}
-	locate(3, 14); printf("PRESS ANY KEY TO CONTINUE!");
+	locate(2, 14); printf(" PRESS ANY KEY TO CONTINUE! ");
     while (TRUE) {
         if (inkey() != 0) break;
         drawHeader(FALSE, colourShift++);
@@ -492,6 +494,14 @@ void drawHelp() {
     waitkey(FALSE);
 }
 
+
+void drawMenuPointer(unsigned char x1, unsigned char x2, unsigned char y, 
+                     unsigned char offset, BOOL delete) {
+    unsigned char leftChar = delete ? 143 : 62; // empty block : left arrow
+    unsigned char rightChar = delete ? 143 : 60; // empty block : right arrow
+    printBlock(x1, y + offset, leftChar);
+    printBlock(x2, y + offset, rightChar);
+}
 
 
 void drawOptionsMenu() {
@@ -533,68 +543,39 @@ void optionsMenu() {
 }
 
 
-
 void drawMenu() {
 	cls(1);
     roundWindow(0, 31);
-	locate(8, 7);  printf("1) 1 DRAGON GAME");
-    locate(8, 8);  printf("2) 2 DRAGONS GAME");
-    locate(8, 9);  printf("3) HIGH SCORES");
-    locate(8, 10); printf("4) OPTIONS");
-    locate(8, 11); printf("5) HELP");
-    locate(8, 12); printf("6) EXIT");
-    locate(7, 14); printf("SELECT OPTION (1-6)");
+	locate(9, 7);  printf("1 DRAGON GAME");
+    locate(9, 8);  printf("2 DRAGONS GAME");
+    locate(9, 9);  printf("HIGH SCORES");
+    locate(9, 10); printf("OPTIONS");
+    locate(9, 11); printf("HELP");
+    locate(9, 12); printf("EXIT");
+    locate(2, 14); printf("SELECT OPTION (CURSOR/ENTER)");
 }
 
 
-
 void menu() {
-    char opt = 0;
+    char optNumber = 0;
 	drawMenu();
-    printBlock(6, 7 + opt, 62);
+    drawMenuPointer(7, 25, 7, optNumber, FALSE);
     do {
         drawHeader(FALSE, colourShift++);
-        /*
-        key = inkey();	
-        switch (key) {
-            case '1': // 1p start game
-                numPlayers = 0;
-                return;
-            case '2': // 2p start game
-                numPlayers = 1;
-                return;
-            case '3': // high scores
-                drawHighScores();
-                drawMenu();
-                break;
-            case '4': // options menu
-                optionsMenu();
-                drawMenu();
-                break;
-            case '5': // show controls
-                drawHelp();
-                drawMenu();
-                break;                
-            case '6': // bye
-			    cls(1);
-                printf("THANKS FOR PLAYING DRAGONTET!\n");
-                exit(0);
-            default:
-                break;
-        }*/
         key = inkey();
         if (key == 10) { // cursor down
-            printBlock(6, 7 + opt, ' ');
-            if (opt++ > 4) opt = 0;
-            printBlock(6, 7 + opt, 62);
+            drawMenuPointer(7, 25, 7, optNumber, TRUE);
+            if (optNumber++ == 5) optNumber = 0;
+            drawMenuPointer(7, 25, 7, optNumber, FALSE);
         }
         else if (key == 94) { // cursor up
-            printBlock(6, 7 + opt, ' ');
-            if (opt-- < 0) opt = 5;
-            printBlock(6, 7 + opt, 62);
+            drawMenuPointer(7, 25, 7, optNumber, TRUE);
+            if (optNumber-- == 0) optNumber = 5;
+            drawMenuPointer(7, 25, 7, optNumber, FALSE);
         }
         else if (key == 13 || key == 32) { // enter or space bar
-            switch (opt) {
+            drawMenuPointer(7, 25, 7, optNumber, TRUE);
+            switch (optNumber) {
                 case 0: // 1p start game
                     numPlayers = 0;
                     return;
@@ -604,14 +585,17 @@ void menu() {
                 case 2: // high scores
                     drawHighScores();
                     drawMenu();
+                    drawMenuPointer(7, 25, 7, optNumber, FALSE);
                     break;
                 case 3: // options menu
                     optionsMenu();
                     drawMenu();
+                    drawMenuPointer(7, 25, 7, optNumber, FALSE);
                     break;
                 case 4: // show controls
                     drawHelp();
                     drawMenu();
+                    drawMenuPointer(7, 25, 7, optNumber, FALSE);
                     break;                
                 case 5: // bye
                     cls(1);
@@ -624,7 +608,6 @@ void menu() {
         delay(2);
     } while (TRUE);
 }
-
 
 
 // logic to initialize the system and pits
@@ -672,7 +655,6 @@ void mainLoop() {
 
         key = inkey(); // read keypresses
         
-        /*
         if (key == '\0') {
             if (autorepeatKeys == TRUE) { // auto-repeat
                 for (i = 0; i <= 9; i++)
@@ -680,7 +662,7 @@ void mainLoop() {
                 delay(2);
             }
             continue;
-        }*/
+        }
 
         // Pause
         if (key == 'H') { // empties the input buffer
