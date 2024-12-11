@@ -17,7 +17,6 @@ TODO
 ====
 - añadir 2º jugador simultaneo
 - cualquier tecla para volver al menú principal
-- todas las pantallas con CLS
 - joystick
 
 - función PLAY
@@ -667,7 +666,7 @@ void mainLoop() {
             if (autorepeatKeys == TRUE) { // auto-repeat
                 for (i = 0; i <= 9; i++)
                     *((unsigned char *)0x0150 + i) = 0xFF;
-                delay(2);
+                if (dropRate[0] != 0) delay(3);
             }
             continue;
         }
