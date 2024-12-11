@@ -69,8 +69,8 @@ unsigned char colourShift = 0; // colour shift effect in the title
 BOOL markedPit = TRUE; // enables/disables the marks in the pit (options menu)
 BOOL autorepeatKeys = FALSE; // enables/disables the auto-repeat of keys (options menu)
 
-// pos 0-4: fake values for the initial TOP 5
-// pos 5: values for the current game
+// pos 0-5: fake values for the initial TOP 6
+// pos 6-7: values for the current game
 char names[8][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","", ""};
 unsigned int scores[8] = {2000, 1800, 1600, 1400, 1200, 1000, 0, 0};
 
@@ -445,13 +445,15 @@ void roundWindow(int ulx, int uly, int brx, int bry, unsigned char offset) {
 
 
 void drawHighScores() {
+    cls(1);
+    roundWindow(0, 0, 31, 15, 80);   
 	// TOP 6 position (0-5)
     for(unsigned char pos = 0; pos < 6; pos++) {
         locate( 8, 7+pos); printf(".............");
         locate( 7, 7+pos); printf("%s", names[pos]);
         locate(20, 7+pos); printf("%5u", scores[pos]);
 	}
-	locate(2, 14); printf(" PRESS ANY KEY TO CONTINUE! ");
+	locate(3, 14); printf("PRESS ANY KEY TO CONTINUE!");
     while (TRUE) {
         if (inkey() != 0) break;
         drawHeader(FALSE, colourShift++);
