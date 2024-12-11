@@ -17,9 +17,7 @@ TODO
 ====
 - añadir 2º jugador simultaneo
 - cualquier tecla para volver al menú principal
-- menu con cursores/ENTER
 - todas las pantallas con CLS
-- redondeador de ventanas universal
 - joystick
 
 - función PLAY
@@ -436,21 +434,20 @@ void dropShape(unsigned char i) {
 }
 
 
-
-// rounds the text window
-void roundWindow(int ulx, int urx) {
-    printBlock(ulx, 0, 129); // upper left corner
-    printBlock(urx, 0, 130); // upper right corner
-    printBlock(ulx, 15, 132); // bottom left corner
-    printBlock(urx, 15, 136); // bottom right corner
+// Rounds the text window by drawing the corners
+// +16:yellow +32:blue +48:red +64:white +80:cyan +96:magenta +112:orange 
+void roundWindow(int ulx, int uly, int brx, int bry, unsigned char offset) {
+    printBlock(ulx, uly, 129 + offset); // upper left corner
+    printBlock(brx, uly, 130 + offset); // upper right corner
+    printBlock(ulx, bry, 132 + offset); // bottom left corner
+    printBlock(brx, bry, 136 + offset); // bottom right corner
 }
-
 
 
 void drawHighScores() {
 	// TOP 6 position (0-5)
     for(unsigned char pos = 0; pos < 6; pos++) {
-        locate( 8, 7+pos); printf("...............");
+        locate( 8, 7+pos); printf(".............");
         locate( 7, 7+pos); printf("%s", names[pos]);
         locate(20, 7+pos); printf("%5u", scores[pos]);
 	}
@@ -463,11 +460,10 @@ void drawHighScores() {
 }
 
 
-
 void drawHelp() {
     cls(0);
-    printf(                 "   DRAGON 1   ");
-    locate(0, 1);  printf(  "   ========   ");
+    printf(                 "  =DRAGON 1=  ");
+    locate(0, 1);  printf(  "              ");
     locate(0, 2);  printf(  " w ROTATE     ");
     locate(0, 3);  printf(  " s DROP       ");
     locate(0, 4);  printf(  " a MOVE LEFT  ");
@@ -477,8 +473,8 @@ void drawHelp() {
     locate(0, 8);  printf(  " + JOYSTICK1  ");
     locate(0, 9);  printf(  "              ");
 
-    locate(18, 0); printf(  "   DRAGON 2   ");
-    locate(18, 1); printf(  "   ========   ");
+    locate(18, 0); printf(  "  =DRAGON 2=  ");
+    locate(18, 1); printf(  "              ");
     locate(18, 2); printf(  " i ROTATE     ");
     locate(18, 3); printf(  " k DROP       ");
     locate(18, 4); printf(  " j MOVE LEFT  ");
@@ -490,27 +486,27 @@ void drawHelp() {
     locate(0, 11); printf(" X = CANCEL/RETURN TO MAIN MENU ");
     locate(0, 12); printf(" H = PAUSE THE GAME             ");
 	locate(0, 14); printf("   PRESS ANY KEY TO CONTINUE!   ");
+
+    roundWindow(0, 0, 13, 9, 64);
+    roundWindow(18, 0, 31, 8, 64);
     screen(0,1);
     waitkey(FALSE);
 }
 
 
-void drawMenuPointer(unsigned char x1, unsigned char x2, unsigned char y, 
-                     unsigned char offset, BOOL delete) {
-    unsigned char leftChar = delete ? 143 : 62; // empty block : left arrow
-    unsigned char rightChar = delete ? 143 : 60; // empty block : right arrow
-    printBlock(x1, y + offset, leftChar);
-    printBlock(x2, y + offset, rightChar);
+void drawMenuPtr(unsigned char x, unsigned char y, unsigned char offset, BOOL delete) {
+    unsigned char pointer = delete ? 143 : 62; // empty block : arrow
+    printBlock(x, y + offset, pointer);
 }
 
 
 void drawOptionsMenu() {
 	cls(1);
-    roundWindow(0, 31);
-	locate(4, 8);  printf("1) AUTOREPEAT KEYS:");
-    locate(4, 9);  printf("2) MARKED PIT:");
-    locate(4, 10); printf("3) BACK");
-    locate(7, 14); printf("SELECT OPTION (1-3)");
+    roundWindow(0, 0, 31, 15, 80);
+	locate(8, 8);  printf("AUTOREPEAT KEYS:");
+    locate(8, 9);  printf("MARKED PIT:");
+    locate(8, 10); printf("BACK");
+    locate(2, 14); printf("SELECT OPTION (CURSOR/ENTER)");
     // on/off switches
     locate(25, 8);
     if (autorepeatKeys) printf("on ");
@@ -521,37 +517,51 @@ void drawOptionsMenu() {
 }
 
 
-
 void optionsMenu() {
+    char optNumber = 0;
     drawOptionsMenu();
-    while (TRUE) {
+    drawMenuPtr(6, 8, optNumber, FALSE);
+    do {
         drawHeader(FALSE, colourShift++);
-        key = inkey();		
-        if (key == '1')	{
-            autorepeatKeys = !autorepeatKeys;
-            drawOptionsMenu();
+        key = inkey();
+        if (key == 10) { // cursor down
+            drawMenuPtr(6, 8, optNumber, TRUE);
+            if (optNumber++ == 2) optNumber = 0;
+            drawMenuPtr(6, 8, optNumber, FALSE);
         }
-        else if (key == '2') {	
-            markedPit = !markedPit;
-            drawOptionsMenu();
+        else if (key == 94) { // cursor up
+            drawMenuPtr(6, 8, optNumber, TRUE);
+            if (optNumber-- == 0) optNumber = 2;
+            drawMenuPtr(6, 8, optNumber, FALSE);
         }
-		else if (key == '3') { // back	
-            break;
-        } 
+        else if (key == 13 || key == 32) { // enter or space bar
+            switch(optNumber) {
+                case 0:
+                    autorepeatKeys = !autorepeatKeys;                
+                    break;
+                case 1:
+                    markedPit = !markedPit;
+                    break;
+                case 2:
+                    return;
+            }
+            drawOptionsMenu();
+            drawMenuPtr(6, 8, optNumber, FALSE);
+        }
         delay(2);
-    }
+    } while (TRUE);
 }
 
 
 void drawMenu() {
 	cls(1);
-    roundWindow(0, 31);
-	locate(9, 7);  printf("1 DRAGON GAME");
-    locate(9, 8);  printf("2 DRAGONS GAME");
-    locate(9, 9);  printf("HIGH SCORES");
-    locate(9, 10); printf("OPTIONS");
-    locate(9, 11); printf("HELP");
-    locate(9, 12); printf("EXIT");
+    roundWindow(0, 0, 31, 15, 80);
+	locate(10, 7);  printf("1 DRAGON GAME");
+    locate(10, 8);  printf("2 DRAGONS GAME");
+    locate(10, 9);  printf("HIGH SCORES");
+    locate(10, 10); printf("OPTIONS");
+    locate(10, 11); printf("HELP");
+    locate(10, 12); printf("EXIT");
     locate(2, 14); printf("SELECT OPTION (CURSOR/ENTER)");
 }
 
@@ -559,22 +569,22 @@ void drawMenu() {
 void menu() {
     char optNumber = 0;
 	drawMenu();
-    drawMenuPointer(7, 25, 7, optNumber, FALSE);
+    drawMenuPtr(8, 7, optNumber, FALSE);
     do {
         drawHeader(FALSE, colourShift++);
         key = inkey();
         if (key == 10) { // cursor down
-            drawMenuPointer(7, 25, 7, optNumber, TRUE);
+            drawMenuPtr(8, 7, optNumber, TRUE);
             if (optNumber++ == 5) optNumber = 0;
-            drawMenuPointer(7, 25, 7, optNumber, FALSE);
+            drawMenuPtr(8, 7, optNumber, FALSE);
         }
         else if (key == 94) { // cursor up
-            drawMenuPointer(7, 25, 7, optNumber, TRUE);
+            drawMenuPtr(8, 7, optNumber, TRUE);
             if (optNumber-- == 0) optNumber = 5;
-            drawMenuPointer(7, 25, 7, optNumber, FALSE);
+            drawMenuPtr(8, 7, optNumber, FALSE);
         }
         else if (key == 13 || key == 32) { // enter or space bar
-            drawMenuPointer(7, 25, 7, optNumber, TRUE);
+            drawMenuPtr(8, 7, optNumber, TRUE);
             switch (optNumber) {
                 case 0: // 1p start game
                     numPlayers = 0;
@@ -584,18 +594,12 @@ void menu() {
                     return;
                 case 2: // high scores
                     drawHighScores();
-                    drawMenu();
-                    drawMenuPointer(7, 25, 7, optNumber, FALSE);
                     break;
                 case 3: // options menu
                     optionsMenu();
-                    drawMenu();
-                    drawMenuPointer(7, 25, 7, optNumber, FALSE);
                     break;
                 case 4: // show controls
                     drawHelp();
-                    drawMenu();
-                    drawMenuPointer(7, 25, 7, optNumber, FALSE);
                     break;                
                 case 5: // bye
                     cls(1);
@@ -603,7 +607,9 @@ void menu() {
                     exit(0);
                 default:
                     break;
-            }        
+            }   
+            drawMenu();
+            drawMenuPtr(8, 7, optNumber, FALSE);     
         }
         delay(2);
     } while (TRUE);
@@ -615,7 +621,7 @@ void init() {
     setTimer(0);
     menu();
 	cls(1); // green screen
-    roundWindow(PIT_WIDTH, pitLeft[1]-1);
+    roundWindow(PIT_WIDTH, 0, pitLeft[1]-1, 15, 0);
     for (unsigned char i = 0; i < 2; i++) {
         gameOver[i] = FALSE; // game in progress
         level[i] = 1; // initial level
