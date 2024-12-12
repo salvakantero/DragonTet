@@ -16,7 +16,6 @@ use xroar to test:
 TODO
 ====
 - añadir 2º jugador simultaneo
-- cualquier tecla para volver al menú principal
 - joystick
 
 - función PLAY
@@ -135,7 +134,6 @@ BOOL shapeCanMove(char *map, char xDir, char yDir, unsigned char i) {
 }
 
 
-
 void drawNextShape(unsigned char y, unsigned char i) {
     // loop through all the blocks of the shape (4x4 grid)
     for (unsigned char blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
@@ -149,7 +147,6 @@ void drawNextShape(unsigned char y, unsigned char i) {
         }
     }
 }
-
 
 
 void drawHeader(BOOL ingame, unsigned char shift) {
@@ -177,7 +174,6 @@ void drawHeader(BOOL ingame, unsigned char shift) {
         locate(x, 5); printf("SALVAKANTERO 2025");
     }
 }
-
 
 
 void displayStatus() {
@@ -216,7 +212,6 @@ void displayStatus() {
 }
 
 
-
 const char* getShapeMap(unsigned char shape) {
     static const char* shapeMaps[] = {
         "0000444400000000", // | red
@@ -229,7 +224,6 @@ const char* getShapeMap(unsigned char shape) {
     };
     return shapeMaps[shape];
 }
-
 
 
 void getRotatedShapeMap(unsigned char shape, unsigned char angle, char *rotatedMap) {
@@ -266,12 +260,10 @@ void getRotatedShapeMap(unsigned char shape, unsigned char angle, char *rotatedM
 }
 
 
-
 void createNextShape(unsigned char i) {
 	nextShape[i] = (unsigned char) rand() % 7; // shape type (0 to 6)
     strncpy(nextShapeMap[i], getShapeMap(nextShape[i]), BLOCK_SIZE);
 }
-
 
 
 void createShape(unsigned char i) {
@@ -297,7 +289,6 @@ void createShape(unsigned char i) {
     // generates the next shape
     createNextShape(i);
 }
-
 
 
 void drawShape(BOOL eraseShape, unsigned char i) {
@@ -328,7 +319,6 @@ void drawShape(BOOL eraseShape, unsigned char i) {
 }
 
 
-
 void removeFullRow(unsigned char removedRow, unsigned char i) {
     unsigned char x, y;
     char blockColour;
@@ -350,7 +340,6 @@ void removeFullRow(unsigned char removedRow, unsigned char i) {
     for (x = 0; x < PIT_WIDTH; x++)
         pit[i][x] = NO_BLOCK;
 }
-
 
 
 void checkForFullRows(unsigned char i) { // searches for full rows
@@ -389,7 +378,6 @@ void checkForFullRows(unsigned char i) { // searches for full rows
 }
 
 
-
 void settleActiveShapeInPit(unsigned char i) {
     int x, y;
     char blockColour;
@@ -405,7 +393,6 @@ void settleActiveShapeInPit(unsigned char i) {
         }
     }
 }
-
 
 
 void dropShape(unsigned char i) {
@@ -643,7 +630,6 @@ void init() {
 }
 
 
-
 void mainLoop() {
     unsigned char newAngle = 0;
     unsigned char i;
@@ -663,10 +649,10 @@ void mainLoop() {
         key = inkey(); // read keypresses
         
         if (key == '\0') {
-            if (autorepeatKeys == TRUE) { // auto-repeat
+            if (autorepeatKeys == TRUE && dropRate[0] != 0) { // auto-repeat
                 for (i = 0; i <= 9; i++)
                     *((unsigned char *)0x0150 + i) = 0xFF;
-                if (dropRate[0] != 0) delay(3);
+                delay(3);
             }
             continue;
         }
@@ -681,11 +667,12 @@ void mainLoop() {
             startTime[0] = startTime[1] = getTimer();
             continue;
         }
-        // if X is pressed, exit to the main menu
+        // press x to exit to the main menu at any time
         if (key == 'X')
             break;
-        // if ENTER is pressed and both players are finished, exit to the main menu
-        if (key == 13 && gameOver[0] && gameOver[1])
+
+        // pressing enter or space will take you to the main menu only if the game is over.
+        if ((key == 13 || key == 32) && gameOver[0])
             break;
 
         if (!gameOver[0]) { // game in progress
@@ -728,7 +715,6 @@ void mainLoop() {
 }
 
 
-
 // check if the new score is high enough to enter the top 6
 void checkScore(unsigned char player) {
     // indices: 0-1-2-3-4-5-[score p1]-[score p2]
@@ -766,7 +752,6 @@ void checkScore(unsigned char player) {
         newScore = TRUE; // the score table has been updated
     }
 }
-
 
 
 int main() {
