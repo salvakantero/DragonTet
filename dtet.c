@@ -671,7 +671,8 @@ void mainLoop() {
         if (key == 'X')
             break;
 
-        // pressing enter or space will take you to the main menu only if the game is over.
+        // pressing enter or space will take you to the 
+        // main menu only if the game is over
         if ((key == 13 || key == 32) && gameOver[0])
             break;
 
@@ -710,6 +711,11 @@ void mainLoop() {
                     dropRate[0] = 0;
                     break;
             }
+
+            const byte *joystickPositions = readJoystickPositions();
+            locate(12,15);
+            printf("H: %d, V: %d\n", joystickPositions[JOYSTK_LEFT_HORIZ], joystickPositions[JOYSTK_LEFT_VERT]);
+            delay(20);  // Añade un pequeño retraso para evitar que el texto se desborde.
         }
     }
 }
