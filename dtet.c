@@ -16,7 +16,7 @@ use xroar to test:
 TODO
 ====
 - añadir 2º jugador simultaneo
-- joystick
+- pedir nombre de mejor puntuación
 
 - función PLAY
 - efectos FX
@@ -630,6 +630,7 @@ void init() {
 }
 
 
+/*
 void mainLoop() {
     unsigned char newAngle = 0;
     unsigned char i;
@@ -638,13 +639,7 @@ void mainLoop() {
     startTime[0] = startTime[1] = getTimer();
 
     while (TRUE) {
-        // if the falling time has been exceeded
-        //for (i = 0; i <= numPlayers; i++) {
-            if (!gameOver[0] && getTimer() >= startTime[0] + dropRate[0]) {
-                dropShape(0); // the shape moves down
-                startTime[0] = getTimer(); // reset the fall timer
-            }
-        //}
+        const byte *joystickPositions = readJoystickPositions();
 
         key = inkey(); // read keypresses
         
@@ -654,25 +649,57 @@ void mainLoop() {
                     *((unsigned char *)0x0150 + i) = 0xFF;
                 delay(3);
             }
+            // if the falling time has been exceeded
+            if (!gameOver[0] && getTimer() >= startTime[0] + dropRate[0]) {
+                dropShape(0); // the shape moves down
+                startTime[0] = getTimer(); // reset the fall timer
+            }
+
+            // Handle joystick input even if no key is pressed
+            if (!gameOver[0]) {
+                if (joystickPositions[JOYSTK_LEFT_VERT] < 16) { // Joystick up
+                    newAngle = (shapeAngle[0] == 3) ? 0 : shapeAngle[0] + 1;
+                    getRotatedShapeMap(shape[0], newAngle, rotatedMap[0]);
+                    if (shapeCanMove(rotatedMap[0], 0, 0, 0)) {
+                        shapeAngle[0] = newAngle;
+                        drawShape(TRUE, 0); // erase shape
+                        strncpy(shapeMap[0], rotatedMap[0], BLOCK_SIZE);
+                        drawShape(FALSE, 0);
+                    }
+                } else if (joystickPositions[JOYSTK_LEFT_VERT] > 48) { // Joystick down
+                    dropRate[0] = 0;
+                }
+
+                if (joystickPositions[JOYSTK_LEFT_HORIZ] < 16) { // Joystick left
+                    if (shapeCanMove(shapeMap[0], -1, 0, 0)) {
+                        drawShape(TRUE, 0); // erase shape
+                        shapeX[0]--;
+                        drawShape(FALSE, 0);
+                    }
+                } else if (joystickPositions[JOYSTK_LEFT_HORIZ] > 48) { // Joystick right
+                    if (shapeCanMove(shapeMap[0], 1, 0, 0)) {
+                        drawShape(TRUE, 0); // erase shape
+                        shapeX[0]++;
+                        drawShape(FALSE, 0);
+                    }
+                }
+            }
             continue;
         }
 
-        // Pause
-        if (key == 'H') { // empties the input buffer
-            while (inkey() != '\0');
-            // Wait until a key is pressed to exit the pause.
-            while (inkey() == '\0')
+        // pause
+        if (key == 'H') {
+            while (inkey() != '\0'); // empties the input buffer            
+            while (inkey() == '\0') // wait until a key is pressed
                 delay(1);
-            // Set the timer after the pause
+            // reset the timer after the pause
             startTime[0] = startTime[1] = getTimer();
             continue;
         }
         // press x to exit to the main menu at any time
-        if (key == 'X')
+        if (key == 'C')
             break;
-
-        // pressing enter or space will take you to the 
-        // main menu only if the game is over
+        // pressing enter or space will take you to the main menu only if the game is over.
         if ((key == 13 || key == 32) && gameOver[0])
             break;
 
@@ -711,11 +738,76 @@ void mainLoop() {
                     dropRate[0] = 0;
                     break;
             }
+        }
+    }
+}*/
 
-            const byte *joystickPositions = readJoystickPositions();
-            locate(12,15);
-            printf("H: %d, V: %d\n", joystickPositions[JOYSTK_LEFT_HORIZ], joystickPositions[JOYSTK_LEFT_VERT]);
-            delay(20);  // Añade un pequeño retraso para evitar que el texto se desborde.
+
+void mainLoop() {
+    unsigned char newAngle = 0;
+    unsigned char i;
+
+    // save the start time
+    startTime[0] = startTime[1] = getTimer();
+
+    while (TRUE) {
+        const byte *joystickPositions = readJoystickPositions();
+        key = inkey(); // read keypresses
+
+        // handle auto-repeat for keys
+        if (key == '\0' && autorepeatKeys && dropRate[0] != 0) {
+            for (i = 0; i <= 9; i++) 
+                *((unsigned char *)0x0150 + i) = 0xFF;
+            delay(3);
+        }
+
+        // check for pause, exit, or game over actions
+        if (key == 'H') { // pause
+            while (inkey() != '\0'); // clear input buffer
+            while (inkey() == '\0') delay(1); // wait for key press
+            startTime[0] = startTime[1] = getTimer(); // reset timers
+            continue;
+        } else if (key == 'C') { // exit to main menu
+            break;
+        } else if ((key == 13 || key == 32) && gameOver[0]) { // Enter/space after game over
+            break;
+        }
+
+        // check for shape movement and rotation (key or joystick)
+        if (!gameOver[0]) {
+            if (key == 'W' || key == 94 || joystickPositions[JOYSTK_LEFT_VERT] < 16) { // rotate
+                newAngle = (shapeAngle[0] + 1) % 4;
+                getRotatedShapeMap(shape[0], newAngle, rotatedMap[0]);
+                if (shapeCanMove(rotatedMap[0], 0, 0, 0)) {
+                    shapeAngle[0] = newAngle;
+                    drawShape(TRUE, 0); // erase shape
+                    strncpy(shapeMap[0], rotatedMap[0], BLOCK_SIZE);
+                    drawShape(FALSE, 0); // redraw shape
+                }
+            } 
+            else if (key == 'A' || key == 8 || joystickPositions[JOYSTK_LEFT_HORIZ] < 16) { // move left
+                if (shapeCanMove(shapeMap[0], -1, 0, 0)) {
+                    drawShape(TRUE, 0); // erase shape
+                    shapeX[0]--;
+                    drawShape(FALSE, 0); // redraw shape
+                }
+            } 
+            else if (key == 'D' || key == 9 || joystickPositions[JOYSTK_LEFT_HORIZ] > 48) { // move right
+                if (shapeCanMove(shapeMap[0], 1, 0, 0)) {
+                    drawShape(TRUE, 0); // erase shape
+                    shapeX[0]++;
+                    drawShape(FALSE, 0); // redraw shape
+                }
+            }
+            else if (key == 'S' || key == 10 || joystickPositions[JOYSTK_LEFT_VERT] > 48) { // fast drop
+                dropRate[0] = 0;
+            }
+
+            // Check if the falling time has been exceeded
+            if (getTimer() >= startTime[0] + dropRate[0]) {
+                dropShape(0); // Shape moves down
+                startTime[0] = getTimer(); // Reset fall timer
+            }
         }
     }
 }
