@@ -16,7 +16,7 @@ use xroar to test:
 TODO
 ====
 - añadir 2º jugador simultaneo
-- pedir nombre de mejor puntuación
+- añadir basurilla a partir del nivel 4
 
 - función PLAY
 - efectos FX
@@ -154,23 +154,22 @@ void drawHeader(BOOL ingame, unsigned char shift) {
     const unsigned char colours[] = {2, 3, 4, 5, 6, 7, 8}; // colours available, excluding green
     unsigned char colourCount = sizeof(colours) / sizeof(colours[0]);
     unsigned char x = ingame ? 11 : 8;
+    unsigned char y = ingame ? 2 : 1;
     unsigned char width = ingame ? 10 : 17;
 
     for (unsigned char pos = 0; pos < width; pos++) {
         // colour for the top line (to the left).
         colour = colours[(pos + shift) % colourCount];
-        printBlock(x + pos, 1, FILLED_BLOCK + ((colour - 1) << 4)); // <<4 = x16
+        printBlock(x + pos, y, FILLED_BLOCK + ((colour - 1) << 4)); // <<4 = x16
         // colour for the bottom line (to the right)
         colour = colours[(pos + colourCount - shift) % colourCount];
-        printBlock(x + pos, 3, FILLED_BLOCK + ((colour - 1) << 4));
+        printBlock(x + pos, y+2, FILLED_BLOCK + ((colour - 1) << 4));
     }
     if (ingame) {
-        locate(x, 2); printf("DRAGONTET!");
-        locate(x - 1, 5); printf("SALVAKANTERO");
-        locate(x + 3, 6); printf("2025");
+        locate(x, y+1); printf("DRAGONTET!");
     }
     else {
-        locate(x, 2); printf("D R A G O N T E T");
+        locate(x, y+1); printf("D R A G O N T E T");
         locate(x, 5); printf("SALVAKANTERO 2025");
     }
 }
@@ -186,12 +185,12 @@ void displayStatus() {
     }
     if (numPlayers == 0) {
         drawHeader(TRUE, ++colourShift);
-        locate(11, 8);  printf("LEVEL:  %2u", level[0]);
-        locate(11, 9); printf("LINES: %3d", lines[0]);
-        locate(11, 10); printf("SC: %6u", scores[6]);
-        locate(11, 11); printf("HI: %6u", scores[0]);
+        locate(11, 6);  printf("LEVEL:  %2u", level[0]);
+        locate(11, 7); printf("LINES: %3d", lines[0]);
+        locate(11, 8); printf("SC: %6u", scores[6]);
+        locate(11, 9); printf("HI: %6u", scores[0]);
         locate(11, 12); printf("NEXT:");
-        drawNextShape(12, 0);
+        drawNextShape(11, 0);
     }
     else {
         // player 1
@@ -374,6 +373,11 @@ void checkForFullRows(unsigned char i) { // searches for full rows
         // updates the total completed rows and calculates the level
         lines[i] += numLines;
         level[i] = (unsigned char)(lines[i] / LINES_LEVEL) + 1;
+
+        // generates a trap block
+        if (level > 3 and numLines > 1) {
+            
+        }
     }
 }
 
@@ -630,119 +634,6 @@ void init() {
 }
 
 
-/*
-void mainLoop() {
-    unsigned char newAngle = 0;
-    unsigned char i;
-
-    // save the start time
-    startTime[0] = startTime[1] = getTimer();
-
-    while (TRUE) {
-        const byte *joystickPositions = readJoystickPositions();
-
-        key = inkey(); // read keypresses
-        
-        if (key == '\0') {
-            if (autorepeatKeys == TRUE && dropRate[0] != 0) { // auto-repeat
-                for (i = 0; i <= 9; i++)
-                    *((unsigned char *)0x0150 + i) = 0xFF;
-                delay(3);
-            }
-            // if the falling time has been exceeded
-            if (!gameOver[0] && getTimer() >= startTime[0] + dropRate[0]) {
-                dropShape(0); // the shape moves down
-                startTime[0] = getTimer(); // reset the fall timer
-            }
-
-            // Handle joystick input even if no key is pressed
-            if (!gameOver[0]) {
-                if (joystickPositions[JOYSTK_LEFT_VERT] < 16) { // Joystick up
-                    newAngle = (shapeAngle[0] == 3) ? 0 : shapeAngle[0] + 1;
-                    getRotatedShapeMap(shape[0], newAngle, rotatedMap[0]);
-                    if (shapeCanMove(rotatedMap[0], 0, 0, 0)) {
-                        shapeAngle[0] = newAngle;
-                        drawShape(TRUE, 0); // erase shape
-                        strncpy(shapeMap[0], rotatedMap[0], BLOCK_SIZE);
-                        drawShape(FALSE, 0);
-                    }
-                } else if (joystickPositions[JOYSTK_LEFT_VERT] > 48) { // Joystick down
-                    dropRate[0] = 0;
-                }
-
-                if (joystickPositions[JOYSTK_LEFT_HORIZ] < 16) { // Joystick left
-                    if (shapeCanMove(shapeMap[0], -1, 0, 0)) {
-                        drawShape(TRUE, 0); // erase shape
-                        shapeX[0]--;
-                        drawShape(FALSE, 0);
-                    }
-                } else if (joystickPositions[JOYSTK_LEFT_HORIZ] > 48) { // Joystick right
-                    if (shapeCanMove(shapeMap[0], 1, 0, 0)) {
-                        drawShape(TRUE, 0); // erase shape
-                        shapeX[0]++;
-                        drawShape(FALSE, 0);
-                    }
-                }
-            }
-            continue;
-        }
-
-        // pause
-        if (key == 'H') {
-            while (inkey() != '\0'); // empties the input buffer            
-            while (inkey() == '\0') // wait until a key is pressed
-                delay(1);
-            // reset the timer after the pause
-            startTime[0] = startTime[1] = getTimer();
-            continue;
-        }
-        // press x to exit to the main menu at any time
-        if (key == 'C')
-            break;
-        // pressing enter or space will take you to the main menu only if the game is over.
-        if ((key == 13 || key == 32) && gameOver[0])
-            break;
-
-        if (!gameOver[0]) { // game in progress
-            switch (key) {
-                case 'W': // rotate key 
-                case 94: // cursor up                     
-                    // reset the angle or increase it by 90 degrees
-                    newAngle = (shapeAngle[0] == 3) ? 0 : shapeAngle[0] + 1;
-                    getRotatedShapeMap(shape[0], newAngle, rotatedMap[0]);
-                    if (shapeCanMove(rotatedMap[0], 0, 0, 0)) {
-                        shapeAngle[0] = newAngle;
-                        drawShape(TRUE, 0); // erase shape                            
-                        strncpy(shapeMap[0], rotatedMap[0], BLOCK_SIZE);
-                        drawShape(FALSE, 0);
-                    }                         
-                    break;
-                case 'A': // move left
-                case 8: // cursor left
-                    if (shapeCanMove(shapeMap[0], -1, 0, 0)) {
-                        drawShape(TRUE, 0); // erase shape
-                        shapeX[0]--;
-                        drawShape(FALSE, 0);
-                    }
-                    break;
-                case 'D': // move right
-                case 9: // cursor right
-                    if (shapeCanMove(shapeMap[0], 1, 0, 0)) {
-                        drawShape(TRUE, 0); // erase shape
-                        shapeX[0]++;
-                        drawShape(FALSE, 0);
-                    }
-                    break;
-                case 'S': // set the descent time to 0
-                case 10: // cursor down
-                    dropRate[0] = 0;
-                    break;
-            }
-        }
-    }
-}*/
-
-
 void mainLoop() {
     unsigned char newAngle = 0;
     unsigned char i;
@@ -802,11 +693,10 @@ void mainLoop() {
             else if (key == 'S' || key == 10 || joystickPositions[JOYSTK_LEFT_VERT] > 48) { // fast drop
                 dropRate[0] = 0;
             }
-
-            // Check if the falling time has been exceeded
+            // check if the falling time has been exceeded
             if (getTimer() >= startTime[0] + dropRate[0]) {
-                dropShape(0); // Shape moves down
-                startTime[0] = getTimer(); // Reset fall timer
+                dropShape(0); // shape moves down
+                startTime[0] = getTimer(); // reset fall timer
             }
         }
     }
@@ -821,13 +711,12 @@ void checkScore(unsigned char player) {
     newScore = FALSE;
     if (scores[i] > scores[5]) {
         // clear part of the screen
-        //for (j = 10; j < 16; j++) {
-        //    locate(12, (unsigned char)j);
-        //    printf("                   ");
-        //}
-        locate(5, 12); printf("GOOD SCORE DRAGON %d", player + 1);
-        locate(5, 13); printf("NAME?:");
-        //locate(4, 20);
+        for (j = 11; j < 15; j++) {
+            locate(4, (unsigned char)j);
+            printf("                       ");
+        }
+        locate(6, 12); printf("GOOD SCORE DRAGON %d", player + 1);
+        locate(6, 13); printf("NAME?: ");
 
         char *response = readline();
         strncpy(names[i], response, 10);
