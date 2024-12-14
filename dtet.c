@@ -318,6 +318,12 @@ void drawShape(BOOL eraseShape, unsigned char i) {
 }
 
 
+void setTrapBlock(unsigned char i) {
+    int trapX = rand() % PIT_WIDTH; // random column in the pit
+    int trapY = PIT_HEIGHT / 2 + rand() % (PIT_HEIGHT / 2); // rows only in the second half
+}
+
+
 void removeFullRow(unsigned char removedRow, unsigned char i) {
     unsigned char x, y;
     char blockColour;
@@ -375,9 +381,8 @@ void checkForFullRows(unsigned char i) { // searches for full rows
         level[i] = (unsigned char)(lines[i] / LINES_LEVEL) + 1;
 
         // generates a trap block
-        if (level > 3 and numLines > 1) {
-            
-        }
+        if (numLines > 1 && level[0] >= 4)
+            setTrapBlock(0);
     }
 }
 
