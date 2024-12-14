@@ -16,7 +16,6 @@ use xroar to test:
 TODO
 ====
 - añadir 2º jugador simultaneo
-- añadir basurilla a partir del nivel 4
 
 - función PLAY
 - efectos FX
@@ -343,13 +342,27 @@ void removeFullRow(unsigned char removedRow, unsigned char i) {
 
 void setTrapBlock(unsigned char i) {
     int trapX, trapY;
-    do { // generate random coordinates until an empty position is found
-        trapX = rand() % PIT_WIDTH;
-        trapY = PIT_HEIGHT / 2 + rand() % (PIT_HEIGHT / 2);
-    } while (pit[i][trapY * PIT_WIDTH + trapX] != NO_BLOCK);
+    unsigned char rowEmpty;
+    unsigned char attempts = 5;
 
-    pit[i][trapY * PIT_WIDTH + trapX] = 1;
-    printBlock(trapX, trapY, FILLED_BLOCK);
+    while (attempts > 0) {
+        // generate a random position from the sixth row downwards
+        trapY = 5 + rand() % (PIT_HEIGHT - 5);
+        // check if the row is empty
+        rowEmpty = TRUE;
+        for (trapX = 0; trapX < PIT_WIDTH; trapX++)
+            if (pit[i][trapY * PIT_WIDTH + trapX] != NO_BLOCK) {
+                rowEmpty = FALSE;
+                break;
+            }
+        // we find an empty row, we place the block
+        if (rowEmpty) {
+            trapX = rand() % PIT_WIDTH;
+            pit[i][trapY * PIT_WIDTH + trapX] = 1; // green block
+            return;
+        }
+        attempts--;
+    }
 }
 
 
