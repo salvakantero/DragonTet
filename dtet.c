@@ -318,12 +318,6 @@ void drawShape(BOOL eraseShape, unsigned char i) {
 }
 
 
-void setTrapBlock(unsigned char i) {
-    int trapX = rand() % PIT_WIDTH; // random column in the pit
-    int trapY = PIT_HEIGHT / 2 + rand() % (PIT_HEIGHT / 2); // rows only in the second half
-}
-
-
 void removeFullRow(unsigned char removedRow, unsigned char i) {
     unsigned char x, y;
     char blockColour;
@@ -344,6 +338,18 @@ void removeFullRow(unsigned char removedRow, unsigned char i) {
     // clear the first row after shifting all rows down
     for (x = 0; x < PIT_WIDTH; x++)
         pit[i][x] = NO_BLOCK;
+}
+
+
+void setTrapBlock(unsigned char i) {
+    int trapX, trapY;
+    do { // generate random coordinates until an empty position is found
+        trapX = rand() % PIT_WIDTH;
+        trapY = PIT_HEIGHT / 2 + rand() % (PIT_HEIGHT / 2);
+    } while (pit[i][trapY * PIT_WIDTH + trapX] != NO_BLOCK);
+
+    pit[i][trapY * PIT_WIDTH + trapX] = 1;
+    printBlock(trapX, trapY, FILLED_BLOCK);
 }
 
 
@@ -381,8 +387,8 @@ void checkForFullRows(unsigned char i) { // searches for full rows
         level[i] = (unsigned char)(lines[i] / LINES_LEVEL) + 1;
 
         // generates a trap block
-        if (numLines > 1 && level[0] >= 4)
-            setTrapBlock(0);
+        if (numLines > 1 && level[i] >= 4)
+            setTrapBlock(i);
     }
 }
 
