@@ -322,7 +322,7 @@ void removeFullRow(unsigned char removedRow, unsigned char i) {
     char blockColour;
 
     // line selection effect
-    for (x = 0; x < PIT_WIDTH; x++)
+    for (x = 0 + pitLeft[i]; x < PIT_WIDTH + pitLeft[i]; x++)
         printBlock(x, removedRow, WHITE_BLOCK);
     delay(2);
 
@@ -604,9 +604,13 @@ void menu() {
             switch (optNumber) {
                 case 0: // 1p start game
                     numPlayers = 0;
+                    gameOver[0] = FALSE;
+                    gameOver[1] = TRUE;
                     return;
                 case 1: // 2p start game
                     numPlayers = 1;
+                    gameOver[0] = FALSE;
+                    gameOver[1] = FALSE;
                     return;
                 case 2: // high scores
                     drawHighScores();
@@ -634,12 +638,11 @@ void menu() {
 
 // logic to initialize the system and pits
 void init() {
-    setTimer(0);
+    setTimer(0); // initialises the system timer
     menu();
 	cls(1); // green screen
     roundWindow(PIT_WIDTH, 0, pitLeft[1]-1, 15, 0);
     for (unsigned char i = 0; i < 2; i++) {
-        gameOver[i] = FALSE; // game in progress
         level[i] = 1; // initial level
         lines[i] = 0; // lines cleared
         scores[6+i] = 0; // current score
@@ -658,6 +661,7 @@ void init() {
 }
 
 
+/*
 void mainLoop() {
     unsigned char newAngle = 0;
     unsigned char i;
@@ -670,21 +674,23 @@ void mainLoop() {
         key = inkey(); // read keypresses
 
         // handle auto-repeat for keys
-        if (key == '\0' && autorepeatKeys && dropRate[0] != 0) {
+        if (key == '\0' && autorepeatKeys) {
             for (i = 0; i <= 9; i++) 
                 *((unsigned char *)0x0150 + i) = 0xFF;
             delay(3);
         }
-
         // check for pause, exit, or game over actions
         if (key == 'H') { // pause
             while (inkey() != '\0'); // clear input buffer
             while (inkey() == '\0') delay(1); // wait for key press
             startTime[0] = startTime[1] = getTimer(); // reset timers
             continue;
-        } else if (key == 'C') { // exit to main menu
+        // exit to main menu
+        } else if (key == 'X') {
             break;
-        } else if ((key == 13 || key == 32) && gameOver[0]) { // Enter/space after game over
+        // Enter/space after game over
+        } else if ((key == 13 || key == 32) && 
+                    (gameOver[0] && gameOver[1])) {
             break;
         }
 
@@ -722,6 +728,92 @@ void mainLoop() {
                 dropShape(0); // shape moves down
                 startTime[0] = getTimer(); // reset fall timer
             }
+        }
+    }
+}
+*/
+
+
+void mainLoop() {
+    unsigned char newAngle;
+    unsigned char currentPlayer; // 0 = Dragon 1, 1 = Dragon 2
+
+    // Inicializar los tiempos de inicio para ambos jugadores
+    startTime[0] = startTime[1] = getTimer();
+
+    while (TRUE) {
+        const byte *joystickPositions = readJoystickPositions();
+        key = inkey(); // Leer pulsaciones de teclas
+
+        // Gestionar auto-repetición de teclas
+        if (key == '\0' && autorepeatKeys) {
+            for (unsigned char i = 0; i <= 9; i++) 
+                *((unsigned char *)0x0150 + i) = 0xFF;
+            delay(3);
+        }
+
+        // Manejar pausa, salida o acciones de fin de juego
+        if (key == 'H') { // Pausar
+            while (inkey() != '\0'); // Limpiar buffer de entrada
+            while (inkey() == '\0') delay(1); // Esperar pulsación
+            startTime[0] = startTime[1] = getTimer(); // Reiniciar temporizadores
+            continue;
+        } else if (key == 'X') { // Salir al menú principal
+            break;
+        } else if ((key == 13 || key == 32) && (gameOver[0] && gameOver[1])) { // Enter/Espacio tras "Game Over"
+            break;
+        }
+
+        // Alternar entre los jugadores
+        for (currentPlayer = 0; currentPlayer < 2; currentPlayer++) {
+            if (gameOver[currentPlayer]) continue; // Saltar jugador si ha perdido
+
+            // Rotación de la pieza
+            if (key == (currentPlayer == 0 ? 'W' : 'I') || 
+                (currentPlayer == 0 ? joystickPositions[JOYSTK_LEFT_VERT] < 16 : joystickPositions[JOYSTK_RIGHT_VERT] < 16)) {
+                newAngle = (shapeAngle[currentPlayer] + 1) % 4;
+                getRotatedShapeMap(shape[currentPlayer], newAngle, rotatedMap[currentPlayer]);
+                if (shapeCanMove(rotatedMap[currentPlayer], 0, 0, currentPlayer)) {
+                    shapeAngle[currentPlayer] = newAngle;
+                    drawShape(TRUE, currentPlayer); // Borrar pieza
+                    strncpy(shapeMap[currentPlayer], rotatedMap[currentPlayer], BLOCK_SIZE);
+                    drawShape(FALSE, currentPlayer); // Redibujar pieza
+                }
+            } 
+            // Movimiento a la izquierda
+            else if (key == (currentPlayer == 0 ? 'A' : 'J') || 
+                     (currentPlayer == 0 ? joystickPositions[JOYSTK_LEFT_HORIZ] < 16 : joystickPositions[JOYSTK_RIGHT_HORIZ] < 16)) {
+                if (shapeCanMove(shapeMap[currentPlayer], -1, 0, currentPlayer)) {
+                    drawShape(TRUE, currentPlayer); // Borrar pieza
+                    shapeX[currentPlayer]--;
+                    drawShape(FALSE, currentPlayer); // Redibujar pieza
+                }
+            } 
+            // Movimiento a la derecha
+            else if (key == (currentPlayer == 0 ? 'D' : 'L') || 
+                     (currentPlayer == 0 ? joystickPositions[JOYSTK_LEFT_HORIZ] > 48 : joystickPositions[JOYSTK_RIGHT_HORIZ] > 48)) {
+                if (shapeCanMove(shapeMap[currentPlayer], 1, 0, currentPlayer)) {
+                    drawShape(TRUE, currentPlayer); // Borrar pieza
+                    shapeX[currentPlayer]++;
+                    drawShape(FALSE, currentPlayer); // Redibujar pieza
+                }
+            } 
+            // Caída rápida
+            else if (key == (currentPlayer == 0 ? 'S' : 'K') || 
+                     (currentPlayer == 0 ? joystickPositions[JOYSTK_LEFT_VERT] > 48 : joystickPositions[JOYSTK_RIGHT_VERT] > 48)) {
+                dropRate[currentPlayer] = 0;
+            }
+
+            // Comprobar si ha pasado suficiente tiempo para que la pieza caiga
+            if (getTimer() >= startTime[currentPlayer] + dropRate[currentPlayer]) {
+                dropShape(currentPlayer); // Mover pieza hacia abajo
+                startTime[currentPlayer] = getTimer(); // Reiniciar temporizador de caída
+            }
+        }
+
+        // Comprobar si ambos jugadores han terminado
+        if (gameOver[0] && gameOver[1]) {
+            break;
         }
     }
 }
@@ -768,7 +860,7 @@ void checkScore(unsigned char player) {
 int main() {
     while(TRUE) {
         srand(getTimer()); // random seed
-        init();		
+        init();	// logic to initialize the system and pits	
 		mainLoop();
 		// check the scores of the last game
         checkScore(0);
