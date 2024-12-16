@@ -15,7 +15,8 @@ use xroar to test:
 
 TODO
 ====
-- añadir 2º jugador simultaneo
+- enviar bloques trampa al contrario cuando 2 jugadores
+- limpiar pantalla al pedir nombre de record
 
 - función PLAY
 - efectos FX
@@ -25,7 +26,9 @@ TODO
   - melodía inicial
   - melodía al inicio de cada nivel
   - melodía al perder
+
 - cargador con pantalla inicial (de texto)
+
 */
 
 #include <cmoc.h>
@@ -661,12 +664,11 @@ void init() {
 }
 
 
-/*
 void mainLoop() {
-    unsigned char newAngle = 0;
-    unsigned char i;
+    unsigned char newAngle;
+    unsigned char i; // 0 = Dragon1, 1 = Dragon2
 
-    // save the start time
+    // initialise start times for both players
     startTime[0] = startTime[1] = getTimer();
 
     while (TRUE) {
@@ -675,10 +677,11 @@ void mainLoop() {
 
         // handle auto-repeat for keys
         if (key == '\0' && autorepeatKeys) {
-            for (i = 0; i <= 9; i++) 
+            for (unsigned char i = 0; i <= 9; i++) 
                 *((unsigned char *)0x0150 + i) = 0xFF;
             delay(3);
         }
+
         // check for pause, exit, or game over actions
         if (key == 'H') { // pause
             while (inkey() != '\0'); // clear input buffer
@@ -688,132 +691,61 @@ void mainLoop() {
         // exit to main menu
         } else if (key == 'X') {
             break;
-        // Enter/space after game over
+        // ENTER/space after game over
         } else if ((key == 13 || key == 32) && 
                     (gameOver[0] && gameOver[1])) {
             break;
         }
 
-        // check for shape movement and rotation (key or joystick)
-        if (!gameOver[0]) {
-            if (key == 'W' || key == 94 || joystickPositions[JOYSTK_LEFT_VERT] < 16) { // rotate
-                newAngle = (shapeAngle[0] + 1) % 4;
-                getRotatedShapeMap(shape[0], newAngle, rotatedMap[0]);
-                if (shapeCanMove(rotatedMap[0], 0, 0, 0)) {
-                    shapeAngle[0] = newAngle;
-                    drawShape(TRUE, 0); // erase shape
-                    strncpy(shapeMap[0], rotatedMap[0], BLOCK_SIZE);
-                    drawShape(FALSE, 0); // redraw shape
+        // alternate between players
+        for (i = 0; i < 2; i++) {
+            if (gameOver[i]) continue; // skip player if already lost
+
+            // rotation (keys or joystick)
+            if (key == (i == 0 ? 'W' : 'I') || 
+                (i == 0 ? joystickPositions[JOYSTK_LEFT_VERT] < 16 : 
+                          joystickPositions[JOYSTK_RIGHT_VERT] < 16)) {
+                newAngle = (shapeAngle[i] + 1) % 4;
+                getRotatedShapeMap(shape[i], newAngle, rotatedMap[i]);
+                if (shapeCanMove(rotatedMap[i], 0, 0, i)) {
+                    shapeAngle[i] = newAngle;
+                    drawShape(TRUE, i); // erase shape
+                    strncpy(shapeMap[i], rotatedMap[i], BLOCK_SIZE);
+                    drawShape(FALSE, i); // redraw shape
                 }
             } 
-            else if (key == 'A' || key == 8 || joystickPositions[JOYSTK_LEFT_HORIZ] < 16) { // move left
-                if (shapeCanMove(shapeMap[0], -1, 0, 0)) {
-                    drawShape(TRUE, 0); // erase shape
-                    shapeX[0]--;
-                    drawShape(FALSE, 0); // redraw shape
+            // move left
+            else if (key == (i == 0 ? 'A' : 'J') || 
+                (i == 0 ? joystickPositions[JOYSTK_LEFT_HORIZ] < 16 : 
+                          joystickPositions[JOYSTK_RIGHT_HORIZ] < 16)) {
+                if (shapeCanMove(shapeMap[i], -1, 0, i)) {
+                    drawShape(TRUE, i);
+                    shapeX[i]--;
+                    drawShape(FALSE, i);
                 }
             } 
-            else if (key == 'D' || key == 9 || joystickPositions[JOYSTK_LEFT_HORIZ] > 48) { // move right
-                if (shapeCanMove(shapeMap[0], 1, 0, 0)) {
-                    drawShape(TRUE, 0); // erase shape
-                    shapeX[0]++;
-                    drawShape(FALSE, 0); // redraw shape
+            // move right
+            else if (key == (i == 0 ? 'D' : 'L') || 
+                (i == 0 ? joystickPositions[JOYSTK_LEFT_HORIZ] > 48 : 
+                          joystickPositions[JOYSTK_RIGHT_HORIZ] > 48)) {
+                if (shapeCanMove(shapeMap[i], 1, 0, i)) {
+                    drawShape(TRUE, i);
+                    shapeX[i]++;
+                    drawShape(FALSE, i);
                 }
+            } 
+            // fast drop
+            else if (key == (i == 0 ? 'S' : 'K') || 
+                (i == 0 ? joystickPositions[JOYSTK_LEFT_VERT] > 48 : 
+                joystickPositions[JOYSTK_RIGHT_VERT] > 48)) {
+                dropRate[i] = 0;
             }
-            else if (key == 'S' || key == 10 || joystickPositions[JOYSTK_LEFT_VERT] > 48) { // fast drop
-                dropRate[0] = 0;
-            }
+
             // check if the falling time has been exceeded
-            if (getTimer() >= startTime[0] + dropRate[0]) {
-                dropShape(0); // shape moves down
-                startTime[0] = getTimer(); // reset fall timer
+            if (getTimer() >= startTime[i] + dropRate[i]) {
+                dropShape(i); // shape moves down
+                startTime[i] = getTimer(); // reset fall timer
             }
-        }
-    }
-}
-*/
-
-
-void mainLoop() {
-    unsigned char newAngle;
-    unsigned char currentPlayer; // 0 = Dragon 1, 1 = Dragon 2
-
-    // Inicializar los tiempos de inicio para ambos jugadores
-    startTime[0] = startTime[1] = getTimer();
-
-    while (TRUE) {
-        const byte *joystickPositions = readJoystickPositions();
-        key = inkey(); // Leer pulsaciones de teclas
-
-        // Gestionar auto-repetición de teclas
-        if (key == '\0' && autorepeatKeys) {
-            for (unsigned char i = 0; i <= 9; i++) 
-                *((unsigned char *)0x0150 + i) = 0xFF;
-            delay(3);
-        }
-
-        // Manejar pausa, salida o acciones de fin de juego
-        if (key == 'H') { // Pausar
-            while (inkey() != '\0'); // Limpiar buffer de entrada
-            while (inkey() == '\0') delay(1); // Esperar pulsación
-            startTime[0] = startTime[1] = getTimer(); // Reiniciar temporizadores
-            continue;
-        } else if (key == 'X') { // Salir al menú principal
-            break;
-        } else if ((key == 13 || key == 32) && (gameOver[0] && gameOver[1])) { // Enter/Espacio tras "Game Over"
-            break;
-        }
-
-        // Alternar entre los jugadores
-        for (currentPlayer = 0; currentPlayer < 2; currentPlayer++) {
-            if (gameOver[currentPlayer]) continue; // Saltar jugador si ha perdido
-
-            // Rotación de la pieza
-            if (key == (currentPlayer == 0 ? 'W' : 'I') || 
-                (currentPlayer == 0 ? joystickPositions[JOYSTK_LEFT_VERT] < 16 : joystickPositions[JOYSTK_RIGHT_VERT] < 16)) {
-                newAngle = (shapeAngle[currentPlayer] + 1) % 4;
-                getRotatedShapeMap(shape[currentPlayer], newAngle, rotatedMap[currentPlayer]);
-                if (shapeCanMove(rotatedMap[currentPlayer], 0, 0, currentPlayer)) {
-                    shapeAngle[currentPlayer] = newAngle;
-                    drawShape(TRUE, currentPlayer); // Borrar pieza
-                    strncpy(shapeMap[currentPlayer], rotatedMap[currentPlayer], BLOCK_SIZE);
-                    drawShape(FALSE, currentPlayer); // Redibujar pieza
-                }
-            } 
-            // Movimiento a la izquierda
-            else if (key == (currentPlayer == 0 ? 'A' : 'J') || 
-                     (currentPlayer == 0 ? joystickPositions[JOYSTK_LEFT_HORIZ] < 16 : joystickPositions[JOYSTK_RIGHT_HORIZ] < 16)) {
-                if (shapeCanMove(shapeMap[currentPlayer], -1, 0, currentPlayer)) {
-                    drawShape(TRUE, currentPlayer); // Borrar pieza
-                    shapeX[currentPlayer]--;
-                    drawShape(FALSE, currentPlayer); // Redibujar pieza
-                }
-            } 
-            // Movimiento a la derecha
-            else if (key == (currentPlayer == 0 ? 'D' : 'L') || 
-                     (currentPlayer == 0 ? joystickPositions[JOYSTK_LEFT_HORIZ] > 48 : joystickPositions[JOYSTK_RIGHT_HORIZ] > 48)) {
-                if (shapeCanMove(shapeMap[currentPlayer], 1, 0, currentPlayer)) {
-                    drawShape(TRUE, currentPlayer); // Borrar pieza
-                    shapeX[currentPlayer]++;
-                    drawShape(FALSE, currentPlayer); // Redibujar pieza
-                }
-            } 
-            // Caída rápida
-            else if (key == (currentPlayer == 0 ? 'S' : 'K') || 
-                     (currentPlayer == 0 ? joystickPositions[JOYSTK_LEFT_VERT] > 48 : joystickPositions[JOYSTK_RIGHT_VERT] > 48)) {
-                dropRate[currentPlayer] = 0;
-            }
-
-            // Comprobar si ha pasado suficiente tiempo para que la pieza caiga
-            if (getTimer() >= startTime[currentPlayer] + dropRate[currentPlayer]) {
-                dropShape(currentPlayer); // Mover pieza hacia abajo
-                startTime[currentPlayer] = getTimer(); // Reiniciar temporizador de caída
-            }
-        }
-
-        // Comprobar si ambos jugadores han terminado
-        if (gameOver[0] && gameOver[1]) {
-            break;
         }
     }
 }
