@@ -348,6 +348,10 @@ void setTrapBlock(unsigned char i) {
     unsigned char rowEmpty;
     unsigned char attempts = 5;
 
+    // 
+    if (numPlayers = 1)
+        i = (i == 0) ? 1 : 0;
+
     while (attempts > 0) {
         // generate a random position from the sixth row downwards
         trapY = 5 + rand() % (PIT_HEIGHT - 5);
