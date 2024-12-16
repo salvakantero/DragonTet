@@ -15,8 +15,9 @@ use xroar to test:
 
 TODO
 ====
-- enviar bloques trampa al contrario cuando 2 jugadores
 - limpiar pantalla al pedir nombre de record
+- probar bloques trampa con 2 jugadores
+- probar nombre vacío "?"
 
 - función PLAY
 - efectos FX
@@ -348,8 +349,8 @@ void setTrapBlock(unsigned char i) {
     unsigned char rowEmpty;
     unsigned char attempts = 5;
 
-    // 
-    if (numPlayers = 1)
+    // with two players generates block in the opposing pit
+    if (numPlayers == 1)
         i = (i == 0) ? 1 : 0;
 
     while (attempts > 0) {
@@ -762,16 +763,19 @@ void checkScore(unsigned char player) {
     int j;
     newScore = FALSE;
     if (scores[i] > scores[5]) {
-        // clear part of the screen
-        for (j = 11; j < 15; j++) {
-            locate(4, (unsigned char)j);
-            printf("                       ");
-        }
-        locate(6, 12); printf("GOOD SCORE DRAGON %d", player + 1);
-        locate(6, 13); printf("NAME?: ");
+        cls(1);
+        roundWindow(0, 0, 31, 15, 80);        
+        drawHeader(FALSE, ++colourShift);
+        locate(6, 10); printf("GOOD SCORE DRAGON %d", player + 1);
+        locate(6, 11); printf("NAME?: ");
 
         char *response = readline();
-        strncpy(names[i], response, 10);
+        // check if the response is empty
+        if (response == NULL || response[0] == '\0') {
+            strncpy(names[i], "?", 10);
+        } else {
+            strncpy(names[i], response, 10);
+        }
         names[i][10] = '\0'; // ensure the name is null-terminated
 
         // find the correct position in the top 6 list for the new score
