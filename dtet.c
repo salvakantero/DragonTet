@@ -15,9 +15,9 @@ use xroar to test:
 
 TODO
 ====
-- limpiar pantalla al pedir nombre de record
 - probar bloques trampa con 2 jugadores
-- probar nombre vacío "?"
+- recuperar cursores con 1 player
+- documentación de github
 
 - función PLAY
 - efectos FX
@@ -51,7 +51,7 @@ TODO
 
 char key = '\0'; // key pressed
 unsigned char numPlayers; // 0 = dragon1  1 = dragon2
-BOOL newScore = FALSE; // TRUE = redraws the best scores table
+BOOL newScore[2] = {FALSE, FALSE}; // TRUE = redraws the best scores table
 BOOL gameOver[2] = {FALSE, FALSE}; // FALSE = game in progress, TRUE = finished
 int dropRate[2] = {0, 0}; // 0 = lower the shape one position
 int startTime[2] = {0, 0}; // system ticks since the shape has moved
@@ -761,13 +761,14 @@ void checkScore(unsigned char player) {
     // indices: 0-1-2-3-4-5-[score p1]-[score p2]
     int i = player + 6;
     int j;
-    newScore = FALSE;
+    newScore[player] = FALSE;
     if (scores[i] > scores[5]) {
         cls(1);
         roundWindow(0, 0, 31, 15, 80);        
         drawHeader(FALSE, ++colourShift);
-        locate(6, 10); printf("GOOD SCORE DRAGON %d", player + 1);
-        locate(6, 11); printf("NAME?: ");
+        locate(10, 8); printf("*** %u ***", scores[i]);
+        locate(7, 11); printf("GOOD SCORE DRAGON %d", player + 1);
+        locate(7, 12); printf("NAME?: ");
 
         char *response = readline();
         // check if the response is empty
@@ -792,7 +793,7 @@ void checkScore(unsigned char player) {
         // insert the new score and name into the correct position
         scores[j+1] = scores[i];
         strncpy(names[j+1], names[i], 10);
-        newScore = TRUE; // the score table has been updated
+        newScore[player] = TRUE; // the score table has been updated
     }
 }
 
@@ -807,7 +808,7 @@ int main() {
         if (numPlayers > 0)
             checkScore(1);
         // draw the scoreboard
-        if (newScore) {
+        if (newScore[0] || newScore[1]) {
 		    cls(1);
 		    drawHeader(FALSE, colourShift);
 		    drawHighScores();
