@@ -16,7 +16,7 @@ use xroar to test:
 TODO
 ====
 - probar bloques trampa con 2 jugadores
-- recuperar cursores con 1 player
+- probar control teclado sin ELSE
 - documentación de github
 
 - función PLAY
@@ -100,10 +100,11 @@ void drawBlock(unsigned char x, unsigned char y, char blockColour, unsigned char
 
 
 void drawPit(unsigned char i) {
+    unsigned char x, y, rowOffset;
     // loop through and repaint the contents of the pit (i = dragon pit)
-    for (unsigned char y = 0; y < PIT_HEIGHT; y++) {
-        unsigned char rowOffset = y * PIT_WIDTH;
-        for (unsigned char x = 0; x < PIT_WIDTH; x++)
+    for (y = 0; y < PIT_HEIGHT; y++) {
+        rowOffset = y * PIT_WIDTH;
+        for (x = 0; x < PIT_WIDTH; x++)
             drawBlock(x, y, pit[i][x + rowOffset], i);
     }
 }
@@ -111,10 +112,10 @@ void drawPit(unsigned char i) {
 
 // check if a shape can move in the specified direction (i = dragon pit)
 BOOL shapeCanMove(char *map, char xDir, char yDir, unsigned char i) {
-    int x, y;
+    int x, y, blockX, blockY;
     // loop through all the blocks of the shape
-    for (int blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
-        for (int blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
+    for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
+        for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
             if (map[(SIDE_BLOCK_SIZE * blockY) + blockX] != NO_BLOCK) {
                 // calculate the position in the pit
                 x = (shapeX[i] + blockX) + xDir;
@@ -138,10 +139,12 @@ BOOL shapeCanMove(char *map, char xDir, char yDir, unsigned char i) {
 
 
 void drawNextShape(unsigned char y, unsigned char i) {
+    unsigned char blockX, blockY;
+    char blockColour;
     // loop through all the blocks of the shape (4x4 grid)
-    for (unsigned char blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
-        for (unsigned char blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
-            char blockColour = nextShapeMap[i][(blockY * SIDE_BLOCK_SIZE) + blockX];
+    for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
+        for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
+            blockColour = nextShapeMap[i][(blockY * SIDE_BLOCK_SIZE) + blockX];
             // green background
             if (blockColour == NO_BLOCK) blockColour = '1';
             // different position depending on the player
@@ -294,11 +297,11 @@ void createShape(unsigned char i) {
 
 
 void drawShape(BOOL eraseShape, unsigned char i) {
-    int x, y;
+    int x, y, blockX, blockY;
     char blockColour;
     // iterates through all the blocks of the shape
-    for (int blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
-        for (int blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
+    for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
+        for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
             x = shapeX[i] + blockX;
             y = shapeY[i] + blockY;
             // check if the block is within the pit boundaries
@@ -415,10 +418,10 @@ void checkForFullRows(unsigned char i) { // searches for full rows
 
 
 void settleActiveShapeInPit(unsigned char i) {
-    int x, y;
+    int x, y, blockX, blockY;
     char blockColour;
-    for (int blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
-        for (int blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
+    for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
+        for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
             x = shapeX[i] + blockX;
             y = shapeY[i] + blockY;
             blockColour = shapeMap[i][blockY * SIDE_BLOCK_SIZE + blockX];
@@ -669,8 +672,37 @@ void init() {
 }
 
 
+void rotateKeyPressed(unsigned char i) {
+    unsigned char nextAngle = (shapeAngle[i] + 1) % 4;
+    getRotatedShapeMap(shape[i], nextAngle, rotatedMap[i]);
+    if (shapeCanMove(rotatedMap[i], 0, 0, i)) {
+        shapeAngle[i] = nextAngle;
+        drawShape(TRUE, i); // erase shape
+        strncpy(shapeMap[i], rotatedMap[i], BLOCK_SIZE);
+        drawShape(FALSE, i); // redraw shape
+    }
+}
+
+
+void moveLeftKeyPressed(unsigned char i) {
+    if (shapeCanMove(shapeMap[i], -1, 0, i)) {
+        drawShape(TRUE, i);
+        shapeX[i]--;
+        drawShape(FALSE, i);
+    }
+}
+
+
+void moveRightKeyPressed(unsigned char i) {
+    if (shapeCanMove(shapeMap[i], 1, 0, i)) {
+        drawShape(TRUE, i);
+        shapeX[i]++;
+        drawShape(FALSE, i);
+    }
+}
+
+
 void mainLoop() {
-    unsigned char newAngle;
     unsigned char i; // 0 = Dragon1, 1 = Dragon2
 
     // initialise start times for both players
@@ -697,8 +729,7 @@ void mainLoop() {
         } else if (key == 'X') {
             break;
         // ENTER/space after game over
-        } else if ((key == 13 || key == 32) && 
-                    (gameOver[0] && gameOver[1])) {
+        } else if ((key == 13 || key == 32) && (gameOver[0] && gameOver[1])) {
             break;
         }
 
@@ -706,46 +737,36 @@ void mainLoop() {
         for (i = 0; i < 2; i++) {
             if (gameOver[i]) continue; // skip player if already lost
 
-            // rotation (keys or joystick)
-            if (key == (i == 0 ? 'W' : 'I') || 
-                (i == 0 ? joystickPositions[JOYSTK_LEFT_VERT] < 16 : 
-                          joystickPositions[JOYSTK_RIGHT_VERT] < 16)) {
-                newAngle = (shapeAngle[i] + 1) % 4;
-                getRotatedShapeMap(shape[i], newAngle, rotatedMap[i]);
-                if (shapeCanMove(rotatedMap[i], 0, 0, i)) {
-                    shapeAngle[i] = newAngle;
-                    drawShape(TRUE, i); // erase shape
-                    strncpy(shapeMap[i], rotatedMap[i], BLOCK_SIZE);
-                    drawShape(FALSE, i); // redraw shape
-                }
-            } 
-            // move left
-            else if (key == (i == 0 ? 'A' : 'J') || 
-                (i == 0 ? joystickPositions[JOYSTK_LEFT_HORIZ] < 16 : 
-                          joystickPositions[JOYSTK_RIGHT_HORIZ] < 16)) {
-                if (shapeCanMove(shapeMap[i], -1, 0, i)) {
-                    drawShape(TRUE, i);
-                    shapeX[i]--;
-                    drawShape(FALSE, i);
-                }
-            } 
-            // move right
-            else if (key == (i == 0 ? 'D' : 'L') || 
-                (i == 0 ? joystickPositions[JOYSTK_LEFT_HORIZ] > 48 : 
-                          joystickPositions[JOYSTK_RIGHT_HORIZ] > 48)) {
-                if (shapeCanMove(shapeMap[i], 1, 0, i)) {
-                    drawShape(TRUE, i);
-                    shapeX[i]++;
-                    drawShape(FALSE, i);
-                }
-            } 
-            // fast drop
-            else if (key == (i == 0 ? 'S' : 'K') || 
-                (i == 0 ? joystickPositions[JOYSTK_LEFT_VERT] > 48 : 
-                joystickPositions[JOYSTK_RIGHT_VERT] > 48)) {
-                dropRate[i] = 0;
+            // player 1
+            if (i == 0) {
+                // rotation (key, cursor, joystick)
+                if (key == 'W' || key == 94 || joystickPositions[JOYSTK_LEFT_VERT] < 16)
+                    rotateKeyPressed(0);
+                // move left (key, cursor, joystick)
+                else if (key == 'A' || key == 8 || joystickPositions[JOYSTK_LEFT_HORIZ] < 16)
+                    moveLeftKeyPressed(0);
+                // move right (key, cursor, joystick)
+                else if (key == 'D' || key == 9 || joystickPositions[JOYSTK_LEFT_HORIZ] > 48)
+                    moveRightKeyPressed(0);
+                // fast drop
+                else if (key == 'S' || key == 10 || joystickPositions[JOYSTK_LEFT_VERT] > 48)
+                    dropRate[0] = 0;
             }
-
+            // player 2
+            else {
+                // rotation (key, joystick)
+                if (key == 'I' || joystickPositions[JOYSTK_RIGHT_VERT] < 16)
+                    rotateKeyPressed(1);
+                // move left (key, joystick)
+                else if (key == 'J' || joystickPositions[JOYSTK_RIGHT_HORIZ] < 16)
+                    moveLeftKeyPressed(1);
+                // move right (key, joystick)
+                else if (key == 'L' || joystickPositions[JOYSTK_RIGHT_HORIZ] > 48)
+                    moveRightKeyPressed(1);
+                // fast drop (key, joystick)
+                else if (key == 'K' || joystickPositions[JOYSTK_RIGHT_VERT] > 48)
+                    dropRate[1] = 0;
+            }            
             // check if the falling time has been exceeded
             if (getTimer() >= startTime[i] + dropRate[i]) {
                 dropShape(i); // shape moves down
