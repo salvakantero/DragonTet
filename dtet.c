@@ -17,7 +17,7 @@ TODO
 ====
 - probar bloques trampa con 2 jugadores
 - probar control teclado sin ELSE
-- documentación de github
+- X no debe pedir nombres al regresar
 
 - función PLAY
 - efectos FX

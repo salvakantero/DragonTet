@@ -1,0 +1,88 @@
+
+================================
+DragonTet v1.0 salvaKantero 2025
+================================
+Compatible con:
+- Tandy Color Computer
+- Dragon32/64
+- Thomson MO/TO
+
+
+
+El objetivo de DragonTet es mover, rotar y colocar las piezas que caen para formar líneas horizontales completas en el tablero de juego. 
+Cada vez que completas una línea, esta desaparece, liberando espacio en el tablero y aumentando tu puntuación.
+Al completar un número determinado de líneas, el nivel del juego aumenta. Con cada nivel, la velocidad de caída de las piezas se incrementa, haciendo el juego más desafiante. A partir del nivel 4 al conseguir más de una línea seguida se generan bloques trampa en el tablero.
+Si las piezas se acumulan hasta la parte superior del tablero y no puedes colocar más, el juego termina!
+
+Modo 1 jugador:
+  Compite para obtener la mayor puntuación posible.
+
+Modo 2 jugadores (Opcional):
+  Cada jugador tiene su propio tablero. 
+  El ganador es quien sobreviva más tiempo o quien consiga la mayor puntuación.
+  Los bloques trampa que se generen se transfieren al tablero del contrario.
+  
+
+
+CONTROLES
+=========
+
+JUGADOR 1:
+
+Mover pieza a la izquierda:
+  Tecla <A>, o la flecha izquierda, o joystick1 izquierda.
+Mover pieza a la derecha:
+  Tecla <D>, o la flecha derecha, o joystick1 derecha.
+Rotar pieza:
+  Tecla <W>, o la flecha arriba, o joystick1 arriba.
+Caída rápida:
+  Tecla <S> o la flecha abajo, o joystick1 abajo.
+
+JUGADOR 2:
+
+Mover pieza a la izquierda:
+  Tecla <J> o joystick2 izquierda.
+Mover pieza a la derecha:
+  Tecla <L> o joystick2 derecha.
+Rotar pieza:
+  Tecla <I> o joystick2 arriba.
+Caída rápida:
+  Tecla <K> o joystick2 abajo.
+
+CONTROLES COMUNES:
+
+Pausar: 
+  Pulsa <H> para pausar/reanudar el juego.
+Cancelar:
+  Pulsa <X> para salir del juego en cualquier momento y regresar al menú principal.
+
+
+
+PUNTUACIÓN
+==========
+
+1 línea:	100 * nº de nivel
+2 líneas:	300 * nº de nivel
+3 líneas:	500 * nº de nivel
+4 líneas:	800 * nº de nivel
+
+* la caída rápida de la pieza suma 1 punto por cada fila que descienda
+
+
+
+CONSEJOS Y TRUCOS
+=================
+
+Planifica con Anticipación: 
+  Observa cuál será la próxima pieza para planificar dónde colocar la actual.
+
+Mantén el Tablero Ordenado: 
+  Intenta mantener el tablero lo más despejado posible para evitar quedarte sin espacio.
+
+Maximiza Puntos: 
+  Busca completar múltiples líneas al mismo tiempo para obtener una puntuación mayor.
+
+
+
+Dragontet is released under GPL v3 for all software components* (see license.txt).
+C SOURCE CODE AND RESOURCES AVAILABLE AT https://github.com/salvakantero/Dragontet
