@@ -15,10 +15,6 @@ use xroar to test:
 
 TODO
 ====
-- probar bloques trampa con 2 jugadores
-- probar control teclado sin ELSE
-- X no debe pedir nombres al regresar
-
 - función PLAY
 - efectos FX
   - pulsación de menú
@@ -69,6 +65,7 @@ char rotatedMap[2][BLOCK_SIZE]; // design of the already rotated shape
 unsigned char colourShift = 0; // colour shift effect in the title
 BOOL markedPit = TRUE; // enables/disables the marks in the pit (options menu)
 BOOL autorepeatKeys = FALSE; // enables/disables the auto-repeat of keys (options menu)
+BOOL cancelled = FALSE; // TRUE = 'X' was pressed to cancel the game
 
 // pos 0-5: fake values for the initial TOP 6
 // pos 6-7: values for the current game
@@ -190,13 +187,16 @@ void displayStatus() {
         }
     }
     if (numPlayers == 0) {
-        drawHeader(TRUE, ++colourShift);
+        /*
+        drawHeader(TRUE, ++colourShift);        
         locate(11, 6);  printf("LEVEL:  %2u", level[0]);
         locate(11, 7); printf("LINES: %3d", lines[0]);
         locate(11, 8); printf("SC: %6u", scores[6]);
         locate(11, 9); printf("HI: %6u", scores[0]);
         locate(11, 12); printf("NEXT:");
-        drawNextShape(11, 0);
+        drawNextShape(11, 0); */
+        locate(11, 7); printf(" WORK IN");
+        locate(11, 8); printf("PROGRESS!!");
     }
     else {
         // player 1
@@ -370,6 +370,9 @@ void setTrapBlock(unsigned char i) {
         if (rowEmpty) {
             trapX = rand() % PIT_WIDTH;
             pit[i][trapY * PIT_WIDTH + trapX] = 1; // green block
+            // paints the block at the moment when it goes to the opposite pit
+            if (numPlayers == 1) 
+                printBlock(trapX + pitLeft[i], trapY, FILLED_BLOCK);
             return;
         }
         attempts--;
@@ -662,6 +665,7 @@ void init() {
         memset(pit[i], NO_BLOCK, PIT_WIDTH * PIT_HEIGHT); // initialize the empty pit
         drawPit(i);
     }
+    cancelled = FALSE;
     displayStatus();
     if (numPlayers == 0) {
         locate(23,6); printf(" PLEASE ");
@@ -727,6 +731,8 @@ void mainLoop() {
             continue;
         // exit to main menu
         } else if (key == 'X') {
+            if (!gameOver[0] || !gameOver[1])
+                cancelled = TRUE;
             break;
         // ENTER/space after game over
         } else if ((key == 13 || key == 32) && (gameOver[0] && gameOver[1])) {
@@ -825,14 +831,16 @@ int main() {
         init();	// logic to initialize the system and pits	
 		mainLoop();
 		// check the scores of the last game
-        checkScore(0);
-        if (numPlayers > 0)
-            checkScore(1);
-        // draw the scoreboard
-        if (newScore[0] || newScore[1]) {
-		    cls(1);
-		    drawHeader(FALSE, colourShift);
-		    drawHighScores();
+        if (!cancelled) {
+            checkScore(0);
+            if (numPlayers > 0)
+                checkScore(1);
+            // draw the scoreboard
+            if (newScore[0] || newScore[1]) {
+                cls(1);
+                drawHeader(FALSE, colourShift);
+                drawHighScores();
+            }
         }
     }
     return 0;
