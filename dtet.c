@@ -24,8 +24,6 @@ TODO
   - melodía al inicio de cada nivel
   - melodía al perder
 
-- cargador con pantalla inicial (de texto)
-
 */
 
 #include <cmoc.h>
@@ -263,17 +261,14 @@ void displayStatus() {
             printf("GAME OVER!");
         }
     }
-    if (numPlayers == 0) {
-        /*
+    if (numPlayers == 0) {        
         drawHeader(TRUE, ++colourShift);        
         locate(11, 6);  printf("LEVEL:  %2u", level[0]);
         locate(11, 7); printf("LINES: %3d", lines[0]);
         locate(11, 8); printf("SC: %6u", scores[6]);
         locate(11, 9); printf("HI: %6u", scores[0]);
         locate(11, 12); printf("NEXT:");
-        drawNextShape(11, 0); */
-        locate(11, 7); printf(" WORK IN");
-        locate(11, 8); printf("PROGRESS!!");
+        drawNextShape(11, 0);
     }
     else {
         // player 1
