@@ -673,15 +673,6 @@ void menu() {
 	drawMenu();
     drawMenuPtr(8, 7, optNumber, FALSE);
 
-    // Reproduce una escala básica
-    play("CDEFGAB");
-    // Usa diferentes duraciones y una pausa
-    play("C4D4E8P4F16G16A16B32");
-    // Cambia la octava y agrega sostenidos
-    play("O5C#D#F#G#A#");
-    // Vuelve a la octava 4 con duraciones largas
-    play("O4L8CDEFGAB");
-
     do {
         drawHeader(FALSE, colourShift++);
         key = inkey();
