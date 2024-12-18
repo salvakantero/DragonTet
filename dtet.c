@@ -45,6 +45,9 @@ TODO
 #define PIT_HEIGHT 16 // height of the pit in blocks
 #define LINES_LEVEL 10 // lines per level
 
+#define DEFAULT_OCTAVE 4
+#define DEFAULT_DURATION 16
+
 char key = '\0'; // key pressed
 unsigned char numPlayers; // 0 = dragon1  1 = dragon2
 BOOL newScore[2] = {FALSE, FALSE}; // TRUE = redraws the best scores table
@@ -71,6 +74,80 @@ BOOL cancelled = FALSE; // TRUE = 'X' was pressed to cancel the game
 // pos 6-7: values for the current game
 char names[8][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","", ""};
 unsigned int scores[8] = {2000, 1800, 1600, 1400, 1200, 1000, 0, 0};
+
+// Frecuencias de las notas en términos de P (aproximado)
+// Índices: A, B, C, D, E, F, G
+const byte noteFrequencies[] = {96, 108, 72, 81, 90, 96, 64};
+
+
+void play(const char *sequence) {
+    int currentOctave = DEFAULT_OCTAVE;
+    int defaultDuration = DEFAULT_DURATION;
+    int i = 0;
+
+    while (sequence[i] != '\0') {
+        //char c = toupper(sequence[i]);
+        char c = sequence[i];
+
+        // Notas musicales
+        if (strchr("CDEFGAB", c) != NULL) {
+            int baseFrequency = noteFrequencies[c - 'A'];
+            int frequency = baseFrequency >> (4 - currentOctave); // Ajustar por octava
+            int duration = defaultDuration;
+
+            // Chequear si hay un número tras la nota (duración específica)
+            if (isdigit(sequence[i + 1])) {
+                duration = atoi(&sequence[i + 1]);
+                while (isdigit(sequence[i + 1])) i++;
+            }
+
+            // Reproducir el tono
+            sound((unsigned char) frequency, (unsigned char) duration);
+
+        // Pausa
+        } else if (c == 'P') {
+            int pauseDuration = defaultDuration;
+            if (isdigit(sequence[i + 1])) {
+                pauseDuration = atoi(&sequence[i + 1]);
+                while (isdigit(sequence[i + 1])) i++;
+            }
+            sound(0, (unsigned char) pauseDuration); // Pausa = tono 0
+
+        // Cambiar octava
+        } else if (c == 'O') {
+            if (isdigit(sequence[i + 1])) {
+                currentOctave = sequence[i + 1] - '0';
+                if (currentOctave < 1) currentOctave = 1;
+                if (currentOctave > 6) currentOctave = 6;
+                i++;
+            }
+
+        // Cambiar duración por defecto
+        } else if (c == 'L') {
+            if (isdigit(sequence[i + 1])) {
+                defaultDuration = atoi(&sequence[i + 1]);
+                while (isdigit(sequence[i + 1])) i++;
+            }
+
+        // Subir nota medio tono (# o +)
+        } else if (c == '#' || c == '+') {
+            // Recalcular frecuencia
+            int baseFrequency = noteFrequencies[sequence[i - 1] - 'A'];
+            int frequency = (baseFrequency * 15) / 16; // Subir medio tono
+            int duration = defaultDuration;
+            sound((unsigned char) frequency, (unsigned char) duration);
+
+        // Bajar nota medio tono (-)
+        } else if (c == '-') {
+            int baseFrequency = noteFrequencies[sequence[i - 1] - 'A'];
+            int frequency = (baseFrequency * 17) / 16; // Bajar medio tono
+            int duration = defaultDuration;
+            sound((unsigned char) frequency, (unsigned char) duration);
+        }
+
+        i++;
+    }
+}
 
 
 void printBlock(int x, int y, unsigned char ch) {
@@ -600,6 +677,16 @@ void menu() {
     char optNumber = 0;
 	drawMenu();
     drawMenuPtr(8, 7, optNumber, FALSE);
+
+    // Reproduce una escala básica
+    play("CDEFGAB");
+    // Usa diferentes duraciones y una pausa
+    play("C4D4E8P4F16G16A16B32");
+    // Cambia la octava y agrega sostenidos
+    play("O5C#D#F#G#A#");
+    // Vuelve a la octava 4 con duraciones largas
+    play("O4L8CDEFGAB");
+
     do {
         drawHeader(FALSE, colourShift++);
         key = inkey();
