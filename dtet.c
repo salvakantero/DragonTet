@@ -15,6 +15,9 @@ use xroar to test:
 
 TODO
 ====
+- optimizar autorepeat keys
+- detalles finales
+
 - función PLAY
 - efectos FX
   - pulsación de menú
@@ -790,10 +793,10 @@ void mainLoop() {
         key = inkey(); // read keypresses
 
         // handle auto-repeat for keys
-        if (key == '\0' && autorepeatKeys) {
+        if (key == '\0' && autorepeatKeys && numPlayers == 0) {
             for (unsigned char i = 0; i <= 9; i++) 
                 *((unsigned char *)0x0150 + i) = 0xFF;
-            delay(3);
+            if (dropRate[0] > 0) delay(2);
         }
 
         // check for pause, exit, or game over actions
