@@ -16,13 +16,12 @@ use xroar to test:
 TODO
 ====
 - optimizar autorepeat keys
-- detalles finales
+- probar en coco/thomson
 
-- función PLAY
 - efectos FX
   - pulsación de menú
   - línea completada
-- melodías
+- melodías (que se puedan cancelar)
   - melodía inicial
   - melodía al inicio de cada nivel
   - melodía al perder
@@ -46,9 +45,6 @@ TODO
 #define PIT_HEIGHT 16 // height of the pit in blocks
 #define LINES_LEVEL 10 // lines per level
 
-#define DEFAULT_OCTAVE 4
-#define DEFAULT_DURATION 16
-
 char key = '\0'; // key pressed
 unsigned char numPlayers; // 0 = dragon1  1 = dragon2
 BOOL newScore[2] = {FALSE, FALSE}; // TRUE = redraws the best scores table
@@ -70,85 +66,13 @@ unsigned char colourShift = 0; // colour shift effect in the title
 BOOL markedPit = TRUE; // enables/disables the marks in the pit (options menu)
 BOOL autorepeatKeys = FALSE; // enables/disables the auto-repeat of keys (options menu)
 BOOL cancelled = FALSE; // TRUE = 'X' was pressed to cancel the game
+unsigned char lastLines; // lines in the last move (for the status line)
+int lastPoints; // points in the last move (for the status line)
 
 // pos 0-5: fake values for the initial TOP 6
 // pos 6-7: values for the current game
 char names[8][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","", ""};
 unsigned int scores[8] = {2000, 1800, 1600, 1400, 1200, 1000, 0, 0};
-
-// Frecuencias de las notas en términos de P (aproximado)
-// Índices: A, B, C, D, E, F, G
-const byte noteFrequencies[] = {96, 108, 72, 81, 90, 96, 64};
-
-
-void play(const char *sequence) {
-    int currentOctave = DEFAULT_OCTAVE;
-    int defaultDuration = DEFAULT_DURATION;
-    int i = 0;
-
-    while (sequence[i] != '\0') {
-        //char c = toupper(sequence[i]);
-        char c = sequence[i];
-
-        // Notas musicales
-        if (strchr("CDEFGAB", c) != NULL) {
-            int baseFrequency = noteFrequencies[c - 'A'];
-            int frequency = baseFrequency >> (4 - currentOctave); // Ajustar por octava
-            int duration = defaultDuration;
-
-            // Chequear si hay un número tras la nota (duración específica)
-            if (isdigit(sequence[i + 1])) {
-                duration = atoi(&sequence[i + 1]);
-                while (isdigit(sequence[i + 1])) i++;
-            }
-
-            // Reproducir el tono
-            sound((unsigned char) frequency, (unsigned char) duration);
-
-        // Pausa
-        } else if (c == 'P') {
-            int pauseDuration = defaultDuration;
-            if (isdigit(sequence[i + 1])) {
-                pauseDuration = atoi(&sequence[i + 1]);
-                while (isdigit(sequence[i + 1])) i++;
-            }
-            sound(0, (unsigned char) pauseDuration); // Pausa = tono 0
-
-        // Cambiar octava
-        } else if (c == 'O') {
-            if (isdigit(sequence[i + 1])) {
-                currentOctave = sequence[i + 1] - '0';
-                if (currentOctave < 1) currentOctave = 1;
-                if (currentOctave > 6) currentOctave = 6;
-                i++;
-            }
-
-        // Cambiar duración por defecto
-        } else if (c == 'L') {
-            if (isdigit(sequence[i + 1])) {
-                defaultDuration = atoi(&sequence[i + 1]);
-                while (isdigit(sequence[i + 1])) i++;
-            }
-
-        // Subir nota medio tono (# o +)
-        } else if (c == '#' || c == '+') {
-            // Recalcular frecuencia
-            int baseFrequency = noteFrequencies[sequence[i - 1] - 'A'];
-            int frequency = (baseFrequency * 15) / 16; // Subir medio tono
-            int duration = defaultDuration;
-            sound((unsigned char) frequency, (unsigned char) duration);
-
-        // Bajar nota medio tono (-)
-        } else if (c == '-') {
-            int baseFrequency = noteFrequencies[sequence[i - 1] - 'A'];
-            int frequency = (baseFrequency * 17) / 16; // Bajar medio tono
-            int duration = defaultDuration;
-            sound((unsigned char) frequency, (unsigned char) duration);
-        }
-
-        i++;
-    }
-}
 
 
 void printBlock(int x, int y, unsigned char ch) {
@@ -270,8 +194,15 @@ void displayStatus() {
         locate(11, 7); printf("LINES: %3d", lines[0]);
         locate(11, 8); printf("SC: %6u", scores[6]);
         locate(11, 9); printf("HI: %6u", scores[0]);
-        locate(11, 12); printf("NEXT:");
-        drawNextShape(11, 0);
+        locate(11, 11); printf("NEXT:");
+        drawNextShape(10, 0);
+        // status line
+        locate(11, 14); 
+        if (lastLines > 0)       printf("%u LIN +%3d", lastLines, lastPoints);
+        else if (lastPoints > 0) printf("DROP   +%2d", lastPoints);
+        else                     printf("           ");
+        lastLines = 0;
+        lastPoints = 0;
     }
     else {
         // player 1
@@ -457,7 +388,7 @@ void setTrapBlock(unsigned char i) {
 
 void checkForFullRows(unsigned char i) { // searches for full rows
     BOOL fullRow;
-    int numLines = 0;
+    unsigned char numLines = 0;
     unsigned char x, y;
     unsigned char j = i + 6; // indices: 0-1-2-3-4-5-[score p1]-[score p2]
     // loops through all the rows in the pit
@@ -479,14 +410,16 @@ void checkForFullRows(unsigned char i) { // searches for full rows
     // updates the score if rows were completed
     if (numLines > 0) {
         switch (numLines) {
-            case 1: scores[j] += (100 * level[i]); break;
-            case 2: scores[j] += (300 * level[i]); break;
-            case 3: scores[j] += (500 * level[i]); break;
-            case 4: scores[j] += (800 * level[i]);
+            case 1: lastPoints = (100 * level[i]); break;
+            case 2: lastPoints = (300 * level[i]); break;
+            case 3: lastPoints = (500 * level[i]); break;
+            case 4: lastPoints = (800 * level[i]);
         }
         // updates the total completed rows and calculates the level
+        scores[j] += lastPoints;
         lines[i] += numLines;
         level[i] = (unsigned char)(lines[i] / LINES_LEVEL) + 1;
+        lastLines = numLines; // data for status line
 
         // generates a trap block
         if (numLines > 1 && level[i] >= 4)
@@ -519,7 +452,10 @@ void dropShape(unsigned char i) {
         shapeY[i] += 1;          // moves the shape down by one position
         drawShape(FALSE, i);     // redraws the shape at the new position
         // 1 point for each line in rapid drop
-        if (dropRate[i] == 0) scores[6+i]++;
+        if (dropRate[i] == 0) {
+            scores[6+i]++;
+            lastPoints++; // data for status line
+        }
     } else {
         settleActiveShapeInPit(i);
         // checks if the shape has reached the top (the game is lost)
