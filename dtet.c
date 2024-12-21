@@ -16,7 +16,7 @@ use xroar to test:
 TODO
 ====
 - optimizar autorepeat keys
-- probar en coco/thomson
+- probar en coco / thomson mo/to
 
 - efectos FX
   - pulsación de menú
