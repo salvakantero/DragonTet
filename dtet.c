@@ -745,7 +745,7 @@ void moveRightKeyPressed(unsigned char i) {
 void mainLoop() {
     unsigned char i; // 0 = Dragon1, 1 = Dragon2
 
-    playTune(tune1_notes, tune1_durations);
+    //playTune(tune1_notes, tune1_durations);
 
     // initialise start times for both players
     startTime[0] = startTime[1] = getTimer();
