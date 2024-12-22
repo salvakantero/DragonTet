@@ -72,6 +72,21 @@ int lastPoints; // points in the last move (for the status line)
 char names[8][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","", ""};
 unsigned int scores[8] = {2000, 1800, 1600, 1400, 1200, 1000, 0, 0};
 
+// tunes
+unsigned char tune1_notes[] = { 
+    205, 205, 208, 205, 200, 208, 205, 200, 191, 200, 188, 188, 193, 191, 188, 182, 178};
+unsigned char tune1_durations[] = { 
+    2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 8, 8, 4, 4, 4, 4, 8 };
+
+
+void playTune(unsigned char notes[], unsigned char durations[]) {
+    for (unsigned char i = 0; i < 17; i++) {
+        key = inkey();
+        sound(notes[i], durations[i]);
+        if (key != '\0') return;
+    }
+}
+
 
 void printBlock(int x, int y, unsigned char ch) {
     // calculates the memory address based on X and Y coordinates
@@ -730,6 +745,8 @@ void moveRightKeyPressed(unsigned char i) {
 void mainLoop() {
     unsigned char i; // 0 = Dragon1, 1 = Dragon2
 
+    playTune(tune1_notes, tune1_durations);
+
     // initialise start times for both players
     startTime[0] = startTime[1] = getTimer();
 
@@ -738,12 +755,11 @@ void mainLoop() {
         key = inkey(); // read keypresses
 
         // handle auto-repeat for keys
-        /*
         if (key == '\0' && autorepeatKeys && numPlayers == 0) {
             for (unsigned char i = 0; i <= 9; i++) 
                 *((unsigned char *)0x0150 + i) = 0xFF;
             if (dropRate[0] > 0) delay(2);
-        }*/
+        }
 
         // check for pause, exit, or game over actions
         if (key == 'H') { // pause
