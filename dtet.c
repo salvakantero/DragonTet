@@ -18,15 +18,13 @@ TODO
 - optimizar autorepeat keys
 - probar en coco / thomson mo/to
 
-- efectos FX
-  - pulsación de menú
-  - línea completada
 - melodías (que se puedan cancelar)
   - melodía inicial
   - melodía al inicio de cada nivel
   - melodía al perder
 
 */
+
 
 #include <cmoc.h>
 #include <coco.h>
@@ -337,7 +335,9 @@ void removeFullRow(unsigned char removedRow, unsigned char i) {
     // line selection effect
     for (x = 0 + pitLeft[i]; x < PIT_WIDTH + pitLeft[i]; x++)
         printBlock(x, removedRow, WHITE_BLOCK);
-    delay(2);
+    // fx
+    for (unsigned char j = 255; j > 60; j = j-5)
+        sound(j,0);
 
     // iterate from the removed row upwards
     for (y = removedRow; y > 0; y--) {
@@ -458,6 +458,7 @@ void dropShape(unsigned char i) {
         }
     } else {
         settleActiveShapeInPit(i);
+        sound(250, 0);
         // checks if the shape has reached the top (the game is lost)
         if (shapeY[i] < 0)
             gameOver[i] = TRUE;
@@ -569,13 +570,16 @@ void optionsMenu() {
             drawMenuPtr(6, 8, optNumber, TRUE);
             if (optNumber++ == 2) optNumber = 0;
             drawMenuPtr(6, 8, optNumber, FALSE);
+            sound(200,0);
         }
         else if (key == 94) { // cursor up
             drawMenuPtr(6, 8, optNumber, TRUE);
             if (optNumber-- == 0) optNumber = 2;
             drawMenuPtr(6, 8, optNumber, FALSE);
+            sound(200,0);
         }
         else if (key == 13 || key == 32) { // enter or space bar
+            sound(100,0);
             switch(optNumber) {
                 case 0:
                     autorepeatKeys = !autorepeatKeys;                
@@ -619,13 +623,16 @@ void menu() {
             drawMenuPtr(8, 7, optNumber, TRUE);
             if (optNumber++ == 5) optNumber = 0;
             drawMenuPtr(8, 7, optNumber, FALSE);
+            sound(200,0);
         }
         else if (key == 94) { // cursor up
             drawMenuPtr(8, 7, optNumber, TRUE);
             if (optNumber-- == 0) optNumber = 5;
             drawMenuPtr(8, 7, optNumber, FALSE);
+            sound(200,0);
         }
         else if (key == 13 || key == 32) { // enter or space bar
+            sound(100,0);
             drawMenuPtr(8, 7, optNumber, TRUE);
             switch (optNumber) {
                 case 0: // 1p start game
@@ -640,12 +647,14 @@ void menu() {
                     return;
                 case 2: // high scores
                     drawHighScores();
+                    sound(100,0);
                     break;
                 case 3: // options menu
                     optionsMenu();
                     break;
                 case 4: // show controls
                     drawHelp();
+                    sound(100,0);
                     break;                
                 case 5: // bye
                     cls(1);
@@ -729,11 +738,12 @@ void mainLoop() {
         key = inkey(); // read keypresses
 
         // handle auto-repeat for keys
+        /*
         if (key == '\0' && autorepeatKeys && numPlayers == 0) {
             for (unsigned char i = 0; i <= 9; i++) 
                 *((unsigned char *)0x0150 + i) = 0xFF;
             if (dropRate[0] > 0) delay(2);
-        }
+        }*/
 
         // check for pause, exit, or game over actions
         if (key == 'H') { // pause
