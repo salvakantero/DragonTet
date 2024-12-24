@@ -1,24 +1,24 @@
-
 /*
 
 = DRAGONTET =
 salvaKantero 2025
 
-2 player game version
 Compatible with Dragon 32/64 and COCO
 Based on Peter Swinkels' PC Qbasic code. (QBBlocks v1.0)
 
 use the CMOC compiler 0.1.89 or higher:
-"cmoc --dragon -o dtet.bin dtet.c"
+"cmoc --dragon -o dtet-dr.bin dtet.c"
+"cmoc --coco -o dtet-cc.bin dtet.c"
 use xroar to test:
-"xroar -run dtet.bin"
+"xroar -run dtet-dr.bin"
 
 TODO
 ====
 - optimizar autorepeat keys
-- probar en coco / thomson mo/to
+- optimizar función playTune
+- promo con capturas multisistema
 
-- melodías (que se puedan cancelar)
+- melodías originales (que se puedan cancelar)
   - melodía inicial
   - melodía al inicio de cada nivel
   - melodía al perder
@@ -31,6 +31,18 @@ TODO
 
 #define SCREEN_BASE 0x400 // base address of the video memory in text mode
 #define SCREEN_WIDTH 32 // screen width in characters
+
+#define PEEK(addr) (*(unsigned char *)(addr))
+#define POKE(addr, value) (*(unsigned char *)(addr) = (value))
+
+#define DRAGON_W !(PEEK(0x0159) & 0x10)
+#define DRAGON_A !(PEEK(0x0153) & 0x04)
+#define DRAGON_S !(PEEK(0x0155) & 0x10)
+#define DRAGON_D !(PEEK(0x0156) & 0x04)
+#define DRAGON_I !(PEEK(0x0153) & 0x08)
+#define DRAGON_J !(PEEK(0x0154) & 0x08)
+#define DRAGON_K !(PEEK(0x0155) & 0x08)
+#define DRAGON_L !(PEEK(0x0156) & 0x08)
 
 #define EMPTY_BLOCK 128 // black block, no active pixels
 #define FILLED_BLOCK 143 // all pixels in the block are active
@@ -741,7 +753,7 @@ void moveRightKeyPressed(unsigned char i) {
     }
 }
 
-
+/*
 void mainLoop() {
     unsigned char i; // 0 = Dragon1, 1 = Dragon2
 
@@ -815,6 +827,59 @@ void mainLoop() {
             if (getTimer() >= startTime[i] + dropRate[i]) {
                 dropShape(i); // shape moves down
                 startTime[i] = getTimer(); // reset fall timer
+            }
+        }
+    }
+}
+*/
+
+
+void mainLoop() {
+    unsigned char i; // 0 = Dragon1, 1 = Dragon2
+
+    // Inicializa los tiempos de inicio de ambos jugadores
+    startTime[0] = startTime[1] = getTimer();
+
+    while (TRUE) {
+        // Restablece la tabla de rollover
+        for (int addr = 0x0151; addr <= 0x0159; addr++) {
+            *((unsigned char *)addr) = 0xFF;
+        }
+
+        // Lee teclas
+        key = inkey();
+
+        // Alterna entre jugadores
+        for (i = 0; i < 2; i++) {
+            if (gameOver[i]) continue;
+
+            // Para Dragon 1
+            if (i == 0) {
+                // Rotar
+                if (DRAGON_W) rotateKeyPressed(0);
+                // Mover a la izquierda
+                if (DRAGON_A) moveLeftKeyPressed(0);
+                // Mover a la derecha
+                if (DRAGON_D) moveRightKeyPressed(0);
+                // Caída rápida
+                if (DRAGON_S) dropRate[0] = 0;
+            }
+            // Para Dragon 2
+            else {
+                // Rotar
+                if (DRAGON_I) rotateKeyPressed(1);
+                // Mover a la izquierda
+                if (DRAGON_J) moveLeftKeyPressed(1);
+                // Mover a la derecha
+                if (DRAGON_L) moveRightKeyPressed(1);
+                // Caída rápida
+                if (DRAGON_K) dropRate[1] = 0;
+            }
+
+            // Verifica si ha pasado el tiempo de caída
+            if (getTimer() >= startTime[i] + dropRate[i]) {
+                dropShape(i);
+                startTime[i] = getTimer();
             }
         }
     }
