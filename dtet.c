@@ -16,6 +16,7 @@ TODO
 ====
 - optimizar autorepeat keys
 - optimizar función playTune
+- seleccionar caracter de fondo
 - promo con capturas multisistema
 
 - melodías originales (que se puedan cancelar)
@@ -32,6 +33,7 @@ TODO
 #define SCREEN_BASE 0x400 // base address of the video memory in text mode
 #define SCREEN_WIDTH 32 // screen width in characters
 
+/*
 #define PEEK(addr) (*(unsigned char *)(addr))
 #define POKE(addr, value) (*(unsigned char *)(addr) = (value))
 
@@ -42,7 +44,7 @@ TODO
 #define DRAGON_I !(PEEK(0x0153) & 0x08)
 #define DRAGON_J !(PEEK(0x0154) & 0x08)
 #define DRAGON_K !(PEEK(0x0155) & 0x08)
-#define DRAGON_L !(PEEK(0x0156) & 0x08)
+#define DRAGON_L !(PEEK(0x0156) & 0x08)*/
 
 #define EMPTY_BLOCK 128 // black block, no active pixels
 #define FILLED_BLOCK 143 // all pixels in the block are active
@@ -753,7 +755,7 @@ void moveRightKeyPressed(unsigned char i) {
     }
 }
 
-/*
+
 void mainLoop() {
     unsigned char i; // 0 = Dragon1, 1 = Dragon2
 
@@ -767,7 +769,7 @@ void mainLoop() {
         key = inkey(); // read keypresses
 
         // handle auto-repeat for keys
-        if (key == '\0' && autorepeatKeys && numPlayers == 0) {
+        if (key == '\0' && autorepeatKeys) {
             for (unsigned char i = 0; i <= 9; i++) 
                 *((unsigned char *)0x0150 + i) = 0xFF;
             if (dropRate[0] > 0) delay(2);
@@ -831,9 +833,9 @@ void mainLoop() {
         }
     }
 }
-*/
 
 
+/*
 void mainLoop() {
     unsigned char i; // 0 = Dragon1, 1 = Dragon2
 
@@ -841,41 +843,30 @@ void mainLoop() {
     startTime[0] = startTime[1] = getTimer();
 
     while (TRUE) {
-        // Restablece la tabla de rollover
+        // Lee teclas solo una vez por iteración
+        key = inkey();
+
+        // Dragon 1: Procesa sus teclas
+        if (DRAGON_W) rotateKeyPressed(0);
+        if (DRAGON_A) moveLeftKeyPressed(0);
+        if (DRAGON_D) moveRightKeyPressed(0);
+        if (DRAGON_S) dropRate[0] = 0;
+
+        // Dragon 2: Procesa sus teclas
+        if (DRAGON_I) rotateKeyPressed(1);
+        if (DRAGON_J) moveLeftKeyPressed(1);
+        if (DRAGON_L) moveRightKeyPressed(1);
+        if (DRAGON_K) dropRate[1] = 0;
+
+        // No limpies la tabla de rollover aquí. Hazlo solo si es absolutamente necesario.
+        // Limpieza de tabla de rollover (después de procesar todo)
         for (int addr = 0x0151; addr <= 0x0159; addr++) {
             *((unsigned char *)addr) = 0xFF;
         }
 
-        // Lee teclas
-        key = inkey();
-
-        // Alterna entre jugadores
+        // Procesa el tiempo de caída para ambos jugadores
         for (i = 0; i < 2; i++) {
             if (gameOver[i]) continue;
-
-            // Para Dragon 1
-            if (i == 0) {
-                // Rotar
-                if (DRAGON_W) rotateKeyPressed(0);
-                // Mover a la izquierda
-                if (DRAGON_A) moveLeftKeyPressed(0);
-                // Mover a la derecha
-                if (DRAGON_D) moveRightKeyPressed(0);
-                // Caída rápida
-                if (DRAGON_S) dropRate[0] = 0;
-            }
-            // Para Dragon 2
-            else {
-                // Rotar
-                if (DRAGON_I) rotateKeyPressed(1);
-                // Mover a la izquierda
-                if (DRAGON_J) moveLeftKeyPressed(1);
-                // Mover a la derecha
-                if (DRAGON_L) moveRightKeyPressed(1);
-                // Caída rápida
-                if (DRAGON_K) dropRate[1] = 0;
-            }
-
             // Verifica si ha pasado el tiempo de caída
             if (getTimer() >= startTime[i] + dropRate[i]) {
                 dropShape(i);
@@ -883,7 +874,7 @@ void mainLoop() {
             }
         }
     }
-}
+}*/
 
 
 // check if the new score is high enough to enter the top 6
