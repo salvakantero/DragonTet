@@ -759,6 +759,87 @@ void moveRightKeyPressed(unsigned char i) {
 void mainLoop() {
     unsigned char i; // 0 = Dragon1, 1 = Dragon2
 
+    // initialise start times for both players
+    startTime[0] = startTime[1] = getTimer();
+
+    while (TRUE) {
+        const byte *joystickPositions = readJoystickPositions();
+
+        // check for pause, exit, or game over actions
+        // pause
+        if (isKeyPressed(KEY_PROBE_H, KEY_BIT_H)) {
+            while (inkey() != '\0'); // clear input buffer
+            while (inkey() == '\0') delay(1); // wait for key press
+            startTime[0] = startTime[1] = getTimer(); // reset timers
+            continue;
+        // cancel/exit to main menu
+        } else if (isKeyPressed(KEY_PROBE_X, KEY_BIT_X)) {
+            if (!gameOver[0] || !gameOver[1])
+                cancelled = TRUE;
+            break;
+        // enter/space after game over
+        } else if ((isKeyPressed(KEY_PROBE_ENTER, KEY_BIT_ENTER) 
+            || isKeyPressed(KEY_PROBE_SPACE, KEY_BIT_SPACE)) 
+            && (gameOver[0] && gameOver[1])) {
+            break;
+        }
+        ////////////////// PLAYER 1 /////////////////////
+        // rotation (key, cursor, joystick)
+        if (isKeyPressed(KEY_PROBE_W, KEY_BIT_W) 
+            || isKeyPressed(KEY_PROBE_UP, KEY_BIT_UP) 
+            || joystickPositions[JOYSTK_LEFT_VERT] < 16) 
+            rotateKeyPressed(0);
+        // move left (key, cursor, joystick)
+        if (isKeyPressed(KEY_PROBE_A, KEY_BIT_A) 
+            || isKeyPressed(KEY_PROBE_LEFT, KEY_BIT_LEFT) 
+            || joystickPositions[JOYSTK_LEFT_HORIZ] < 16) 
+            moveLeftKeyPressed(0);
+        // fast drop (key, cursor, joystick)
+        if (isKeyPressed(KEY_PROBE_S, KEY_BIT_S) 
+            || isKeyPressed(KEY_PROBE_DOWN, KEY_BIT_DOWN) 
+            || joystickPositions[JOYSTK_LEFT_VERT] > 48) 
+            dropRate[0] = 0;
+        // move right (key, cursor, joystick)
+        if (isKeyPressed(KEY_PROBE_D, KEY_BIT_D) 
+            || isKeyPressed(KEY_PROBE_RIGHT, KEY_BIT_RIGHT) 
+            || joystickPositions[JOYSTK_LEFT_HORIZ] > 48) 
+            moveRightKeyPressed(0);
+        
+        //////////////////// PLAYER 2 ///////////////////////
+        if (numPlayers > 0) {
+            // rotation (key, cursor, joystick)
+            if (isKeyPressed(KEY_PROBE_I, KEY_BIT_I) 
+                || joystickPositions[JOYSTK_RIGHT_VERT] < 16) 
+                rotateKeyPressed(1);
+            // move left (key joystick)
+            if (isKeyPressed(KEY_PROBE_J, KEY_BIT_J) 
+                || joystickPositions[JOYSTK_RIGHT_HORIZ] < 16) 
+                moveLeftKeyPressed(1);
+            // fast drop (key, joystick)
+            if (isKeyPressed(KEY_PROBE_K, KEY_BIT_K) 
+                || joystickPositions[JOYSTK_RIGHT_VERT] > 48) 
+                dropRate[1] = 0;
+            // move right (key, joystick)
+            if (isKeyPressed(KEY_PROBE_L, KEY_BIT_L) 
+                || joystickPositions[JOYSTK_RIGHT_HORIZ] > 48) 
+                moveRightKeyPressed(1);
+        }            
+
+        // check if the falling time has been exceeded
+        for (i = 0; i <= numPlayers; i++) {
+            if (!gameOver[i] && getTimer() >= startTime[i] + dropRate[i]) {
+                dropShape(i); // shape moves down
+                startTime[i] = getTimer(); // reset fall timer
+            }
+        }
+    }
+}
+
+
+/*
+void mainLoop() {
+    unsigned char i; // 0 = Dragon1, 1 = Dragon2
+
     //playTune(tune1_notes, tune1_durations);
 
     // initialise start times for both players
