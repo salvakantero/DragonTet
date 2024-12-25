@@ -9,14 +9,14 @@ Based on Peter Swinkels' PC Qbasic code. (QBBlocks v1.0)
 use the CMOC compiler 0.1.89 or higher:
 "cmoc --dragon -o dtet-dr.bin dtet.c"
 "cmoc --coco -o dtet-cc.bin dtet.c"
-use xroar to test:
+use xroar to test (dragon):
 "xroar -run dtet-dr.bin"
 
 TODO
 ====
 - optimizar autorepeat keys
 - optimizar función playTune
-- seleccionar caracter de fondo
+
 - promo con capturas multisistema
 
 - melodías originales (que se puedan cancelar)
@@ -49,6 +49,10 @@ TODO
 #define EMPTY_BLOCK 128 // black block, no active pixels
 #define FILLED_BLOCK 143 // all pixels in the block are active
 #define WHITE_BLOCK 207 // to mark a completed line
+
+#define MIN_BACK_CHAR 42 // minimum background char '*'
+#define MAX_BACK_CHAR 47 // maximum background char '/'
+
 #define SIDE_BLOCK_SIZE 4 // size of the shape's side (shape = 4x4 blocks)
 #define LAST_SIDE_BLOCK 3 // to iterate over the current shape (0 to 3)
 #define BLOCK_SIZE 16 // size of the shape in blocks (shape = 4x4 blocks)
@@ -75,11 +79,12 @@ char shapeMap[2][BLOCK_SIZE]; // shape design
 char nextShapeMap[2][BLOCK_SIZE]; // next shape design
 char rotatedMap[2][BLOCK_SIZE]; // design of the already rotated shape
 unsigned char colourShift = 0; // colour shift effect in the title
-BOOL markedPit = TRUE; // enables/disables the marks in the pit (options menu)
+BOOL emptyBackground = FALSE; // enables/disables the chars in the pit (options menu)
 BOOL autorepeatKeys = FALSE; // enables/disables the auto-repeat of keys (options menu)
 BOOL cancelled = FALSE; // TRUE = 'X' was pressed to cancel the game
 unsigned char lastLines; // lines in the last move (for the status line)
 int lastPoints; // points in the last move (for the status line)
+unsigned char backgroundChar[2]; // character to fill in the pits
 
 // pos 0-5: fake values for the initial TOP 6
 // pos 6-7: values for the current game
@@ -115,8 +120,8 @@ void drawBlock(unsigned char x, unsigned char y, char blockColour, unsigned char
     unsigned char colour = blockColour - NO_BLOCK; // (0 a 8)
     x += pitLeft[i];
     if (colour == 0) { // background
-        if (markedPit)
-            printBlock(x, y, 42); // "*" inverted
+        if (!emptyBackground)
+            printBlock(x, y, backgroundChar[i]);
         else
             printBlock(x, y, EMPTY_BLOCK);
         return;
@@ -450,6 +455,13 @@ void checkForFullRows(unsigned char i) { // searches for full rows
         level[i] = (unsigned char)(lines[i] / LINES_LEVEL) + 1;
         lastLines = numLines; // data for status line
 
+        // background char
+        if (!emptyBackground) {
+            backgroundChar[i] = MIN_BACK_CHAR + level[i] - 1;
+            if (backgroundChar[i] > MAX_BACK_CHAR) 
+                backgroundChar[i] = MIN_BACK_CHAR;
+        }
+
         // generates a trap block
         if (numLines > 1 && level[i] >= 4)
             setTrapBlock(i);
@@ -558,8 +570,8 @@ void drawHelp() {
     locate(0, 12); printf(" H = PAUSE THE GAME             ");
 	locate(0, 14); printf("   PRESS ANY KEY TO CONTINUE!   ");
 
-    roundWindow(0, 0, 13, 9, 64);
-    roundWindow(18, 0, 31, 8, 64);
+    roundWindow(0, 0, 13, 9, 112);
+    roundWindow(18, 0, 31, 8, 112);
     screen(0,1);
     waitkey(FALSE);
 }
@@ -574,16 +586,16 @@ void drawMenuPtr(unsigned char x, unsigned char y, unsigned char offset, BOOL de
 void drawOptionsMenu() {
 	cls(1);
     roundWindow(0, 0, 31, 15, 80);
-	locate(8, 8);  printf("AUTOREPEAT KEYS:");
-    locate(8, 9);  printf("MARKED PIT:");
-    locate(8, 10); printf("BACK");
+	locate(7, 8);  printf("AUTOREPEAT KEYS:");
+    locate(7, 9);  printf("EMPTY BACKGROUND:");
+    locate(7, 10); printf("BACK");
     locate(2, 14); printf("SELECT OPTION (CURSOR/ENTER)");
     // on/off switches
     locate(25, 8);
     if (autorepeatKeys) printf("on ");
     else printf("off");
     locate(25, 9);
-    if (markedPit) printf("on ");
+    if (emptyBackground) printf("on ");
     else printf("off");
 }
 
@@ -591,20 +603,20 @@ void drawOptionsMenu() {
 void optionsMenu() {
     char optNumber = 0;
     drawOptionsMenu();
-    drawMenuPtr(6, 8, optNumber, FALSE);
+    drawMenuPtr(5, 8, optNumber, FALSE);
     do {
         drawHeader(FALSE, colourShift++);
         key = inkey();
         if (key == 10) { // cursor down
-            drawMenuPtr(6, 8, optNumber, TRUE);
+            drawMenuPtr(5, 8, optNumber, TRUE);
             if (optNumber++ == 2) optNumber = 0;
-            drawMenuPtr(6, 8, optNumber, FALSE);
+            drawMenuPtr(5, 8, optNumber, FALSE);
             sound(200,0);
         }
         else if (key == 94) { // cursor up
-            drawMenuPtr(6, 8, optNumber, TRUE);
+            drawMenuPtr(5, 8, optNumber, TRUE);
             if (optNumber-- == 0) optNumber = 2;
-            drawMenuPtr(6, 8, optNumber, FALSE);
+            drawMenuPtr(5, 8, optNumber, FALSE);
             sound(200,0);
         }
         else if (key == 13 || key == 32) { // enter or space bar
@@ -614,13 +626,13 @@ void optionsMenu() {
                     autorepeatKeys = !autorepeatKeys;                
                     break;
                 case 1:
-                    markedPit = !markedPit;
+                    emptyBackground = !emptyBackground;
                     break;
                 case 2:
                     return;
             }
             drawOptionsMenu();
-            drawMenuPtr(6, 8, optNumber, FALSE);
+            drawMenuPtr(5, 8, optNumber, FALSE);
         }
         delay(2);
     } while (TRUE);
@@ -711,6 +723,7 @@ void init() {
         lines[i] = 0; // lines cleared
         scores[6+i] = 0; // current score
         nextShape[i] = 255; // shape generation will be required
+        backgroundChar[i] = MIN_BACK_CHAR; // character to fill in the pits
         createShape(i); // generate shape (shape, position)
         memset(pit[i], NO_BLOCK, PIT_WIDTH * PIT_HEIGHT); // initialize the empty pit
         drawPit(i);
