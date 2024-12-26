@@ -15,12 +15,9 @@ use xroar to test (dragon):
 TODO
 ====
 - control de teclado para Dragon
-- optimizar función playTune
-
-- promo con capturas multisistema
 
 - melodías originales (que se puedan cancelar)
-  - melodía inicial
+  - melodía menú principal
   - melodía al inicio de cada nivel
   - melodía al perder
 
@@ -95,13 +92,13 @@ unsigned int scores[8] = {2000, 1800, 1600, 1400, 1200, 1000, 0, 0};
 
 // tunes
 unsigned char tune1_notes[] = { 
-    205, 205, 208, 205, 200, 208, 205, 200, 191, 200, 188, 188, 193, 191, 188, 182, 178};
+    200, 210, 220, 200, 180, 190, 200, 0, 200, 180, 190, 200 };
 unsigned char tune1_durations[] = { 
-    2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 8, 8, 4, 4, 4, 4, 8 };
+    2, 2, 2, 4, 2, 2, 4, 2, 2, 2, 2, 8 };
 
 
-void playTune(unsigned char notes[], unsigned char durations[]) {
-    for (unsigned char i = 0; i < 17; i++) {
+void playTune(unsigned char notes[], unsigned char durations[], unsigned char numNotes) {
+    for (unsigned char i = 0; i < numNotes; i++) {
         key = inkey();
         sound(notes[i], durations[i]);
         if (key != '\0') return;
@@ -787,6 +784,8 @@ BOOL canProcessInput(unsigned char i, unsigned char action) {
 
 void mainLoop() {
     unsigned char i; // 0 = Dragon1, 1 = Dragon2
+
+    playTune(tune1_notes, tune1_durations, 12);
 
     // initialise start times for both players
     startTime[0] = startTime[1] = getTimer();
