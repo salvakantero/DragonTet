@@ -3,7 +3,7 @@
 = DRAGONTET =
 salvaKantero 2025
 
-Compatible with Dragon 32/64 and COCO
+Compatible with Dragon 32/64 and COCO 1/2/3
 Based on Peter Swinkels' PC Qbasic code. (QBBlocks v1.0)
 
 use the CMOC compiler 0.1.89 or higher:
@@ -12,9 +12,21 @@ use the CMOC compiler 0.1.89 or higher:
 use xroar to test (dragon):
 "xroar -run dtet-dr.bin"
 
+level description:
+level 1: 35 delay ticks
+level 2: 30 delay ticks
+level 3: 25 delay ticks + lower trap lines
+level 4: 20 delay ticks + lower trap lines
+level 5: 15 delay ticks + upper trap blocks
+level 6: 10 delay ticks + upper trap blocks
+level x:  5 delay ticks + upper trap blocks
+
+
 TODO
 ====
 - control de teclado para Dragon
+- implementar líneas trampa
+- aplicar líneas y bloques trampa con 1 jugador (cada X piezas)
 
 - melodías originales (que se puedan cancelar)
   - melodía menú principal
@@ -83,7 +95,8 @@ BOOL cancelled = FALSE; // TRUE = 'X' was pressed to cancel the game
 unsigned char lastLines; // lines in the last move (for the status line)
 int lastPoints; // points in the last move (for the status line)
 unsigned char backgroundChar[2]; // character to fill in the pits
-unsigned int lastInputTime[2][3]; // Para cada jugador y acción (rotar, izquierda, derecha) 
+unsigned int lastInputTime[2][3]; // for each player and action (rotate, left, right) 
+unsigned char numPiecesPlayed; // allows trap lines/blocks to be generated (1 player)
 
 // pos 0-5: fake values for the initial TOP 6
 // pos 6-7: values for the current game
@@ -309,14 +322,7 @@ void createNextShape(unsigned char i) {
 
 
 void createShape(unsigned char i) {
-    /* calculates the fall speed based on the level
-        level 1: 35 delay ticks
-        level 2: 30   "
-        level 3: 25   "
-        level 4: 20   "
-        level 5: 15   "
-        level 6: 10   "
-        level x:  5   " */
+    // calculates the fall speed based on the level
     dropRate[i] = (level[i] < 7) ? (40 - (level[i] * 5)) : 5;
     // if it's not the first shape, take the value of nextShape
     if (nextShape[i] != 255)
@@ -383,6 +389,11 @@ void removeFullRow(unsigned char removedRow, unsigned char i) {
     // clear the first row after shifting all rows down
     for (x = 0; x < PIT_WIDTH; x++)
         pit[i][x] = NO_BLOCK;
+}
+
+
+void setTrapLine(unsigned char i) {
+
 }
 
 
@@ -460,10 +471,21 @@ void checkForFullRows(unsigned char i) { // searches for full rows
             if (backgroundChar[i] > MAX_BACK_CHAR) 
                 backgroundChar[i] = MIN_BACK_CHAR;
         }
-
-        // generates a trap block
-        if (numLines > 1 && level[i] >= 4)
-            setTrapBlock(i);
+        
+        // generates a trap line/block.
+        // 1 player game, every x pieces
+        if (numPlayers == 0) {
+            if (numPiecesPlayed == 5) {
+                if (level[i] > 4) setTrapBlock(i);
+                else if(level[i] > 2) setTrapLine(i);
+                numPiecesPlayed = 0;
+            }
+        }
+        // 2 player game, more than 1 line in a row
+        else if (numLines > 1) {
+            if (level[i] > 4) setTrapBlock(i);
+            else if(level[i] > 2) setTrapLine(i);
+        }
     }
 }
 
@@ -482,6 +504,7 @@ void settleActiveShapeInPit(unsigned char i) {
                 pit[i][y * PIT_WIDTH + x] = blockColour;
         }
     }
+    if (numPlayers > 0) numPiecesPlayed++;
 }
 
 
@@ -730,6 +753,7 @@ void init() {
     cancelled = FALSE;
     displayStatus();
     if (numPlayers == 0) {
+        numPiecesPlayed = 0;
         locate(23,6); printf(" PLEASE ");
         locate(23,7); printf("  WAIT  ");
         locate(23,8); printf(" DRAGON ");
