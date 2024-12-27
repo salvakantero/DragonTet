@@ -27,11 +27,7 @@ TODO
 - control de teclado para Dragon
 - implementar líneas trampa
 - aplicar líneas y bloques trampa con 1 jugador (cada X piezas)
-
-- melodías originales (que se puedan cancelar)
-  - melodía menú principal
-  - melodía al inicio de cada nivel
-  - melodía al perder
+- cortar melodías eficazmente
 
 */
 
@@ -90,7 +86,7 @@ char nextShapeMap[2][BLOCK_SIZE]; // next shape design
 char rotatedMap[2][BLOCK_SIZE]; // design of the already rotated shape
 unsigned char colourShift = 0; // colour shift effect in the title
 BOOL emptyBackground = FALSE; // enables/disables the chars in the pit (options menu)
-BOOL autorepeatKeys = FALSE; // enables/disables the auto-repeat of keys (options menu)
+BOOL muted = FALSE; // enables/disables the sound effects and tunes
 BOOL cancelled = FALSE; // TRUE = 'X' was pressed to cancel the game
 unsigned char lastLines; // lines in the last move (for the status line)
 int lastPoints; // points in the last move (for the status line)
@@ -104,17 +100,37 @@ char names[8][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","", "
 unsigned int scores[8] = {2000, 1800, 1600, 1400, 1200, 1000, 0, 0};
 
 // tunes
-unsigned char tune1_notes[] = { 
-    200, 210, 220, 200, 180, 190, 200, 0, 200, 180, 190, 200 };
-unsigned char tune1_durations[] = { 
-    2, 2, 2, 4, 2, 2, 4, 2, 2, 2, 2, 8 };
+// hall of fame
+unsigned char tune1Notes[] = { 190, 200, 180, 185, 170, 160 };
+unsigned char tune1Durations[] = { 2, 2, 3, 3, 3, 6 };
+// start of game
+unsigned char tune2Notes[] = { 191, 200, 210, 220, 200, 180, 190, 200, 200, 180, 190, 200 };
+unsigned char tune2Durations[] = { 2, 2, 2, 2, 4, 2, 2, 4, 2, 2, 2, 3 };
+// game over
+unsigned char tune3Notes[] = { 165, 140, 155, 135, 150, 130, 140, 120, 110, 100 };
+unsigned char tune3Durations[] = { 3, 1, 3, 1, 3, 1, 2, 1, 2, 4 };
 
-
+/*
 void playTune(unsigned char notes[], unsigned char durations[], unsigned char numNotes) {
+    if (muted) return;
     for (unsigned char i = 0; i < numNotes; i++) {
         key = inkey();
         sound(notes[i], durations[i]);
         if (key != '\0') return;
+    }
+}*/
+
+
+void playTune(unsigned char notes[], unsigned char durations[], unsigned char numNotes) {
+    if (muted) return;
+    for (unsigned char i = 0; i < numNotes; i++) {
+        unsigned char duration = durations[i];
+        while (duration > 0) {
+            key = inkey();
+            if (key != '\0') return; // Interrumpe si se presiona una tecla
+            sound(notes[i], 1); // Genera sonido por un pequeño fragmento
+            duration--;
+        }
     }
 }
 
@@ -230,6 +246,7 @@ void displayStatus() {
         if (gameOver[i]) {
             locate(pitLeft[i], 8);
             printf("GAME OVER!");
+            playTune(tune3Notes, tune3Durations, 10);
         }
     }
     if (numPlayers == 0) {        
@@ -374,9 +391,11 @@ void removeFullRow(unsigned char removedRow, unsigned char i) {
     // line selection effect
     for (x = 0 + pitLeft[i]; x < PIT_WIDTH + pitLeft[i]; x++)
         printBlock(x, removedRow, WHITE_BLOCK);
+
     // fx
-    for (unsigned char j = 255; j > 60; j = j-5)
-        sound(j,0);
+    if (!muted)
+        for (unsigned char j = 255; j > 60; j = j-5)
+            sound(j,0);
 
     // iterate from the removed row upwards
     for (y = removedRow; y > 0; y--) {
@@ -475,14 +494,14 @@ void checkForFullRows(unsigned char i) { // searches for full rows
         if (numPlayers > 0 && numLines > 1) {
             if (level[i] > 4) setTrapBlock(i);
             else if(level[i] > 2) setTrapLine(i);
-            sound(1,1);
+            if (!muted) sound(1,1);
         }
     }
     // player 1 every x pieces generates a trap line/block
     if (numPlayers == 0 && numPiecesPlayed == 10) {
         if (level[0] > 0) setTrapBlock(0);
         else if(level[0] > 2) setTrapLine(0);
-        sound(1,1);
+        if (!muted) sound(1,1);
         numPiecesPlayed = 0;
     }
 }
@@ -520,7 +539,7 @@ void dropShape(unsigned char i) {
         }
     } else {
         settleActiveShapeInPit(i);
-        sound(250, 0);
+        if (!muted) sound(245, 0);
         // checks if the shape has reached the top (the game is lost)
         if (shapeY[i] < 0)
             gameOver[i] = TRUE;
@@ -548,7 +567,8 @@ void roundWindow(int ulx, int uly, int brx, int bry, unsigned char offset) {
 
 void drawHighScores() {
     cls(1);
-    roundWindow(0, 0, 31, 15, 80);   
+    roundWindow(0, 0, 31, 15, 80);  
+    drawHeader(FALSE, colourShift++); 
 	// TOP 6 position (0-5)
     for(unsigned char pos = 0; pos < 6; pos++) {
         locate( 8, 7+pos); printf(".............");
@@ -556,6 +576,7 @@ void drawHighScores() {
         locate(20, 7+pos); printf("%5u", scores[pos]);
 	}
 	locate(3, 14); printf("PRESS ANY KEY TO CONTINUE!");
+    playTune(tune1Notes, tune1Durations, 6);
     while (TRUE) {
         if (inkey() != 0) break;
         drawHeader(FALSE, colourShift++);
@@ -606,17 +627,17 @@ void drawMenuPtr(unsigned char x, unsigned char y, unsigned char offset, BOOL de
 
 void drawOptionsMenu() {
 	cls(1);
-    roundWindow(0, 0, 31, 15, 80);
-	locate(7, 8);  printf("AUTOREPEAT KEYS:");
-    locate(7, 9);  printf("EMPTY BACKGROUND:");
+    roundWindow(0, 0, 31, 15, 80);	
+    locate(7, 8);  printf("EMPTY BACKGROUND:");
+    locate(7, 9);  printf("MUTED:");
     locate(7, 10); printf("BACK");
     locate(2, 14); printf("SELECT OPTION (CURSOR/ENTER)");
     // on/off switches
     locate(25, 8);
-    if (autorepeatKeys) printf("on ");
+    if (emptyBackground) printf("on ");
     else printf("off");
     locate(25, 9);
-    if (emptyBackground) printf("on ");
+    if (muted) printf("on ");
     else printf("off");
 }
 
@@ -632,23 +653,23 @@ void optionsMenu() {
             drawMenuPtr(5, 8, optNumber, TRUE);
             if (optNumber++ == 2) optNumber = 0;
             drawMenuPtr(5, 8, optNumber, FALSE);
-            sound(200,0);
+            if (!muted) sound(200,0);
         }
         else if (key == 94) { // cursor up
             drawMenuPtr(5, 8, optNumber, TRUE);
             if (optNumber-- == 0) optNumber = 2;
             drawMenuPtr(5, 8, optNumber, FALSE);
-            sound(200,0);
+            if (!muted) sound(200,0);
         }
         else if (key == 13 || key == 32) { // enter or space bar
-            sound(100,0);
+            if (!muted) sound(100,0);
             switch(optNumber) {
                 case 0:
-                    autorepeatKeys = !autorepeatKeys;                
-                    break;
-                case 1:
                     emptyBackground = !emptyBackground;
                     break;
+                case 1:
+                    muted = !muted;                
+                    break;                    
                 case 2:
                     return;
             }
@@ -685,16 +706,16 @@ void menu() {
             drawMenuPtr(8, 7, optNumber, TRUE);
             if (optNumber++ == 5) optNumber = 0;
             drawMenuPtr(8, 7, optNumber, FALSE);
-            sound(200,0);
+            if (!muted) sound(200,0);
         }
         else if (key == 94) { // cursor up
             drawMenuPtr(8, 7, optNumber, TRUE);
             if (optNumber-- == 0) optNumber = 5;
             drawMenuPtr(8, 7, optNumber, FALSE);
-            sound(200,0);
+            if (!muted) sound(200,0);
         }
         else if (key == 13 || key == 32) { // enter or space bar
-            sound(100,0);
+            if (!muted) sound(100,0);
             drawMenuPtr(8, 7, optNumber, TRUE);
             switch (optNumber) {
                 case 0: // 1p start game
@@ -709,14 +730,14 @@ void menu() {
                     return;
                 case 2: // high scores
                     drawHighScores();
-                    sound(100,0);
+                    if (!muted) sound(100,0);
                     break;
                 case 3: // options menu
                     optionsMenu();
                     break;
                 case 4: // show controls
                     drawHelp();
-                    sound(100,0);
+                    if (!muted) sound(100,0);
                     break;                
                 case 5: // bye
                     cls(1);
@@ -735,7 +756,7 @@ void menu() {
 
 // logic to initialize the system and pits
 void init() {
-    setTimer(0); // initialises the system timer
+    setTimer(0); // initialises the system timer    
     menu();
 	cls(1); // green screen
     roundWindow(PIT_WIDTH, 0, pitLeft[1]-1, 15, 0);
@@ -808,7 +829,7 @@ BOOL canProcessInput(unsigned char i, unsigned char action) {
 void mainLoop() {
     unsigned char i; // 0 = Dragon1, 1 = Dragon2
 
-    playTune(tune1_notes, tune1_durations, 12);
+    playTune(tune2Notes, tune2Durations, 12);
 
     // initialise start times for both players
     startTime[0] = startTime[1] = getTimer();
