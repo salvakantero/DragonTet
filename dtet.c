@@ -464,28 +464,26 @@ void checkForFullRows(unsigned char i) { // searches for full rows
         lines[i] += numLines;
         level[i] = (unsigned char)(lines[i] / LINES_LEVEL) + 1;
         lastLines = numLines; // data for status line
-
         // background char
         if (!emptyBackground) {
             backgroundChar[i] = MIN_BACK_CHAR + level[i] - 1;
             if (backgroundChar[i] > MAX_BACK_CHAR) 
                 backgroundChar[i] = MIN_BACK_CHAR;
         }
-        
-        // generates a trap line/block.
-        // 1 player game, every x pieces
-        if (numPlayers == 0) {
-            if (numPiecesPlayed == 5) {
-                if (level[i] > 4) setTrapBlock(i);
-                else if(level[i] > 2) setTrapLine(i);
-                numPiecesPlayed = 0;
-            }
-        }
-        // 2 player game, more than 1 line in a row
-        else if (numLines > 1) {
+        // 2 players and more than 1 line in a row
+        // generates a trap line/block
+        if (numPlayers > 0 && numLines > 1) {
             if (level[i] > 4) setTrapBlock(i);
             else if(level[i] > 2) setTrapLine(i);
+            sound(1,1);
         }
+    }
+    // player 1 every x pieces generates a trap line/block
+    if (numPlayers == 0 && numPiecesPlayed == 10) {
+        if (level[0] > 0) setTrapBlock(0);
+        else if(level[0] > 2) setTrapLine(0);
+        sound(1,1);
+        numPiecesPlayed = 0;
     }
 }
 
@@ -504,7 +502,8 @@ void settleActiveShapeInPit(unsigned char i) {
                 pit[i][y * PIT_WIDTH + x] = blockColour;
         }
     }
-    if (numPlayers > 0) numPiecesPlayed++;
+    if (numPlayers == 0)
+        numPiecesPlayed++;
 }
 
 
