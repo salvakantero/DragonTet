@@ -104,33 +104,19 @@ unsigned int scores[8] = {2000, 1800, 1600, 1400, 1200, 1000, 0, 0};
 unsigned char tune1Notes[] = { 190, 200, 180, 185, 170, 160 };
 unsigned char tune1Durations[] = { 2, 2, 3, 3, 3, 6 };
 // start of game
-unsigned char tune2Notes[] = { 191, 200, 210, 220, 200, 180, 190, 200, 200, 180, 190, 200 };
+unsigned char tune2Notes[] = { 191, 200, 210, 216, 200, 180, 190, 200, 200, 180, 190, 200 };
 unsigned char tune2Durations[] = { 2, 2, 2, 2, 4, 2, 2, 4, 2, 2, 2, 3 };
 // game over
 unsigned char tune3Notes[] = { 165, 140, 155, 135, 150, 130, 140, 120, 110, 100 };
 unsigned char tune3Durations[] = { 3, 1, 3, 1, 3, 1, 2, 1, 2, 4 };
 
-/*
+
 void playTune(unsigned char notes[], unsigned char durations[], unsigned char numNotes) {
     if (muted) return;
     for (unsigned char i = 0; i < numNotes; i++) {
-        key = inkey();
+        if (inkey() != '\0') return;
         sound(notes[i], durations[i]);
-        if (key != '\0') return;
-    }
-}*/
-
-
-void playTune(unsigned char notes[], unsigned char durations[], unsigned char numNotes) {
-    if (muted) return;
-    for (unsigned char i = 0; i < numNotes; i++) {
-        unsigned char duration = durations[i];
-        while (duration > 0) {
-            key = inkey();
-            if (key != '\0') return; // Interrumpe si se presiona una tecla
-            sound(notes[i], 1); // Genera sonido por un pequeño fragmento
-            duration--;
-        }
+        if (inkey() != '\0') return;
     }
 }
 
