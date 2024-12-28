@@ -25,11 +25,10 @@ level x:  5 delay ticks + upper trap blocks
 TODO
 ====
 - control de teclado para Dragon
-
 - implementar líneas trampa
 - pantalla de ayuda puntuaciones si < 16kb
-
 - BUG puntos nivel 3+
+
 */
 
 
@@ -74,7 +73,7 @@ BOOL emptyBackground = FALSE; // enables/disables the chars in the pit (options 
 BOOL muted = FALSE; // enables/disables the sound effects and tunes
 BOOL cancelled = FALSE; // TRUE = 'X' was pressed to cancel the game
 unsigned char lastLines; // lines in the last move (for the status line)
-int lastPoints; // points in the last move (for the status line)
+unsigned int lastPoints; // points in the last move (for the status line)
 unsigned char backgroundChar[2]; // character to fill in the pits with backgroundCharList
 unsigned char backgroundCharList[8] = {42, 43, 39, 35, 28, 44, 47, 44 }; // * + . # \ , / .
 unsigned int lastInputTime[2][3]; // for each player and action (rotate, left, right) 
@@ -177,8 +176,8 @@ void drawNextShape(unsigned char y, unsigned char i) {
     for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
         for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
             blockColour = nextShapeMap[i][(blockY * SIDE_BLOCK_SIZE) + blockX];
-            // green background
-            if (blockColour == NO_BLOCK) blockColour = '1';
+            if (blockColour == NO_BLOCK) blockColour = '1'; // green background
+            else if (blockColour == '1') blockColour = '5'; // white over green
             // different position depending on the player
             if (i == 0) drawBlock(blockX + 17, blockY + y, blockColour, i);
             else drawBlock(blockX - 5, blockY + y, blockColour, i);
@@ -232,9 +231,9 @@ void displayStatus() {
         drawNextShape(10, 0);
         // status line
         locate(11, 14); 
-        if (lastLines > 0)       printf("%u LIN +%3d ", lastLines, lastPoints);
-        else if (lastPoints > 0) printf("DROP   +%2d ", lastPoints);
-        else                     printf("           ");
+        if (lastLines > 0)       printf("%uLIN +%4u", lastLines, lastPoints);
+        else if (lastPoints > 0) printf("DROP   +%2u", lastPoints);
+        else                     printf("          ");
         lastLines = 0;
         lastPoints = 0;
     }
@@ -265,10 +264,10 @@ const char* getShapeMap(unsigned char shape) {
         "0000033003300000", // [] blue
         "0000066066000000", // S cyan
         "0000880008800000", // Z orange
-        "0000555005000000"  // T white
+        "0000111001000000"  // T green
     };
     return shapeMaps[shape];
-}score
+}
 
 
 void getRotatedShapeMap(unsigned char shape, unsigned char angle, char *rotatedMap) {
@@ -385,7 +384,33 @@ void removeFullRow(unsigned char removedRow, unsigned char i) {
 
 
 void setTrapLine(unsigned char i) {
+    unsigned char x, y, emptyX;
 
+    // with two players generates line in the opposing pit
+    if (numPlayers == 1)
+        i = (i == 0) ? 1 : 0;
+
+    // generates a random empty space on the new line
+    emptyX = (unsigned char) rand() % PIT_WIDTH;
+
+    // moves all rows up
+    for (y = 1; y < PIT_HEIGHT; y++)
+        for (x = 0; x < PIT_WIDTH; x++)
+            pit[i][(y - 1) * PIT_WIDTH + x] = pit[i][y * PIT_WIDTH + x];
+
+    // fill the last row with blocks, leaving an empty space.
+    for (x = 0; x < PIT_WIDTH; x++) {
+        if (x == emptyX)    pit[i][(PIT_HEIGHT - 1) * PIT_WIDTH + x] = NO_BLOCK;
+        else                pit[i][(PIT_HEIGHT - 1) * PIT_WIDTH + x] = '5'; // white
+    }
+    // paints the line at the moment when it goes to the opposite pit
+    if (numPlayers == 1)
+        for (x = 0; x < PIT_WIDTH; x++) {
+            if (x == emptyX)    printBlock(x + pitLeft[i], PIT_HEIGHT - 1, EMPTY_BLOCK);
+            else                printBlock(x + pitLeft[i], PIT_HEIGHT - 1, WHITE_BLOCK);
+        }
+
+    if (!muted) sound(1, 1);
 }
 
 
@@ -411,10 +436,10 @@ void setTrapBlock(unsigned char i) {
         // we find an empty row, we place the block
         if (rowEmpty) {
             trapX = rand() % PIT_WIDTH;
-            pit[i][trapY * PIT_WIDTH + trapX] = 1; // green block
+            pit[i][trapY * PIT_WIDTH + trapX] = 5; // white block
             // paints the block at the moment when it goes to the opposite pit
             if (numPlayers == 1) 
-                printBlock(trapX + pitLeft[i], trapY, FILLED_BLOCK);
+                printBlock(trapX + pitLeft[i], trapY, WHITE_BLOCK);
             if (!muted) sound(1,1);
             return;
         }
@@ -459,13 +484,16 @@ void checkForFullRows(unsigned char i) { // searches for full rows
         level[i] = (unsigned char)(lines[i] / LINES_LEVEL) + 1;
 
         // if it detects level change...
-        if (previousLevel[i] < level[i] && !muted) {
+        if (previousLevel[i] < level[i]) {
+            previousLevel[i] = level[i];
             // level background char
             if (!emptyBackground && level[i] < 9)
                 backgroundChar[i] = backgroundCharList[level[i]-1];
             // level change sound
-            sound(230, 1); sound(220, 2);
-            previousLevel[i] = level[i];
+            if (!muted) {
+                sound(230, 1); 
+                sound(220, 2);
+            }
         }
         
         // 2 players and more than 1 line in a row
@@ -733,11 +761,18 @@ void menu() {
 
 // logic to initialize the system and pits
 void init() {
+    unsigned char i;
     setTimer(0); // initialises the system timer    
     menu();
 	cls(1); // green screen
     roundWindow(PIT_WIDTH, 0, pitLeft[1]-1, 15, 0);
-    for (unsigned char i = 0; i < 2; i++) {
+    // separators
+    for (i = 1; i < PIT_HEIGHT-1; i++) {
+        printBlock(PIT_WIDTH, i, 133);
+        printBlock(SCREEN_WIDTH-PIT_WIDTH-1, i, 138);
+    }
+
+    for (i = 0; i < 2; i++) {
         level[i] = previousLevel[i] = 1; // initial level
         lines[i] = 0; // lines cleared
         scores[6+i] = 0; // current score
