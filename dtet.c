@@ -25,10 +25,11 @@ level x:  5 delay ticks + upper trap blocks
 TODO
 ====
 - control de teclado para Dragon
-- implementar líneas trampa
-- aplicar líneas y bloques trampa con 1 jugador (cada X piezas)
-- cortar melodías eficazmente
 
+- implementar líneas trampa
+- pantalla de ayuda puntuaciones si < 16kb
+
+- BUG puntos nivel 3+
 */
 
 
@@ -38,25 +39,9 @@ TODO
 #define SCREEN_BASE 0x400 // base address of the video memory in text mode
 #define SCREEN_WIDTH 32 // screen width in characters
 
-/*
-#define PEEK(addr) (*(unsigned char *)(addr))
-#define POKE(addr, value) (*(unsigned char *)(addr) = (value))
-
-#define DRAGON_W !(PEEK(0x0159) & 0x10)
-#define DRAGON_A !(PEEK(0x0153) & 0x04)
-#define DRAGON_S !(PEEK(0x0155) & 0x10)
-#define DRAGON_D !(PEEK(0x0156) & 0x04)
-#define DRAGON_I !(PEEK(0x0153) & 0x08)
-#define DRAGON_J !(PEEK(0x0154) & 0x08)
-#define DRAGON_K !(PEEK(0x0155) & 0x08)
-#define DRAGON_L !(PEEK(0x0156) & 0x08)*/
-
 #define EMPTY_BLOCK 128 // black block, no active pixels
 #define FILLED_BLOCK 143 // all pixels in the block are active
 #define WHITE_BLOCK 207 // to mark a completed line
-
-#define MIN_BACK_CHAR 42 // minimum background char '*'
-#define MAX_BACK_CHAR 47 // maximum background char '/'
 
 #define SIDE_BLOCK_SIZE 4 // size of the shape's side (shape = 4x4 blocks)
 #define LAST_SIDE_BLOCK 3 // to iterate over the current shape (0 to 3)
@@ -90,9 +75,11 @@ BOOL muted = FALSE; // enables/disables the sound effects and tunes
 BOOL cancelled = FALSE; // TRUE = 'X' was pressed to cancel the game
 unsigned char lastLines; // lines in the last move (for the status line)
 int lastPoints; // points in the last move (for the status line)
-unsigned char backgroundChar[2]; // character to fill in the pits
+unsigned char backgroundChar[2]; // character to fill in the pits with backgroundCharList
+unsigned char backgroundCharList[8] = {42, 43, 39, 35, 28, 44, 47, 44 }; // * + . # \ , / .
 unsigned int lastInputTime[2][3]; // for each player and action (rotate, left, right) 
 unsigned char numPiecesPlayed; // allows trap lines/blocks to be generated (1 player)
+unsigned char previousLevel[2]; // previous level for each player
 
 // pos 0-5: fake values for the initial TOP 6
 // pos 6-7: values for the current game
@@ -101,11 +88,11 @@ unsigned int scores[8] = {2000, 1800, 1600, 1400, 1200, 1000, 0, 0};
 
 // tunes
 // hall of fame
-unsigned char tune1Notes[] = { 190, 200, 180, 185, 170, 160 };
-unsigned char tune1Durations[] = { 2, 2, 3, 3, 3, 6 };
+unsigned char tune1Notes[] = { 201, 201, 201, 208, 195, 210, 218 };
+unsigned char tune1Durations[] = { 4, 2, 2, 3, 3, 3, 7 };
 // start of game
-unsigned char tune2Notes[] = { 191, 200, 210, 216, 200, 180, 190, 200, 200, 180, 190, 200 };
-unsigned char tune2Durations[] = { 2, 2, 2, 2, 4, 2, 2, 4, 2, 2, 2, 3 };
+unsigned char tune2Notes[] = { 191, 200, 210, 216, 200, 180, 190, 200 };
+unsigned char tune2Durations[] = { 2, 2, 2, 2, 4, 2, 2, 4 };
 // game over
 unsigned char tune3Notes[] = { 165, 140, 155, 135, 150, 130, 140, 120, 110, 100 };
 unsigned char tune3Durations[] = { 3, 1, 3, 1, 3, 1, 2, 1, 2, 4 };
@@ -245,8 +232,8 @@ void displayStatus() {
         drawNextShape(10, 0);
         // status line
         locate(11, 14); 
-        if (lastLines > 0)       printf("%u LIN +%3d", lastLines, lastPoints);
-        else if (lastPoints > 0) printf("DROP   +%2d", lastPoints);
+        if (lastLines > 0)       printf("%u LIN +%3d ", lastLines, lastPoints);
+        else if (lastPoints > 0) printf("DROP   +%2d ", lastPoints);
         else                     printf("           ");
         lastLines = 0;
         lastPoints = 0;
@@ -281,7 +268,7 @@ const char* getShapeMap(unsigned char shape) {
         "0000555005000000"  // T white
     };
     return shapeMaps[shape];
-}
+}score
 
 
 void getRotatedShapeMap(unsigned char shape, unsigned char angle, char *rotatedMap) {
@@ -428,6 +415,7 @@ void setTrapBlock(unsigned char i) {
             // paints the block at the moment when it goes to the opposite pit
             if (numPlayers == 1) 
                 printBlock(trapX + pitLeft[i], trapY, FILLED_BLOCK);
+            if (!muted) sound(1,1);
             return;
         }
         attempts--;
@@ -467,27 +455,30 @@ void checkForFullRows(unsigned char i) { // searches for full rows
         // updates the total completed rows and calculates the level
         scores[j] += lastPoints;
         lines[i] += numLines;
-        level[i] = (unsigned char)(lines[i] / LINES_LEVEL) + 1;
         lastLines = numLines; // data for status line
-        // background char
-        if (!emptyBackground) {
-            backgroundChar[i] = MIN_BACK_CHAR + level[i] - 1;
-            if (backgroundChar[i] > MAX_BACK_CHAR) 
-                backgroundChar[i] = MIN_BACK_CHAR;
+        level[i] = (unsigned char)(lines[i] / LINES_LEVEL) + 1;
+
+        // if it detects level change...
+        if (previousLevel[i] < level[i] && !muted) {
+            // level background char
+            if (!emptyBackground && level[i] < 9)
+                backgroundChar[i] = backgroundCharList[level[i]-1];
+            // level change sound
+            sound(230, 1); sound(220, 2);
+            previousLevel[i] = level[i];
         }
+        
         // 2 players and more than 1 line in a row
         // generates a trap line/block
         if (numPlayers > 0 && numLines > 1) {
             if (level[i] > 4) setTrapBlock(i);
             else if(level[i] > 2) setTrapLine(i);
-            if (!muted) sound(1,1);
         }
     }
     // player 1 every x pieces generates a trap line/block
     if (numPlayers == 0 && numPiecesPlayed == 10) {
-        if (level[0] > 0) setTrapBlock(0);
+        if (level[0] > 4) setTrapBlock(0);
         else if(level[0] > 2) setTrapLine(0);
-        if (!muted) sound(1,1);
         numPiecesPlayed = 0;
     }
 }
@@ -562,7 +553,7 @@ void drawHighScores() {
         locate(20, 7+pos); printf("%5u", scores[pos]);
 	}
 	locate(3, 14); printf("PRESS ANY KEY TO CONTINUE!");
-    playTune(tune1Notes, tune1Durations, 6);
+    playTune(tune1Notes, tune1Durations, 7);
     while (TRUE) {
         if (inkey() != 0) break;
         drawHeader(FALSE, colourShift++);
@@ -747,11 +738,11 @@ void init() {
 	cls(1); // green screen
     roundWindow(PIT_WIDTH, 0, pitLeft[1]-1, 15, 0);
     for (unsigned char i = 0; i < 2; i++) {
-        level[i] = 1; // initial level
+        level[i] = previousLevel[i] = 1; // initial level
         lines[i] = 0; // lines cleared
         scores[6+i] = 0; // current score
         nextShape[i] = 255; // shape generation will be required
-        backgroundChar[i] = MIN_BACK_CHAR; // character to fill in the pits
+        backgroundChar[i] = backgroundCharList[0]; // character to fill in the pits
         createShape(i); // generate shape (shape, position)
         memset(pit[i], NO_BLOCK, PIT_WIDTH * PIT_HEIGHT); // initialize the empty pit
         drawPit(i);
@@ -812,10 +803,24 @@ BOOL canProcessInput(unsigned char i, unsigned char action) {
 }
 
 
+/*
+#define PEEK(addr) (*(unsigned char *)(addr))
+#define POKE(addr, value) (*(unsigned char *)(addr) = (value))
+
+#define DRAGON_W !(PEEK(0x0159) & 0x10)
+#define DRAGON_A !(PEEK(0x0153) & 0x04)
+#define DRAGON_S !(PEEK(0x0155) & 0x10)
+#define DRAGON_D !(PEEK(0x0156) & 0x04)
+#define DRAGON_I !(PEEK(0x0153) & 0x08)
+#define DRAGON_J !(PEEK(0x0154) & 0x08)
+#define DRAGON_K !(PEEK(0x0155) & 0x08)
+#define DRAGON_L !(PEEK(0x0156) & 0x08)*/
+
+
 void mainLoop() {
     unsigned char i; // 0 = Dragon1, 1 = Dragon2
 
-    playTune(tune2Notes, tune2Durations, 12);
+    playTune(tune2Notes, tune2Durations, 8);
 
     // initialise start times for both players
     startTime[0] = startTime[1] = getTimer();
@@ -1031,6 +1036,7 @@ int main() {
         srand(getTimer()); // random seed
         init();	// logic to initialize the system and pits	
 		mainLoop();
+        while (inkey() != '\0'); // clear input buffer
 		// check the scores of the last game
         if (!cancelled) {
             checkScore(0);
