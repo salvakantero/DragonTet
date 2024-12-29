@@ -13,21 +13,22 @@ use xroar to test (dragon):
 "xroar -run dtet-dr.bin"
 
 level description:
-level 1: 35 delay ticks
-level 2: 30 delay ticks
-level 3: 25 delay ticks + lower trap lines
-level 4: 20 delay ticks + lower trap lines
-level 5: 15 delay ticks + upper trap blocks
-level 6: 10 delay ticks + upper trap blocks
-level x:  5 delay ticks + upper trap blocks
+level 1: 36 delay ticks
+level 2: 32 delay ticks
+level 3: 28 delay ticks + lower trap lines
+level 4: 24 delay ticks + lower trap lines
+level 5: 20 delay ticks + upper trap blocks
+level 6: 16 delay ticks + upper trap blocks
+level 7: 12 delay ticks
+level 8:  8 delay ticks
+level x:  6 delay ticks
 
 
 TODO
 ====
 - control de teclado para Dragon
-- implementar líneas trampa
-- pantalla de ayuda puntuaciones si < 16kb
-- BUG puntos nivel 3+
+- con 2 jugadores se activan trampas cada x líneas
+- documentación
 
 */
 
@@ -48,7 +49,10 @@ TODO
 #define NO_BLOCK '0' // character representing an empty block
 #define PIT_WIDTH 10 // width of the pit in blocks
 #define PIT_HEIGHT 16 // height of the pit in blocks
-#define LINES_LEVEL 10 // lines per level
+#define LINES_LEVEL 1 // lines per level
+#define DROP_RATE_LEVEL 4 // decrease of waiting time per level for piece drop
+#define MIN_DROP_RATE_LEVEL 6 // minimum waiting time for piece drop
+#define PIECES_TRAP 12 // pieces per trap
 #define INPUT_DELAY 6 // delay for processing inputs
 
 char key = '\0'; // key pressed
@@ -312,7 +316,8 @@ void createNextShape(unsigned char i) {
 
 void createShape(unsigned char i) {
     // calculates the fall speed based on the level
-    dropRate[i] = (level[i] < 7) ? (40 - (level[i] * 5)) : 5;
+    dropRate[i] = (level[i] < 9) ? 
+        (40 - (level[i] * DROP_RATE_LEVEL)) : MIN_DROP_RATE_LEVEL;
     // if it's not the first shape, take the value of nextShape
     if (nextShape[i] != 255)
         shape[i] = nextShape[i];
@@ -415,9 +420,8 @@ void setTrapLine(unsigned char i) {
 
 
 void setTrapBlock(unsigned char i) {
-    int trapX, trapY;
-    unsigned char rowEmpty;
-    unsigned char attempts = 5;
+    int x, y;
+    unsigned char rowEmpty, attempts = 5;
 
     // with two players generates block in the opposing pit
     if (numPlayers == 1)
@@ -425,21 +429,21 @@ void setTrapBlock(unsigned char i) {
 
     while (attempts > 0) {
         // generate a random position from the sixth row downwards
-        trapY = 5 + rand() % (PIT_HEIGHT - 5);
+        y = 5 + rand() % (PIT_HEIGHT - 5);
         // check if the row is empty
         rowEmpty = TRUE;
-        for (trapX = 0; trapX < PIT_WIDTH; trapX++)
-            if (pit[i][trapY * PIT_WIDTH + trapX] != NO_BLOCK) {
+        for (x = 0; x < PIT_WIDTH; x++)
+            if (pit[i][y * PIT_WIDTH + x] != NO_BLOCK) {
                 rowEmpty = FALSE;
                 break;
             }
         // we find an empty row, we place the block
         if (rowEmpty) {
-            trapX = rand() % PIT_WIDTH;
-            pit[i][trapY * PIT_WIDTH + trapX] = 5; // white block
+            x = rand() % PIT_WIDTH;
+            pit[i][y * PIT_WIDTH + x] = 5; // white block
             // paints the block at the moment when it goes to the opposite pit
             if (numPlayers == 1) 
-                printBlock(trapX + pitLeft[i], trapY, WHITE_BLOCK);
+                printBlock(x + pitLeft[i], y, WHITE_BLOCK);
             if (!muted) sound(1,1);
             return;
         }
@@ -471,12 +475,9 @@ void checkForFullRows(unsigned char i) { // searches for full rows
     }
     // updates the score if rows were completed
     if (numLines > 0) {
-        switch (numLines) {
-            case 1: lastPoints = (100 * level[i]); break;
-            case 2: lastPoints = (300 * level[i]); break;
-            case 3: lastPoints = (500 * level[i]); break;
-            case 4: lastPoints = (800 * level[i]);
-        }
+        const int pointsPerLine[] = {100, 300, 500, 800};
+        lastPoints = pointsPerLine[numLines - 1] * level[i];
+
         // updates the total completed rows and calculates the level
         scores[j] += lastPoints;
         lines[i] += numLines;
@@ -504,7 +505,7 @@ void checkForFullRows(unsigned char i) { // searches for full rows
         }
     }
     // player 1 every x pieces generates a trap line/block
-    if (numPlayers == 0 && numPiecesPlayed == 10) {
+    if (numPlayers == 0 && numPiecesPlayed == PIECES_TRAP) {
         if (level[0] > 4) setTrapBlock(0);
         else if(level[0] > 2) setTrapLine(0);
         numPiecesPlayed = 0;
@@ -619,6 +620,23 @@ void drawHelp() {
 
     roundWindow(0, 0, 13, 9, 112);
     roundWindow(18, 0, 31, 8, 112);
+    screen(0,1);
+    waitkey(FALSE);
+
+    cls(0);
+    locate(1, 2);  printf( "                             ");
+    locate(1, 3);  printf( "        = s c o r e =        ");
+    locate(1, 4);  printf( "                             ");
+    locate(1, 5);  printf( " 1 LINE:  100 * LEVEL NUMBER ");
+    locate(1, 6);  printf( " 2 LINES: 300 * LEVEL NUMBER ");
+    locate(1, 7);  printf( " 3 LINES: 500 * LEVEL NUMBER ");
+    locate(1, 8);  printf( " 4 LINES: 800 * LEVEL NUMBER ");
+    locate(1, 9);  printf( "                             ");
+    locate(1, 10); printf( "  DROP SOFT:  1 POINT * ROW  ");
+
+	locate(0, 14); printf("   PRESS ANY KEY TO CONTINUE!   ");
+
+    roundWindow(1, 2, 29, 10, 112);
     screen(0,1);
     waitkey(FALSE);
 }
