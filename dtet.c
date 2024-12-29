@@ -49,10 +49,11 @@ TODO
 #define NO_BLOCK '0' // character representing an empty block
 #define PIT_WIDTH 10 // width of the pit in blocks
 #define PIT_HEIGHT 16 // height of the pit in blocks
-#define LINES_LEVEL 1 // lines per level
+#define LINES_LEVEL 5 // lines per level
 #define DROP_RATE_LEVEL 4 // decrease of waiting time per level for piece drop
 #define MIN_DROP_RATE_LEVEL 6 // minimum waiting time for piece drop
-#define PIECES_TRAP 12 // pieces per trap
+#define PIECES_TRAP 12 // pieces to generate a trap
+#define LINES_TRAP 3 // lines to generate a trap
 #define INPUT_DELAY 6 // delay for processing inputs
 
 char key = '\0'; // key pressed
@@ -81,7 +82,7 @@ unsigned int lastPoints; // points in the last move (for the status line)
 unsigned char backgroundChar[2]; // character to fill in the pits with backgroundCharList
 unsigned char backgroundCharList[8] = {42, 43, 39, 35, 28, 44, 47, 44 }; // * + . # \ , / .
 unsigned int lastInputTime[2][3]; // for each player and action (rotate, left, right) 
-unsigned char numPiecesPlayed; // allows trap lines/blocks to be generated (1 player)
+unsigned char linesPiecesPlayed[2]; // allows trap lines/blocks to be generated
 unsigned char previousLevel[2]; // previous level for each player
 
 // pos 0-5: fake values for the initial TOP 6
@@ -256,6 +257,7 @@ void displayStatus() {
         locate(11, 12); printf("NEXT:");
         drawNextShape(4, 0);
         drawNextShape(12, 1);
+        locate(12,14); printf("%d %d", linesPiecesPlayed[0], linesPiecesPlayed[1]);
     }
 }
 
@@ -471,6 +473,8 @@ void checkForFullRows(unsigned char i) { // searches for full rows
         if (fullRow) {
             removeFullRow(y, i);
             numLines++;
+            if (numPlayers > 0)
+                linesPiecesPlayed[i]++;
         }
     }
     // updates the score if rows were completed
@@ -496,19 +500,18 @@ void checkForFullRows(unsigned char i) { // searches for full rows
                 sound(220, 2);
             }
         }
-        
-        // 2 players and more than 1 line in a row
-        // generates a trap line/block
-        if (numPlayers > 0 && numLines > 1) {
-            if (level[i] > 4) setTrapBlock(i);
-            else if(level[i] > 2) setTrapLine(i);
-        }
     }
-    // player 1 every x pieces generates a trap line/block
-    if (numPlayers == 0 && numPiecesPlayed == PIECES_TRAP) {
+    // 1 player, every x pieces generates a trap line/block
+    if (numPlayers == 0 && linesPiecesPlayed[0] == PIECES_TRAP) {
         if (level[0] > 4) setTrapBlock(0);
         else if(level[0] > 2) setTrapLine(0);
-        numPiecesPlayed = 0;
+        linesPiecesPlayed[0] = 0;
+    }
+    // 2 players, every x lines generates a trap line/block
+    else if (numPlayers > 0 && linesPiecesPlayed[i] == LINES_TRAP) {
+        if (level[i] > 4) setTrapBlock(i);
+        else if(level[i] > 2) setTrapLine(i);
+        linesPiecesPlayed[i] = 0;
     }
 }
 
@@ -528,7 +531,7 @@ void settleActiveShapeInPit(unsigned char i) {
         }
     }
     if (numPlayers == 0)
-        numPiecesPlayed++;
+        linesPiecesPlayed[0]++;
 }
 
 
@@ -803,7 +806,7 @@ void init() {
     cancelled = FALSE;
     displayStatus();
     if (numPlayers == 0) {
-        numPiecesPlayed = 0;
+        linesPiecesPlayed[0] = 0;
         locate(23,6); printf(" PLEASE ");
         locate(23,7); printf("  WAIT  ");
         locate(23,8); printf(" DRAGON ");
