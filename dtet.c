@@ -23,11 +23,12 @@ level 7: 12 delay ticks
 level 8:  8 delay ticks
 level x:  6 delay ticks
 
-
 TODO
 ====
 - control de teclado para Dragon
-- con 2 jugadores se activan trampas cada x líneas
+- con 2 jugadores se activan trampas cada x líneas (PROBAR)
+- ajuste de dificultad
+- optimizar código con IA
 - documentación
 
 */
@@ -257,7 +258,7 @@ void displayStatus() {
         locate(11, 12); printf("NEXT:");
         drawNextShape(4, 0);
         drawNextShape(12, 1);
-        locate(12,14); printf("%d %d", linesPiecesPlayed[0], linesPiecesPlayed[1]);
+        locate(12,14); printf("%d  %d", linesPiecesPlayed[0], linesPiecesPlayed[1]);
     }
 }
 
@@ -474,7 +475,8 @@ void checkForFullRows(unsigned char i) { // searches for full rows
             removeFullRow(y, i);
             numLines++;
             if (numPlayers > 0)
-                linesPiecesPlayed[i]++;
+                if (level[i] > 2) 
+                    linesPiecesPlayed[i]++;
         }
     }
     // updates the score if rows were completed
@@ -502,13 +504,13 @@ void checkForFullRows(unsigned char i) { // searches for full rows
         }
     }
     // 1 player, every x pieces generates a trap line/block
-    if (numPlayers == 0 && linesPiecesPlayed[0] == PIECES_TRAP) {
+    if (numPlayers == 0 && linesPiecesPlayed[0] >= PIECES_TRAP) {
         if (level[0] > 4) setTrapBlock(0);
         else if(level[0] > 2) setTrapLine(0);
         linesPiecesPlayed[0] = 0;
     }
     // 2 players, every x lines generates a trap line/block
-    else if (numPlayers > 0 && linesPiecesPlayed[i] == LINES_TRAP) {
+    else if (numPlayers > 0 && linesPiecesPlayed[i] >= LINES_TRAP) {
         if (level[i] > 4) setTrapBlock(i);
         else if(level[i] > 2) setTrapLine(i);
         linesPiecesPlayed[i] = 0;
@@ -530,7 +532,7 @@ void settleActiveShapeInPit(unsigned char i) {
                 pit[i][y * PIT_WIDTH + x] = blockColour;
         }
     }
-    if (numPlayers == 0)
+    if (numPlayers == 0 && level[0] > 2)
         linesPiecesPlayed[0]++;
 }
 
@@ -799,6 +801,7 @@ void init() {
         scores[6+i] = 0; // current score
         nextShape[i] = 255; // shape generation will be required
         backgroundChar[i] = backgroundCharList[0]; // character to fill in the pits
+        linesPiecesPlayed[i] = 0; // allows trap lines/blocks to be generated
         createShape(i); // generate shape (shape, position)
         memset(pit[i], NO_BLOCK, PIT_WIDTH * PIT_HEIGHT); // initialize the empty pit
         drawPit(i);
@@ -806,7 +809,6 @@ void init() {
     cancelled = FALSE;
     displayStatus();
     if (numPlayers == 0) {
-        linesPiecesPlayed[0] = 0;
         locate(23,6); printf(" PLEASE ");
         locate(23,7); printf("  WAIT  ");
         locate(23,8); printf(" DRAGON ");
@@ -857,20 +859,6 @@ BOOL canProcessInput(unsigned char i, unsigned char action) {
     }
     return FALSE;
 }
-
-
-/*
-#define PEEK(addr) (*(unsigned char *)(addr))
-#define POKE(addr, value) (*(unsigned char *)(addr) = (value))
-
-#define DRAGON_W !(PEEK(0x0159) & 0x10)
-#define DRAGON_A !(PEEK(0x0153) & 0x04)
-#define DRAGON_S !(PEEK(0x0155) & 0x10)
-#define DRAGON_D !(PEEK(0x0156) & 0x04)
-#define DRAGON_I !(PEEK(0x0153) & 0x08)
-#define DRAGON_J !(PEEK(0x0154) & 0x08)
-#define DRAGON_K !(PEEK(0x0155) & 0x08)
-#define DRAGON_L !(PEEK(0x0156) & 0x08)*/
 
 
 void mainLoop() {
@@ -1001,48 +989,6 @@ void mainLoop() {
         }
     }
 }
-
-
-/*
-void mainLoop() {
-    unsigned char i; // 0 = Dragon1, 1 = Dragon2
-
-    // Inicializa los tiempos de inicio de ambos jugadores
-    startTime[0] = startTime[1] = getTimer();
-
-    while (TRUE) {
-        // Lee teclas solo una vez por iteración
-        key = inkey();
-
-        // Dragon 1: Procesa sus teclas
-        if (DRAGON_W) rotateKeyPressed(0);
-        if (DRAGON_A) moveLeftKeyPressed(0);
-        if (DRAGON_D) moveRightKeyPressed(0);
-        if (DRAGON_S) dropRate[0] = 0;
-
-        // Dragon 2: Procesa sus teclas
-        if (DRAGON_I) rotateKeyPressed(1);
-        if (DRAGON_J) moveLeftKeyPressed(1);
-        if (DRAGON_L) moveRightKeyPressed(1);
-        if (DRAGON_K) dropRate[1] = 0;
-
-        // No limpies la tabla de rollover aquí. Hazlo solo si es absolutamente necesario.
-        // Limpieza de tabla de rollover (después de procesar todo)
-        for (int addr = 0x0151; addr <= 0x0159; addr++) {
-            *((unsigned char *)addr) = 0xFF;
-        }
-
-        // Procesa el tiempo de caída para ambos jugadores
-        for (i = 0; i < 2; i++) {
-            if (gameOver[i]) continue;
-            // Verifica si ha pasado el tiempo de caída
-            if (getTimer() >= startTime[i] + dropRate[i]) {
-                dropShape(i);
-                startTime[i] = getTimer();
-            }
-        }
-    }
-}*/
 
 
 // check if the new score is high enough to enter the top 6
