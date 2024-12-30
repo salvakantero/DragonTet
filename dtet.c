@@ -26,10 +26,12 @@ level x:  6 delay ticks
 TODO
 ====
 - control de teclado para Dragon
-- con 2 jugadores se activan trampas cada x líneas (PROBAR)
 - ajuste de dificultad
 - optimizar código con IA
 - documentación
+
+BUGS:
+- mostrar línea trampa recien generada con 2 players
 
 */
 
@@ -50,7 +52,7 @@ TODO
 #define NO_BLOCK '0' // character representing an empty block
 #define PIT_WIDTH 10 // width of the pit in blocks
 #define PIT_HEIGHT 16 // height of the pit in blocks
-#define LINES_LEVEL 5 // lines per level
+#define LINES_LEVEL 4 // lines per level
 #define DROP_RATE_LEVEL 4 // decrease of waiting time per level for piece drop
 #define MIN_DROP_RATE_LEVEL 6 // minimum waiting time for piece drop
 #define PIECES_TRAP 12 // pieces to generate a trap
@@ -81,7 +83,7 @@ BOOL cancelled = FALSE; // TRUE = 'X' was pressed to cancel the game
 unsigned char lastLines; // lines in the last move (for the status line)
 unsigned int lastPoints; // points in the last move (for the status line)
 unsigned char backgroundChar[2]; // character to fill in the pits with backgroundCharList
-unsigned char backgroundCharList[8] = {42, 43, 39, 35, 28, 44, 47, 44 }; // * + . # \ , / .
+unsigned char backgroundCharList[8] = {42, 43, 39, 35, 28, 44, 47, 46 }; // * + . # \ , / .
 unsigned int lastInputTime[2][3]; // for each player and action (rotate, left, right) 
 unsigned char linesPiecesPlayed[2]; // allows trap lines/blocks to be generated
 unsigned char previousLevel[2]; // previous level for each player
@@ -219,20 +221,13 @@ void drawHeader(BOOL ingame, unsigned char shift) {
 
 
 void displayStatus() {
-    unsigned char i;
-    for (i = 0; i <= numPlayers; i++) {
-        if (gameOver[i]) {
-            locate(pitLeft[i], 8);
-            printf("GAME OVER!");
-            playTune(tune3Notes, tune3Durations, 10);
-        }
-    }
+    // 1 player only
     if (numPlayers == 0) {        
         drawHeader(TRUE, ++colourShift);        
         locate(11, 6);  printf("LEVEL:  %2u", level[0]);
-        locate(11, 7); printf("LINES: %3d", lines[0]);
-        locate(11, 8); printf("SC: %6u", scores[6]);
-        locate(11, 9); printf("HI: %6u", scores[0]);
+        locate(11, 7);  printf("LINES: %3d", lines[0]);
+        locate(11, 8);  printf("SC: %6u", scores[6]);
+        locate(11, 9);  printf("HI: %6u", scores[0]);
         locate(11, 11); printf("NEXT:");
         drawNextShape(10, 0);
         // status line
@@ -258,7 +253,6 @@ void displayStatus() {
         locate(11, 12); printf("NEXT:");
         drawNextShape(4, 0);
         drawNextShape(12, 1);
-        locate(12,14); printf("%d  %d", linesPiecesPlayed[0], linesPiecesPlayed[1]);
     }
 }
 
@@ -319,8 +313,9 @@ void createNextShape(unsigned char i) {
 
 void createShape(unsigned char i) {
     // calculates the fall speed based on the level
-    dropRate[i] = (level[i] < 9) ? 
-        (40 - (level[i] * DROP_RATE_LEVEL)) : MIN_DROP_RATE_LEVEL;
+    //dropRate[i] = (level[i] < 9) ? 
+    //    (40 - (level[i] * DROP_RATE_LEVEL)) : MIN_DROP_RATE_LEVEL;
+    dropRate[i] = 40;
     // if it's not the first shape, take the value of nextShape
     if (nextShape[i] != 255)
         shape[i] = nextShape[i];
@@ -412,7 +407,7 @@ void setTrapLine(unsigned char i) {
         else                pit[i][(PIT_HEIGHT - 1) * PIT_WIDTH + x] = '5'; // white
     }
     // paints the line at the moment when it goes to the opposite pit
-    if (numPlayers == 1)
+    if (numPlayers > 0)
         for (x = 0; x < PIT_WIDTH; x++) {
             if (x == emptyX)    printBlock(x + pitLeft[i], PIT_HEIGHT - 1, EMPTY_BLOCK);
             else                printBlock(x + pitLeft[i], PIT_HEIGHT - 1, WHITE_BLOCK);
@@ -445,8 +440,7 @@ void setTrapBlock(unsigned char i) {
             x = rand() % PIT_WIDTH;
             pit[i][y * PIT_WIDTH + x] = 5; // white block
             // paints the block at the moment when it goes to the opposite pit
-            if (numPlayers == 1) 
-                printBlock(x + pitLeft[i], y, WHITE_BLOCK);
+            if (numPlayers > 0) printBlock(x + pitLeft[i], y, WHITE_BLOCK);
             if (!muted) sound(1,1);
             return;
         }
@@ -552,8 +546,14 @@ void dropShape(unsigned char i) {
         settleActiveShapeInPit(i);
         if (!muted) sound(245, 0);
         // checks if the shape has reached the top (the game is lost)
-        if (shapeY[i] < 0)
+        if (shapeY[i] < 0) {
             gameOver[i] = TRUE;
+
+            locate(pitLeft[i], 8);
+            printf("GAME OVER!");
+            playTune(tune3Notes, tune3Durations, 10);
+        }
+
         else {
             checkForFullRows(i);
             drawPit(i);
@@ -637,7 +637,7 @@ void drawHelp() {
     locate(1, 7);  printf( " 3 LINES: 500 * LEVEL NUMBER ");
     locate(1, 8);  printf( " 4 LINES: 800 * LEVEL NUMBER ");
     locate(1, 9);  printf( "                             ");
-    locate(1, 10); printf( "  DROP SOFT:  1 POINT * ROW  ");
+    locate(1, 10); printf( "  SOFT DROP:  1 POINT * ROW  ");
 
 	locate(0, 14); printf("   PRESS ANY KEY TO CONTINUE!   ");
 
