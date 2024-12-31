@@ -1,9 +1,13 @@
 /*
 ==============================================================================
-.::DragonTet::.
-A Tetris Clone for Dragon 32/64 and Tandy CoCo 1/2/3
-Based on Peter Swinkels' PC Qbasic code (QBBlocks v1.0).
+
+  .::DragonTet::.
+
+  A Tetris Clone for Dragon 32/64 and Tandy CoCo 1/2/3.
+  Based on Peter Swinkels' PC Qbasic code (QBBlocks v1.0).
+
 ==============================================================================
+
   This file is part of "DragonTet". Copyright (C) 2025 @salvakantero
 
   This program is free software: you can redistribute it and/or modify
@@ -44,9 +48,11 @@ level x:  6 delay ticks
 TODO
 ====
 - control de teclado para Dragon
+- opción autorepetición?
 
 BUGS/TEST:
-- probar redibujado del pit con línea trampa
+- probar trampas a partir del nivel 6?
+- probar joystick
 
 */
 
@@ -67,7 +73,7 @@ BUGS/TEST:
 #define NO_BLOCK '0' // character representing an empty block
 #define PIT_WIDTH 10 // width of the pit in blocks
 #define PIT_HEIGHT 16 // height of the pit in blocks
-#define LINES_LEVEL 10 // lines per level
+#define LINES_LEVEL 4 // lines per level
 #define DROP_RATE_LEVEL 4 // decrease of waiting time per level for piece drop
 #define MIN_DROP_RATE_LEVEL 6 // minimum waiting time for piece drop
 #define PIECES_TRAP 12 // pieces to generate a trap
@@ -327,9 +333,9 @@ void createNextShape(unsigned char i) {
 
 void createShape(unsigned char i) {
     // calculates the fall speed based on the level
-    dropRate[i] = (level[i] < 9) ? 
-        (40 - (level[i] * DROP_RATE_LEVEL)) : MIN_DROP_RATE_LEVEL;
-
+    //dropRate[i] = (level[i] < 9) ? 
+    //    (40 - (level[i] * DROP_RATE_LEVEL)) : MIN_DROP_RATE_LEVEL;
+    dropRate[i] = 40;
     // if it's not the first shape, take the value of nextShape
     shape[i] = (nextShape[i] != 255) ? nextShape[i] : (unsigned char)(rand() % 7);
        
