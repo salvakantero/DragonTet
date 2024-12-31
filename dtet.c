@@ -1,18 +1,36 @@
 /*
+==============================================================================
+.::DragonTet::.
+A Tetris Clone for Dragon 32/64 and Tandy CoCo 1/2/3
+Based on Peter Swinkels' PC Qbasic code (QBBlocks v1.0).
+==============================================================================
+  This file is part of "DragonTet". Copyright (C) 2025 @salvakantero
 
-= DRAGONTET =
-salvaKantero 2025
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
-Compatible with Dragon 32/64 and COCO 1/2/3
-Based on Peter Swinkels' PC Qbasic code. (QBBlocks v1.0)
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
 
-use the CMOC compiler 0.1.89 or higher:
+  You should have received a copy of the GNU Lesser General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+==============================================================================
+
+Compilation Instructions:
+use the CMOC compiler 0.1.89 or higher...
 "cmoc --dragon -D Dragon -o dtet-dr.bin dtet.c"
 "cmoc --coco -D Coco -o dtet-cc.bin dtet.c"
-use xroar to test (dragon):
+
+Testing:
+use xroar to test (dragon)...
 "xroar -run dtet-dr.bin"
 
-level description:
+Level description:
 level 1: 36 delay ticks
 level 2: 32 delay ticks
 level 3: 28 delay ticks + lower trap lines
@@ -26,12 +44,9 @@ level x:  6 delay ticks
 TODO
 ====
 - control de teclado para Dragon
-- ajuste de dificultad
-- optimizar código con IA
-- documentación
 
-BUGS:
-- mostrar línea trampa recien generada con 2 players
+BUGS/TEST:
+- probar redibujado del pit con línea trampa
 
 */
 
@@ -52,12 +67,14 @@ BUGS:
 #define NO_BLOCK '0' // character representing an empty block
 #define PIT_WIDTH 10 // width of the pit in blocks
 #define PIT_HEIGHT 16 // height of the pit in blocks
-#define LINES_LEVEL 4 // lines per level
+#define LINES_LEVEL 10 // lines per level
 #define DROP_RATE_LEVEL 4 // decrease of waiting time per level for piece drop
 #define MIN_DROP_RATE_LEVEL 6 // minimum waiting time for piece drop
 #define PIECES_TRAP 12 // pieces to generate a trap
 #define LINES_TRAP 3 // lines to generate a trap
 #define INPUT_DELAY 6 // delay for processing inputs
+#define JTHRESHOLD_LOW 16 // low level of joystick motion activation
+#define JTHRESHOLD_HIGH 48 // high level of joystick motion activation
 
 char key = '\0'; // key pressed
 unsigned char numPlayers; // 0 = dragon1  1 = dragon2
@@ -83,7 +100,7 @@ BOOL cancelled = FALSE; // TRUE = 'X' was pressed to cancel the game
 unsigned char lastLines; // lines in the last move (for the status line)
 unsigned int lastPoints; // points in the last move (for the status line)
 unsigned char backgroundChar[2]; // character to fill in the pits with backgroundCharList
-unsigned char backgroundCharList[8] = {42, 43, 39, 35, 28, 44, 47, 46 }; // * + . # \ , / .
+const unsigned char backgroundCharList[8] = {42, 43, 39, 35, 28, 44, 47, 46 }; // * + . # \ , / .
 unsigned int lastInputTime[2][3]; // for each player and action (rotate, left, right) 
 unsigned char linesPiecesPlayed[2]; // allows trap lines/blocks to be generated
 unsigned char previousLevel[2]; // previous level for each player
@@ -95,20 +112,21 @@ unsigned int scores[8] = {2000, 1800, 1600, 1400, 1200, 1000, 0, 0};
 
 // tunes
 // hall of fame
-unsigned char tune1Notes[] = { 201, 201, 201, 208, 195, 210, 218 };
-unsigned char tune1Durations[] = { 4, 2, 2, 3, 3, 3, 7 };
+const unsigned char tune1Notes[] = { 201, 201, 201, 208, 195, 210, 218 };
+const unsigned char tune1Durations[] = { 4, 2, 2, 3, 3, 3, 7 };
 // start of game
-unsigned char tune2Notes[] = { 191, 200, 210, 216, 200, 180, 190, 200 };
-unsigned char tune2Durations[] = { 2, 2, 2, 2, 4, 2, 2, 4 };
+const unsigned char tune2Notes[] = { 191, 200, 210, 216, 200, 180, 190, 200 };
+const unsigned char tune2Durations[] = { 2, 2, 2, 2, 4, 2, 2, 4 };
 // game over
-unsigned char tune3Notes[] = { 165, 140, 155, 135, 150, 130, 140, 120, 110, 100 };
-unsigned char tune3Durations[] = { 3, 1, 3, 1, 3, 1, 2, 1, 2, 4 };
+const unsigned char tune3Notes[] = { 165, 140, 155, 135, 150, 130, 140, 120, 110, 100 };
+const unsigned char tune3Durations[] = { 3, 1, 3, 1, 3, 1, 2, 1, 2, 4 };
 
 
-void playTune(unsigned char notes[], unsigned char durations[], unsigned char numNotes) {
-    if (muted) return;
+void playTune(const unsigned char notes[], const unsigned char durations[], unsigned char numNotes) {
+    if (muted) return; // sssshh!
+    // plays the arrays of notes to form the melody
     for (unsigned char i = 0; i < numNotes; i++) {
-        if (inkey() != '\0') return;
+        if (inkey() != '\0') return; // the melody ends
         sound(notes[i], durations[i]);
         if (inkey() != '\0') return;
     }
@@ -128,10 +146,7 @@ void drawBlock(unsigned char x, unsigned char y, char blockColour, unsigned char
     unsigned char colour = blockColour - NO_BLOCK; // (0 a 8)
     x += pitLeft[i];
     if (colour == 0) { // background
-        if (!emptyBackground)
-            printBlock(x, y, backgroundChar[i]);
-        else
-            printBlock(x, y, EMPTY_BLOCK);
+        printBlock(x, y, emptyBackground ? EMPTY_BLOCK : backgroundChar[i]);
         return;
     }
     printBlock(x, y, FILLED_BLOCK + ((colour - 1) << 4)); // <<4 = x16
@@ -140,7 +155,7 @@ void drawBlock(unsigned char x, unsigned char y, char blockColour, unsigned char
 
 void drawPit(unsigned char i) {
     unsigned char x, y, rowOffset;
-    // loop through and repaint the contents of the pit (i = dragon pit)
+    // loop through and repaint the contents of the pit
     for (y = 0; y < PIT_HEIGHT; y++) {
         rowOffset = y * PIT_WIDTH;
         for (x = 0; x < PIT_WIDTH; x++)
@@ -157,8 +172,8 @@ BOOL shapeCanMove(char *map, char xDir, char yDir, unsigned char i) {
         for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
             if (map[(SIDE_BLOCK_SIZE * blockY) + blockX] != NO_BLOCK) {
                 // calculate the position in the pit
-                x = (shapeX[i] + blockX) + xDir;
-                y = (shapeY[i] + blockY) + yDir;
+                x = shapeX[i] + blockX + xDir;
+                y = shapeY[i] + blockY + yDir;
                 // new shape appears at the top
                 if (y < 0) // Allow only vertical movement until fully visible
                     return (xDir == 0);
@@ -178,8 +193,7 @@ BOOL shapeCanMove(char *map, char xDir, char yDir, unsigned char i) {
 
 
 void drawNextShape(unsigned char y, unsigned char i) {
-    unsigned char blockX, blockY;
-    char blockColour;
+    unsigned char blockX, blockY, blockColour;
     // loop through all the blocks of the shape (4x4 grid)
     for (blockY = 0; blockY <= LAST_SIDE_BLOCK; blockY++) {
         for (blockX = 0; blockX <= LAST_SIDE_BLOCK; blockX++) {
@@ -220,6 +234,18 @@ void drawHeader(BOOL ingame, unsigned char shift) {
 }
 
 
+// auxiliary function for drawing a player's status
+void drawPlayerStatus(unsigned char i) {
+    unsigned char yOffset = (i == 0) ? 0 : 8;
+    locate(12, yOffset);  printf("DRAGON %u", i + 1);
+    locate(11, yOffset + 1);  printf("LEVEL:  %2u", level[i]);
+    locate(11, yOffset + 2);  printf("LINES: %3d", lines[i]);
+    locate(11, yOffset + 3);  printf("SC: %6u", scores[i + 6]);
+    locate(11, yOffset + 4);  printf("NEXT:");
+    drawNextShape((i == 0) ? 4 : 12, i);
+}
+
+
 void displayStatus() {
     // 1 player only
     if (numPlayers == 0) {        
@@ -229,30 +255,18 @@ void displayStatus() {
         locate(11, 8);  printf("SC: %6u", scores[6]);
         locate(11, 9);  printf("HI: %6u", scores[0]);
         locate(11, 11); printf("NEXT:");
-        drawNextShape(10, 0);
+        drawNextShape(10, 0);        
         // status line
         locate(11, 14); 
-        if (lastLines > 0)       printf("%uLIN +%4u", lastLines, lastPoints);
-        else if (lastPoints > 0) printf("DROP   +%2u", lastPoints);
-        else                     printf("          ");
+        if (lastLines > 0)          printf("%uLIN +%4u", lastLines, lastPoints);
+        else if (lastPoints > 0)    printf("DROP   +%2u", lastPoints);
+        else                        printf("          ");        
         lastLines = 0;
         lastPoints = 0;
     }
     else {
-        // player 1
-        locate(12, 0); printf("DRAGON 1");
-        locate(11, 1); printf("LEVEL:  %2u", level[0]);
-        locate(11, 2); printf("LINES: %3d", lines[0]);
-        locate(11, 3); printf("SC: %6u", scores[6]);
-        locate(11, 4); printf("NEXT:");
-        // player 2
-        locate(12, 8);  printf("DRAGON 2");
-        locate(11, 9);  printf("LEVEL:  %2u", level[1]);
-        locate(11, 10); printf("LINES: %3d", lines[1]);
-        locate(11, 11); printf("SC: %6u", scores[7]);
-        locate(11, 12); printf("NEXT:");
-        drawNextShape(4, 0);
-        drawNextShape(12, 1);
+        drawPlayerStatus(0);  // Dragon 1
+        drawPlayerStatus(1);  // Dragon 2
     }
 }
 
@@ -307,25 +321,22 @@ void getRotatedShapeMap(unsigned char shape, unsigned char angle, char *rotatedM
 
 void createNextShape(unsigned char i) {
 	nextShape[i] = (unsigned char) rand() % 7; // shape type (0 to 6)
-    strncpy(nextShapeMap[i], getShapeMap(nextShape[i]), BLOCK_SIZE);
+    memcpy(nextShapeMap[i], getShapeMap(nextShape[i]), BLOCK_SIZE);
 }
 
 
 void createShape(unsigned char i) {
     // calculates the fall speed based on the level
-    //dropRate[i] = (level[i] < 9) ? 
-    //    (40 - (level[i] * DROP_RATE_LEVEL)) : MIN_DROP_RATE_LEVEL;
-    dropRate[i] = 40;
+    dropRate[i] = (level[i] < 9) ? 
+        (40 - (level[i] * DROP_RATE_LEVEL)) : MIN_DROP_RATE_LEVEL;
+
     // if it's not the first shape, take the value of nextShape
-    if (nextShape[i] != 255)
-        shape[i] = nextShape[i];
-    else // new random shape (0 to 6)
-        shape[i] = (unsigned char) rand() % 7;
+    shape[i] = (nextShape[i] != 255) ? nextShape[i] : (unsigned char)(rand() % 7);
        
     shapeX[i] = 3; // centre of the pit
     shapeY[i] = -LAST_SIDE_BLOCK; // fully hidden
     shapeAngle[i] = 0; // unrotated
-    strncpy(shapeMap[i], getShapeMap(shape[i]), BLOCK_SIZE);
+    memcpy(shapeMap[i], getShapeMap(shape[i]), BLOCK_SIZE);
     // generates the next shape
     createNextShape(i);
 }
@@ -402,16 +413,11 @@ void setTrapLine(unsigned char i) {
             pit[i][(y - 1) * PIT_WIDTH + x] = pit[i][y * PIT_WIDTH + x];
 
     // fill the last row with blocks, leaving an empty space.
-    for (x = 0; x < PIT_WIDTH; x++) {
-        if (x == emptyX)    pit[i][(PIT_HEIGHT - 1) * PIT_WIDTH + x] = NO_BLOCK;
-        else                pit[i][(PIT_HEIGHT - 1) * PIT_WIDTH + x] = '5'; // white
-    }
-    // paints the line at the moment when it goes to the opposite pit
-    if (numPlayers > 0)
-        for (x = 0; x < PIT_WIDTH; x++) {
-            if (x == emptyX)    printBlock(x + pitLeft[i], PIT_HEIGHT - 1, EMPTY_BLOCK);
-            else                printBlock(x + pitLeft[i], PIT_HEIGHT - 1, WHITE_BLOCK);
-        }
+    for (x = 0; x < PIT_WIDTH; x++)
+        pit[i][(PIT_HEIGHT - 1) * PIT_WIDTH + x] = (x == emptyX) ? NO_BLOCK : '5'; // white 
+
+    // redraws the pit at the moment (only when it goes to the opposite pit)
+    if (numPlayers > 0) drawPit(i);
 
     if (!muted) sound(1, 1);
 }
@@ -441,6 +447,7 @@ void setTrapBlock(unsigned char i) {
             pit[i][y * PIT_WIDTH + x] = 5; // white block
             // paints the block at the moment when it goes to the opposite pit
             if (numPlayers > 0) printBlock(x + pitLeft[i], y, WHITE_BLOCK);
+
             if (!muted) sound(1,1);
             return;
         }
@@ -468,9 +475,8 @@ void checkForFullRows(unsigned char i) { // searches for full rows
         if (fullRow) {
             removeFullRow(y, i);
             numLines++;
-            if (numPlayers > 0)
-                if (level[i] > 2) 
-                    linesPiecesPlayed[i]++;
+            if (numPlayers > 0 && level[i] > 2) 
+                linesPiecesPlayed[i]++;
         }
     }
     // updates the score if rows were completed
@@ -548,12 +554,9 @@ void dropShape(unsigned char i) {
         // checks if the shape has reached the top (the game is lost)
         if (shapeY[i] < 0) {
             gameOver[i] = TRUE;
-
-            locate(pitLeft[i], 8);
-            printf("GAME OVER!");
+            locate(pitLeft[i], 8); printf("GAME OVER!");
             playTune(tune3Notes, tune3Durations, 10);
         }
-
         else {
             checkForFullRows(i);
             drawPit(i);
@@ -807,6 +810,8 @@ void init() {
         drawPit(i);
     }
     cancelled = FALSE;
+    lastLines = 0;
+    lastPoints = 0;
     displayStatus();
     if (numPlayers == 0) {
         locate(23,6); printf(" PLEASE ");
@@ -892,30 +897,30 @@ void mainLoop() {
         }
         //////////////////////// PLAYER 1 ///////////////////////////
         // rotation (key, cursor, joystick)
-        if (key == 'W' || key == 94 || joystickPositions[JOYSTK_LEFT_VERT] < 16)
+        if (key == 'W' || key == 94 || joystickPositions[JOYSTK_LEFT_VERT] < JTHRESHOLD_LOW)
             rotateKeyPressed(0);
         // move left (key, cursor, joystick)
-        if (key == 'A' || key == 8 || joystickPositions[JOYSTK_LEFT_HORIZ] < 16)
+        if (key == 'A' || key == 8 || joystickPositions[JOYSTK_LEFT_HORIZ] < JTHRESHOLD_LOW)
             moveLeftKeyPressed(0);
         // fast drop (key, cursor, joystick)
-        if (key == 'S' || key == 10 || joystickPositions[JOYSTK_LEFT_VERT] > 48)
+        if (key == 'S' || key == 10 || joystickPositions[JOYSTK_LEFT_VERT] > JTHRESHOLD_HIGH)
             dropRate[0] = 0;            
         // move right (key, cursor, joystick)
-        if (key == 'D' || key == 9 || joystickPositions[JOYSTK_LEFT_HORIZ] > 48)
+        if (key == 'D' || key == 9 || joystickPositions[JOYSTK_LEFT_HORIZ] > JTHRESHOLD_HIGH)
             moveRightKeyPressed(0);
 
         //////////////////////// PLAYER 2 ///////////////////////////
         // rotation (key, joystick)
-        if (key == 'I' || joystickPositions[JOYSTK_RIGHT_VERT] < 16)
+        if (key == 'I' || joystickPositions[JOYSTK_RIGHT_VERT] < JTHRESHOLD_LOW)
             rotateKeyPressed(1);
         // move left (key, joystick)
-        if (key == 'J' || joystickPositions[JOYSTK_RIGHT_HORIZ] < 16)
+        if (key == 'J' || joystickPositions[JOYSTK_RIGHT_HORIZ] < JTHRESHOLD_LOW)
             moveLeftKeyPressed(1);
         // fast drop (key, joystick)
-        if (key == 'K' || joystickPositions[JOYSTK_RIGHT_VERT] > 48)
+        if (key == 'K' || joystickPositions[JOYSTK_RIGHT_VERT] > JTHRESHOLD_HIGH)
             dropRate[1] = 0;              
         // move right (key, joystick)
-        if (key == 'L' || joystickPositions[JOYSTK_RIGHT_HORIZ] > 48)
+        if (key == 'L' || joystickPositions[JOYSTK_RIGHT_HORIZ] > JTHRESHOLD_HIGH)
             moveRightKeyPressed(1);
 #endif
 
@@ -942,41 +947,41 @@ void mainLoop() {
         // rotation (key, cursor, joystick)
         if (isKeyPressed(KEY_PROBE_W, KEY_BIT_W) 
             || isKeyPressed(KEY_PROBE_UP, KEY_BIT_UP) 
-            || joystickPositions[JOYSTK_LEFT_VERT] < 16)
+            || joystickPositions[JOYSTK_LEFT_VERT] < JTHRESHOLD_LOW)
             if (canProcessInput(0,0)) rotateKeyPressed(0);
         // move left (key, cursor, joystick)
         if (isKeyPressed(KEY_PROBE_A, KEY_BIT_A) 
             || isKeyPressed(KEY_PROBE_LEFT, KEY_BIT_LEFT) 
-            || joystickPositions[JOYSTK_LEFT_HORIZ] < 16) 
+            || joystickPositions[JOYSTK_LEFT_HORIZ] < JTHRESHOLD_LOW) 
             if (canProcessInput(0,1)) moveLeftKeyPressed(0);
         // fast drop (key, cursor, joystick)
         if (isKeyPressed(KEY_PROBE_S, KEY_BIT_S) 
             || isKeyPressed(KEY_PROBE_DOWN, KEY_BIT_DOWN) 
-            || joystickPositions[JOYSTK_LEFT_VERT] > 48) 
+            || joystickPositions[JOYSTK_LEFT_VERT] > JTHRESHOLD_HIGH) 
             dropRate[0] = 0;
         // move right (key, cursor, joystick)
         if (isKeyPressed(KEY_PROBE_D, KEY_BIT_D) 
             || isKeyPressed(KEY_PROBE_RIGHT, KEY_BIT_RIGHT) 
-            || joystickPositions[JOYSTK_LEFT_HORIZ] > 48) 
+            || joystickPositions[JOYSTK_LEFT_HORIZ] > JTHRESHOLD_HIGH) 
             if (canProcessInput(0,2)) moveRightKeyPressed(0);
 
         //////////////////// PLAYER 2 ///////////////////////
         if (numPlayers > 0) {
             // rotation (key, cursor, joystick)
             if (isKeyPressed(KEY_PROBE_I, KEY_BIT_I) 
-                || joystickPositions[JOYSTK_RIGHT_VERT] < 16) 
+                || joystickPositions[JOYSTK_RIGHT_VERT] < JTHRESHOLD_LOW) 
                 if (canProcessInput(1,0)) rotateKeyPressed(1);
             // move left (key joystick)
             if (isKeyPressed(KEY_PROBE_J, KEY_BIT_J) 
-                || joystickPositions[JOYSTK_RIGHT_HORIZ] < 16) 
+                || joystickPositions[JOYSTK_RIGHT_HORIZ] < JTHRESHOLD_LOW) 
                 if (canProcessInput(1,1)) moveLeftKeyPressed(1);
             // fast drop (key, joystick)
             if (isKeyPressed(KEY_PROBE_K, KEY_BIT_K) 
-                || joystickPositions[JOYSTK_RIGHT_VERT] > 48) 
+                || joystickPositions[JOYSTK_RIGHT_VERT] > JTHRESHOLD_HIGH) 
                 dropRate[1] = 0;
             // move right (key, joystick)
             if (isKeyPressed(KEY_PROBE_L, KEY_BIT_L) 
-                || joystickPositions[JOYSTK_RIGHT_HORIZ] > 48) 
+                || joystickPositions[JOYSTK_RIGHT_HORIZ] > JTHRESHOLD_HIGH) 
                 if (canProcessInput(1,2)) moveRightKeyPressed(1);
         }            
 #endif

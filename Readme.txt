@@ -1,27 +1,27 @@
 
-================================
+////////////////////////////////
 DragonTet v1.0 salvaKantero 2025
-================================
+////////////////////////////////
+
 Compatible with:
-- Tandy Color Computer
 - Dragon 32/64
-- Thomson MO/TO
+- Tandy Color Computer 1/2/3
 
 
 
-The objective of DragonTet is to move, rotate, and place falling pieces to form complete horizontal lines on the game board.
-Whenever you complete a line, it disappears, clearing space on the board and increasing your score.
-After completing a certain number of lines, the game level increases. With each level, the speed of the falling pieces increases, making the game more challenging.
-From level 4 onwards, completing multiple lines at once will generate trap blocks on the board.
-If the pieces stack up to the top of the board and you cannot place any more, the game is over!
+The objective of DragonTet is to move, rotate, and place the falling pieces to form complete horizontal lines on the game board.
+Each time you complete a line, it disappears, freeing up space on the board and increasing your score.
+By completing a certain number of lines, the game level increases. With each level, the falling speed of the pieces accelerates, making the game more challenging.
+If the pieces stack up to the top of the board and you can no longer place them, the game is over!
 
 Single-Player Mode:
   Compete to achieve the highest score possible.
+  From level 3 onwards, every 12 pieces played will generate trap lines or blocks.
 
 Two-Player Mode (Optional):
-  Each player has their own game board.
+  Each player has their own board.
   The winner is the one who survives the longest or achieves the highest score.
-  Any trap blocks generated will be transferred to the opponent's board.
+  From level 3 onwards, trap blocks and lines are generated on the opponent's board every 3 lines completed.
 
 
 
@@ -30,30 +30,39 @@ CONTROLS
 
 PLAYER 1:
 
-Move piece left:
-  Press <A>, the left arrow key, or joystick 1 left.
-Move piece right:
-  Press <D>, the right arrow key, or joystick 1 right.
 Rotate piece:
   Press <W>, the up arrow key, or joystick 1 up.
+
+Move piece left:
+  Press <A>, the left arrow key, or joystick 1 left.
+
 Soft drop (faster descent):
   Press <S>, the down arrow key, or joystick 1 down.
 
+Move piece right:
+  Press <D>, the right arrow key, or joystick 1 right.
+
+
 PLAYER 2:
+
+Rotate piece:
+  Press <I> or joystick 2 up.
 
 Move piece left:
   Press <J> or joystick 2 left.
-Move piece right:
-  Press <L> or joystick 2 right.
-Rotate piece:
-  Press <I> or joystick 2 up.
+
 Soft drop (faster descent):
   Press <K> or joystick 2 down.
+
+Move piece right:
+  Press <L> or joystick 2 right.
+
 
 COMMON CONTROLS:
 
 Pause:
-  Press <H> to pause/resume the game.
+  Press <H> to pause. Any other key to continue.
+
 Cancel:
   Press <X> to exit the game at any time and return to the main menu.
 

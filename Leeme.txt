@@ -1,10 +1,11 @@
 
-================================
+////////////////////////////////
 DragonTet v1.0 salvaKantero 2025
-================================
+////////////////////////////////
+
 Compatible con:
+- Dragon 32/64
 - Tandy Color Computer 1/2/3
-- Dragon32/64
 
 
 
@@ -21,7 +22,7 @@ Modo 2 jugadores (Opcional):
   Cada jugador tiene su propio tablero. 
   El ganador es quien sobrevive más tiempo o quien consigue la mayor puntuación.
   A partir del nivel 3, los bloques y líneas trampa se generan en el tablero del contrario cada 3 líneas conseguidas.
-  
+
 
 
 CONTROLES
@@ -29,30 +30,39 @@ CONTROLES
 
 JUGADOR 1:
 
-Mover pieza a la izquierda:
-  Tecla <A>, o la flecha izquierda, o joystick1 izquierda.
-Mover pieza a la derecha:
-  Tecla <D>, o la flecha derecha, o joystick1 derecha.
 Rotar pieza:
   Tecla <W>, o la flecha arriba, o joystick1 arriba.
+
+Mover pieza a la izquierda:
+  Tecla <A>, o la flecha izquierda, o joystick1 izquierda.
+
 Caída rápida:
   Tecla <S> o la flecha abajo, o joystick1 abajo.
 
+Mover pieza a la derecha:
+  Tecla <D>, o la flecha derecha, o joystick1 derecha.
+
+
 JUGADOR 2:
+
+Rotar pieza:
+  Tecla <I> o joystick2 arriba.
 
 Mover pieza a la izquierda:
   Tecla <J> o joystick2 izquierda.
-Mover pieza a la derecha:
-  Tecla <L> o joystick2 derecha.
-Rotar pieza:
-  Tecla <I> o joystick2 arriba.
+
 Caída rápida:
   Tecla <K> o joystick2 abajo.
+
+Mover pieza a la derecha:
+  Tecla <L> o joystick2 derecha.
+
 
 CONTROLES COMUNES:
 
 Pausar: 
-  Pulsa <H> para pausar/reanudar el juego.
+  Pulsa <H> para pausar el juego. Cualquier tecla para continuar.
+
 Cancelar:
   Pulsa <X> para salir del juego en cualquier momento y regresar al menú principal.
 
@@ -66,7 +76,7 @@ PUNTUACIÓN
 3 líneas:	500 * nº de nivel
 4 líneas:	800 * nº de nivel
 
-* la caída rápida de la pieza suma 1 punto por cada fila que descienda
+* la caída rápida de la pieza suma 1 punto por cada fila que desciende
 
 
 
