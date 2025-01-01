@@ -16,12 +16,12 @@ Si las piezas se acumulan hasta la parte superior del tablero y no puedes coloca
 
 Modo 1 jugador:
   Compite para obtener la mayor puntuación posible.
-  A partir del nivel 3, cada 12 piezas jugadas, se generan líneas o bloques trampa.
+  A partir del nivel 4, cada 12 piezas jugadas, se generan líneas o bloques trampa.
 
 Modo 2 jugadores (Opcional):
   Cada jugador tiene su propio tablero. 
   El ganador es quien sobrevive más tiempo o quien consigue la mayor puntuación.
-  A partir del nivel 3, los bloques y líneas trampa se generan en el tablero del contrario cada 3 líneas conseguidas.
+  A partir del nivel 4, los bloques y líneas trampa se generan en el tablero del contrario cada 3 líneas conseguidas.
 
 
 

@@ -16,12 +16,12 @@ If the pieces stack up to the top of the board and you can no longer place them,
 
 Single-Player Mode:
   Compete to achieve the highest score possible.
-  From level 3 onwards, every 12 pieces played will generate trap lines or blocks.
+  From level 4 onwards, every 12 pieces played will generate trap lines or blocks.
 
 Two-Player Mode (Optional):
   Each player has their own board.
   The winner is the one who survives the longest or achieves the highest score.
-  From level 3 onwards, trap blocks and lines are generated on the opponent's board every 3 lines completed.
+  From level 4 onwards, trap blocks and lines are generated on the opponent's board every 3 lines completed.
 
 
 
