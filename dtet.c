@@ -37,22 +37,18 @@ use xroar to test (dragon)...
 Level description:
 level 1: 36 delay ticks
 level 2: 32 delay ticks
-level 3: 28 delay ticks + lower trap lines
+level 3: 28 delay ticks
 level 4: 24 delay ticks + lower trap lines
-level 5: 20 delay ticks + upper trap blocks
+level 5: 20 delay ticks + lower trap lines
 level 6: 16 delay ticks + upper trap blocks
-level 7: 12 delay ticks
-level 8:  8 delay ticks
-level x:  6 delay ticks
+level 7: 12 delay ticks +   "     "    "
+level 8:  8 delay ticks +   "     "    "
+level x:  6 delay ticks +   "     "    "
 
 TODO
 ====
 - control de teclado para Dragon
 - opción autorepetición?
-
-BUGS/TEST:
-- probar trampas a partir del nivel 6?
-- probar joystick
 
 */
 
@@ -274,6 +270,7 @@ void displayStatus() {
         drawPlayerStatus(0);  // Dragon 1
         drawPlayerStatus(1);  // Dragon 2
     }
+    locate(14,15);
 }
 
 
@@ -333,9 +330,8 @@ void createNextShape(unsigned char i) {
 
 void createShape(unsigned char i) {
     // calculates the fall speed based on the level
-    //dropRate[i] = (level[i] < 9) ? 
-    //    (40 - (level[i] * DROP_RATE_LEVEL)) : MIN_DROP_RATE_LEVEL;
-    dropRate[i] = 40;
+    dropRate[i] = (level[i] < 9) ? 
+        (40 - (level[i] * DROP_RATE_LEVEL)) : MIN_DROP_RATE_LEVEL;
     // if it's not the first shape, take the value of nextShape
     shape[i] = (nextShape[i] != 255) ? nextShape[i] : (unsigned char)(rand() % 7);
        
@@ -481,7 +477,7 @@ void checkForFullRows(unsigned char i) { // searches for full rows
         if (fullRow) {
             removeFullRow(y, i);
             numLines++;
-            if (numPlayers > 0 && level[i] > 2) 
+            if (numPlayers > 0 && level[i] > 3) 
                 linesPiecesPlayed[i]++;
         }
     }
@@ -511,14 +507,14 @@ void checkForFullRows(unsigned char i) { // searches for full rows
     }
     // 1 player, every x pieces generates a trap line/block
     if (numPlayers == 0 && linesPiecesPlayed[0] >= PIECES_TRAP) {
-        if (level[0] > 4) setTrapBlock(0);
-        else if(level[0] > 2) setTrapLine(0);
+        if (level[0] > 5) setTrapBlock(0);
+        else if(level[0] > 3) setTrapLine(0);
         linesPiecesPlayed[0] = 0;
     }
     // 2 players, every x lines generates a trap line/block
     else if (numPlayers > 0 && linesPiecesPlayed[i] >= LINES_TRAP) {
-        if (level[i] > 4) setTrapBlock(i);
-        else if(level[i] > 2) setTrapLine(i);
+        if (level[i] > 5) setTrapBlock(i);
+        else if(level[i] > 3) setTrapLine(i);
         linesPiecesPlayed[i] = 0;
     }
 }
@@ -538,7 +534,7 @@ void settleActiveShapeInPit(unsigned char i) {
                 pit[i][y * PIT_WIDTH + x] = blockColour;
         }
     }
-    if (numPlayers == 0 && level[0] > 2)
+    if (numPlayers == 0 && level[0] > 3)
         linesPiecesPlayed[0]++;
 }
 
@@ -916,18 +912,20 @@ void mainLoop() {
             moveRightKeyPressed(0);
 
         //////////////////////// PLAYER 2 ///////////////////////////
-        // rotation (key, joystick)
-        if (key == 'I' || joystickPositions[JOYSTK_RIGHT_VERT] < JTHRESHOLD_LOW)
-            rotateKeyPressed(1);
-        // move left (key, joystick)
-        if (key == 'J' || joystickPositions[JOYSTK_RIGHT_HORIZ] < JTHRESHOLD_LOW)
-            moveLeftKeyPressed(1);
-        // fast drop (key, joystick)
-        if (key == 'K' || joystickPositions[JOYSTK_RIGHT_VERT] > JTHRESHOLD_HIGH)
-            dropRate[1] = 0;              
-        // move right (key, joystick)
-        if (key == 'L' || joystickPositions[JOYSTK_RIGHT_HORIZ] > JTHRESHOLD_HIGH)
-            moveRightKeyPressed(1);
+        if (numPlayers > 0) {
+            // rotation (key, joystick)
+            if (key == 'I' || joystickPositions[JOYSTK_RIGHT_VERT] < JTHRESHOLD_LOW)
+                rotateKeyPressed(1);
+            // move left (key, joystick)
+            if (key == 'J' || joystickPositions[JOYSTK_RIGHT_HORIZ] < JTHRESHOLD_LOW)
+                moveLeftKeyPressed(1);
+            // fast drop (key, joystick)
+            if (key == 'K' || joystickPositions[JOYSTK_RIGHT_VERT] > JTHRESHOLD_HIGH)
+                dropRate[1] = 0;              
+            // move right (key, joystick)
+            if (key == 'L' || joystickPositions[JOYSTK_RIGHT_HORIZ] > JTHRESHOLD_HIGH)
+                moveRightKeyPressed(1);
+        }
 #endif
 
 #ifdef Coco
