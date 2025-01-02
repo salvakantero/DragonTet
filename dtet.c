@@ -47,8 +47,30 @@ level x:  6 delay ticks +   "     "    "
 
 TODO
 ====
-- control de teclado para Dragon
 - opción autorepetición?
+- control de teclado para Dragon
+
+DR  COCO
+W  =  7
+A  =  Q
+S  =  3
+D  =  T
+
+UP = SEMICOLON
+LEFT = HYPHEN
+DOWN = COMMA
+RIGH = PERIOD
+
+I  =  Y
+J  =  Z
+K  =  UP
+L  =  DOWN
+
+H  =  X
+X  =  8
+ENTER =  ENTER
+SPC =  SLASH
+
 
 */
 
