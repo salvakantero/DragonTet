@@ -1,0 +1,989 @@
+Section: start (dtet.o) load at 2800, length 000E
+Section: code (crt.dgn_o) load at 280E, length 0063
+Section: code (DIV16.dgn_o) load at 2871, length 002A
+Section: code (DIV8.dgn_o) load at 289B, length 0024
+Section: code (DIV8BY7.dgn_o) load at 28BF, length 0018
+Section: code (jumpTableSwitch.dgn_o) load at 28D7, length 001E
+Section: code (MUL16.dgn_o) load at 28F5, length 0018
+Section: code (MUL16BY10.dgn_o) load at 290D, length 000B
+Section: code (negateDWord.dgn_o) load at 2918, length 0018
+Section: code (SDIV16.dgn_o) load at 2930, length 0041
+Section: code (sub32.dgn_o) load at 2971, length 0021
+Section: code (sub32xu.dgn_o) load at 2992, length 0012
+Section: code (tfrZtoB.dgn_o) load at 29A4, length 0007
+Section: code (ATOW.dgn_o) load at 29AB, length 0028
+Section: code (delay.dgn_o) load at 29D3, length 000E
+Section: code (dwtoa.dgn_o) load at 29E1, length 00BE
+Section: code (memcpy.dgn_o) load at 2A9F, length 001D
+Section: code (memset.dgn_o) load at 2ABC, length 001E
+Section: code (MUL168.dgn_o) load at 2ADA, length 0011
+Section: code (printf.dgn_o) load at 2AEB, length 03C2
+Section: code (putchar_a.dgn_o) load at 2EAD, length 000C
+Section: code (readline.dgn_o) load at 2EB9, length 0007
+Section: code (strlen.dgn_o) load at 2EC0, length 000E
+Section: code (strncpy.dgn_o) load at 2ECE, length 0028
+Section: code (rand.dgn_o) load at 2EF6, length 003B
+Section: code (cls.dgn_o) load at 2F31, length 0030
+Section: code (inkey.dgn_o) load at 2F61, length 0007
+Section: code (isKeyPressed.dgn_o) load at 2F68, length 000D
+Section: code (locate.dgn_o) load at 2F75, length 0038
+Section: code (pmodevars.dgn_o) load at 2FAD, length 0000
+Section: code (readJoystickPositions.dgn_o) load at 2FAD, length 000B
+Section: code (screen.dgn_o) load at 2FB8, length 008D
+Section: code (setSAMRegisters.dgn_o) load at 3045, length 0029
+Section: code (showGraphicsAddress.dgn_o) load at 306E, length 002E
+Section: code (showLowResTextAddress.dgn_o) load at 309C, length 0026
+Section: code (sound.dgn_o) load at 30C2, length 0016
+Section: code (waitkey.dgn_o) load at 30D8, length 0026
+Section: code (unpackSingleAndConvertToASCII.dgn_o) load at 30FE, length 0018
+Section: code (dtet.o) load at 3116, length 238B
+Section: constructors_start (crt.dgn_o) load at 54A1, length 0000
+Section: constructors (/usr/local/share/cmoc/lib/float-ctor.dgn_o) load at 54A1, length 000E
+Section: constructors_end (crt.dgn_o) load at 54AF, length 0001
+Section: destructors_start (crt.dgn_o) load at 54B0, length 0000
+Section: destructors_end (crt.dgn_o) load at 54B0, length 0001
+Section: initgl_start (dtet.o) load at 54B1, length 0000
+Section: initgl (rand.dgn_o) load at 54B1, length 0000
+Section: initgl (cls.dgn_o) load at 54B1, length 0000
+Section: initgl (inkey.dgn_o) load at 54B1, length 0000
+Section: initgl (isKeyPressed.dgn_o) load at 54B1, length 0000
+Section: initgl (locate.dgn_o) load at 54B1, length 0000
+Section: initgl (pmodevars.dgn_o) load at 54B1, length 0000
+Section: initgl (readJoystickPositions.dgn_o) load at 54B1, length 0000
+Section: initgl (screen.dgn_o) load at 54B1, length 0000
+Section: initgl (setSAMRegisters.dgn_o) load at 54B1, length 0000
+Section: initgl (showGraphicsAddress.dgn_o) load at 54B1, length 0000
+Section: initgl (showLowResTextAddress.dgn_o) load at 54B1, length 0000
+Section: initgl (sound.dgn_o) load at 54B1, length 0000
+Section: initgl (waitkey.dgn_o) load at 54B1, length 0000
+Section: initgl (dtet.o) load at 54B1, length 0000
+Section: initgl_end (dtet.o) load at 54B1, length 0001
+Section: rodata (rand.dgn_o) load at 54B2, length 0000
+Section: rodata (cls.dgn_o) load at 54B2, length 0000
+Section: rodata (inkey.dgn_o) load at 54B2, length 0000
+Section: rodata (isKeyPressed.dgn_o) load at 54B2, length 0000
+Section: rodata (locate.dgn_o) load at 54B2, length 0000
+Section: rodata (pmodevars.dgn_o) load at 54B2, length 0000
+Section: rodata (readJoystickPositions.dgn_o) load at 54B2, length 0000
+Section: rodata (screen.dgn_o) load at 54B2, length 0000
+Section: rodata (setSAMRegisters.dgn_o) load at 54B2, length 0000
+Section: rodata (showGraphicsAddress.dgn_o) load at 54B2, length 0000
+Section: rodata (showLowResTextAddress.dgn_o) load at 54B2, length 0000
+Section: rodata (sound.dgn_o) load at 54B2, length 0000
+Section: rodata (waitkey.dgn_o) load at 54B2, length 0000
+Section: rodata (dtet.o) load at 54B2, length 0470
+Section: rwdata (rand.dgn_o) load at 5922, length 0002
+Section: rwdata (cls.dgn_o) load at 5924, length 0000
+Section: rwdata (inkey.dgn_o) load at 5924, length 0000
+Section: rwdata (isKeyPressed.dgn_o) load at 5924, length 0000
+Section: rwdata (locate.dgn_o) load at 5924, length 0000
+Section: rwdata (pmodevars.dgn_o) load at 5924, length 0003
+Section: rwdata (readJoystickPositions.dgn_o) load at 5927, length 0000
+Section: rwdata (screen.dgn_o) load at 5927, length 0000
+Section: rwdata (setSAMRegisters.dgn_o) load at 5927, length 0000
+Section: rwdata (showGraphicsAddress.dgn_o) load at 5927, length 0000
+Section: rwdata (showLowResTextAddress.dgn_o) load at 5927, length 0000
+Section: rwdata (sound.dgn_o) load at 5927, length 0000
+Section: rwdata (waitkey.dgn_o) load at 5927, length 0000
+Section: rwdata (dtet.o) load at 5927, length 008D
+Section: bss (crt.dgn_o) load at 59B4, length 000F
+Section: bss (rand.dgn_o) load at 59C3, length 0000
+Section: bss (cls.dgn_o) load at 59C3, length 0000
+Section: bss (inkey.dgn_o) load at 59C3, length 0000
+Section: bss (isKeyPressed.dgn_o) load at 59C3, length 0000
+Section: bss (locate.dgn_o) load at 59C3, length 0000
+Section: bss (pmodevars.dgn_o) load at 59C3, length 0000
+Section: bss (readJoystickPositions.dgn_o) load at 59C3, length 0000
+Section: bss (screen.dgn_o) load at 59C3, length 0000
+Section: bss (setSAMRegisters.dgn_o) load at 59C3, length 0000
+Section: bss (showGraphicsAddress.dgn_o) load at 59C3, length 0000
+Section: bss (showLowResTextAddress.dgn_o) load at 59C3, length 0000
+Section: bss (sound.dgn_o) load at 59C3, length 0000
+Section: bss (waitkey.dgn_o) load at 59C3, length 0000
+Section: bss (dtet.o) load at 59C3, length 01C5
+Section: program_end (dtet.o) load at 5B88, length 0000
+Symbol: \02bss (cls.dgn_o) = 59C3
+Symbol: \02bss (crt.dgn_o) = 59B4
+Symbol: \02bss (dtet.o) = 59C3
+Symbol: \02bss (inkey.dgn_o) = 59C3
+Symbol: \02bss (isKeyPressed.dgn_o) = 59C3
+Symbol: \02bss (locate.dgn_o) = 59C3
+Symbol: \02bss (pmodevars.dgn_o) = 59C3
+Symbol: \02bss (rand.dgn_o) = 59C3
+Symbol: \02bss (readJoystickPositions.dgn_o) = 59C3
+Symbol: \02bss (screen.dgn_o) = 59C3
+Symbol: \02bss (setSAMRegisters.dgn_o) = 59C3
+Symbol: \02bss (showGraphicsAddress.dgn_o) = 59C3
+Symbol: \02bss (showLowResTextAddress.dgn_o) = 59C3
+Symbol: \02bss (sound.dgn_o) = 59C3
+Symbol: \02bss (waitkey.dgn_o) = 59C3
+Symbol: \02code (ATOW.dgn_o) = 29AB
+Symbol: \02code (DIV16.dgn_o) = 2871
+Symbol: \02code (DIV8.dgn_o) = 289B
+Symbol: \02code (DIV8BY7.dgn_o) = 28BF
+Symbol: \02code (MUL16.dgn_o) = 28F5
+Symbol: \02code (MUL168.dgn_o) = 2ADA
+Symbol: \02code (MUL16BY10.dgn_o) = 290D
+Symbol: \02code (SDIV16.dgn_o) = 2930
+Symbol: \02code (cls.dgn_o) = 2F31
+Symbol: \02code (crt.dgn_o) = 280E
+Symbol: \02code (delay.dgn_o) = 29D3
+Symbol: \02code (dtet.o) = 3116
+Symbol: \02code (dwtoa.dgn_o) = 29E1
+Symbol: \02code (inkey.dgn_o) = 2F61
+Symbol: \02code (isKeyPressed.dgn_o) = 2F68
+Symbol: \02code (jumpTableSwitch.dgn_o) = 28D7
+Symbol: \02code (locate.dgn_o) = 2F75
+Symbol: \02code (memcpy.dgn_o) = 2A9F
+Symbol: \02code (memset.dgn_o) = 2ABC
+Symbol: \02code (negateDWord.dgn_o) = 2918
+Symbol: \02code (pmodevars.dgn_o) = 2FAD
+Symbol: \02code (printf.dgn_o) = 2AEB
+Symbol: \02code (putchar_a.dgn_o) = 2EAD
+Symbol: \02code (rand.dgn_o) = 2EF6
+Symbol: \02code (readJoystickPositions.dgn_o) = 2FAD
+Symbol: \02code (readline.dgn_o) = 2EB9
+Symbol: \02code (screen.dgn_o) = 2FB8
+Symbol: \02code (setSAMRegisters.dgn_o) = 3045
+Symbol: \02code (showGraphicsAddress.dgn_o) = 306E
+Symbol: \02code (showLowResTextAddress.dgn_o) = 309C
+Symbol: \02code (sound.dgn_o) = 30C2
+Symbol: \02code (strlen.dgn_o) = 2EC0
+Symbol: \02code (strncpy.dgn_o) = 2ECE
+Symbol: \02code (sub32.dgn_o) = 2971
+Symbol: \02code (sub32xu.dgn_o) = 2992
+Symbol: \02code (tfrZtoB.dgn_o) = 29A4
+Symbol: \02code (unpackSingleAndConvertToASCII.dgn_o) = 30FE
+Symbol: \02code (waitkey.dgn_o) = 30D8
+Symbol: \02constructors (/usr/local/share/cmoc/lib/float-ctor.dgn_o) = 54A1
+Symbol: \02constructors_end (crt.dgn_o) = 54AF
+Symbol: \02constructors_start (crt.dgn_o) = 54A1
+Symbol: \02destructors_end (crt.dgn_o) = 54B0
+Symbol: \02destructors_start (crt.dgn_o) = 54B0
+Symbol: \02initgl (cls.dgn_o) = 54B1
+Symbol: \02initgl (dtet.o) = 54B1
+Symbol: \02initgl (inkey.dgn_o) = 54B1
+Symbol: \02initgl (isKeyPressed.dgn_o) = 54B1
+Symbol: \02initgl (locate.dgn_o) = 54B1
+Symbol: \02initgl (pmodevars.dgn_o) = 54B1
+Symbol: \02initgl (rand.dgn_o) = 54B1
+Symbol: \02initgl (readJoystickPositions.dgn_o) = 54B1
+Symbol: \02initgl (screen.dgn_o) = 54B1
+Symbol: \02initgl (setSAMRegisters.dgn_o) = 54B1
+Symbol: \02initgl (showGraphicsAddress.dgn_o) = 54B1
+Symbol: \02initgl (showLowResTextAddress.dgn_o) = 54B1
+Symbol: \02initgl (sound.dgn_o) = 54B1
+Symbol: \02initgl (waitkey.dgn_o) = 54B1
+Symbol: \02initgl_end (dtet.o) = 54B1
+Symbol: \02initgl_start (dtet.o) = 54B1
+Symbol: \02program_end (dtet.o) = 5B88
+Symbol: \02rodata (cls.dgn_o) = 54B2
+Symbol: \02rodata (dtet.o) = 54B2
+Symbol: \02rodata (inkey.dgn_o) = 54B2
+Symbol: \02rodata (isKeyPressed.dgn_o) = 54B2
+Symbol: \02rodata (locate.dgn_o) = 54B2
+Symbol: \02rodata (pmodevars.dgn_o) = 54B2
+Symbol: \02rodata (rand.dgn_o) = 54B2
+Symbol: \02rodata (readJoystickPositions.dgn_o) = 54B2
+Symbol: \02rodata (screen.dgn_o) = 54B2
+Symbol: \02rodata (setSAMRegisters.dgn_o) = 54B2
+Symbol: \02rodata (showGraphicsAddress.dgn_o) = 54B2
+Symbol: \02rodata (showLowResTextAddress.dgn_o) = 54B2
+Symbol: \02rodata (sound.dgn_o) = 54B2
+Symbol: \02rodata (waitkey.dgn_o) = 54B2
+Symbol: \02rwdata (cls.dgn_o) = 5924
+Symbol: \02rwdata (dtet.o) = 5927
+Symbol: \02rwdata (inkey.dgn_o) = 5924
+Symbol: \02rwdata (isKeyPressed.dgn_o) = 5924
+Symbol: \02rwdata (locate.dgn_o) = 5924
+Symbol: \02rwdata (pmodevars.dgn_o) = 5924
+Symbol: \02rwdata (rand.dgn_o) = 5922
+Symbol: \02rwdata (readJoystickPositions.dgn_o) = 5927
+Symbol: \02rwdata (screen.dgn_o) = 5927
+Symbol: \02rwdata (setSAMRegisters.dgn_o) = 5927
+Symbol: \02rwdata (showGraphicsAddress.dgn_o) = 5927
+Symbol: \02rwdata (showLowResTextAddress.dgn_o) = 5927
+Symbol: \02rwdata (sound.dgn_o) = 5927
+Symbol: \02rwdata (waitkey.dgn_o) = 5927
+Symbol: \02start (dtet.o) = 2800
+Symbol: .global.static.variable._Rand_seed (rand.dgn_o) = 5924
+Symbol: .local.static.getShapeMap.shapeMaps (dtet.o) = 5B7A
+Symbol: .local.static.getShapeMap.shapeMaps.initialized (dtet.o) = 5B79
+Symbol: @bit15Done\0110 (rand.dgn_o) = 2F0A
+Symbol: @black\0119 (cls.dgn_o) = 2F54
+Symbol: @checkPadding\0131 (printf.dgn_o) = 2C1C
+Symbol: @clear\0119 (cls.dgn_o) = 2F56
+Symbol: @cond\014 (memcpy.dgn_o) = 2AB1
+Symbol: @copyLoop\014 (strncpy.dgn_o) = 2EDA
+Symbol: @copyLoopCond\014 (strncpy.dgn_o) = 2EE2
+Symbol: @countHexDigitsInDWord\0131 (printf.dgn_o) = 2C43
+Symbol: @decPadPrint\0131 (printf.dgn_o) = 2CB4
+Symbol: @decPadding\0131 (printf.dgn_o) = 2C94
+Symbol: @default\014 (jumpTableSwitch.dgn_o) = 28F1
+Symbol: @done\0122 (crt.dgn_o) = 281D
+Symbol: @done\0131 (printf.dgn_o) = 2C5C
+Symbol: @done\014 (strncpy.dgn_o) = 2EF2
+Symbol: @done\017 (putchar_a.dgn_o) = 2EB5
+Symbol: @donePrinting\0172 (printf.dgn_o) = 2EA9
+Symbol: @fillLoop\014 (strncpy.dgn_o) = 2EE9
+Symbol: @fillLoopCond\014 (strncpy.dgn_o) = 2EED
+Symbol: @hexPad\0131 (printf.dgn_o) = 2C67
+Symbol: @highNybbleNotNull\0131 (printf.dgn_o) = 2C58
+Symbol: @highWordZero\0131 (printf.dgn_o) = 2C8A
+Symbol: @longNotNeg\0131 (printf.dgn_o) = 2BF6
+Symbol: @loop\0122 (crt.dgn_o) = 2817
+Symbol: @loop\014 (DIV8BY7.dgn_o) = 28CE
+Symbol: @loop\014 (memcpy.dgn_o) = 2AAD
+Symbol: @loop\014 (strlen.dgn_o) = 2EC2
+Symbol: @nextDWordByte\0131 (printf.dgn_o) = 2C44
+Symbol: @noHexPadding\0131 (printf.dgn_o) = 2C73
+Symbol: @noMinusNeeded\0131 (printf.dgn_o) = 2CAD
+Symbol: @noPadding\0131 (printf.dgn_o) = 2CBF
+Symbol: @nonNullByte\0131 (printf.dgn_o) = 2C4F
+Symbol: @oneDigitNeeded\0131 (printf.dgn_o) = 2C5A
+Symbol: @positive\01179 (unpackSingleAndConvertToASCII.dgn_o) = 3110
+Symbol: @print\0172 (printf.dgn_o) = 2E9F
+Symbol: @printCond\0131 (printf.dgn_o) = 2C36
+Symbol: @printLoop\0131 (printf.dgn_o) = 2C32
+Symbol: @signDone\01179 (unpackSingleAndConvertToASCII.dgn_o) = 3112
+Symbol: @slong\0131 (printf.dgn_o) = 2BE9
+Symbol: @store\0117 (rand.dgn_o) = 2F2C
+Symbol: @ulong\0131 (printf.dgn_o) = 2BF6
+Symbol: @useTable\014 (jumpTableSwitch.dgn_o) = 28EB
+Symbol: @xlong\0131 (printf.dgn_o) = 2C5D
+Symbol: ATOW (ATOW.dgn_o) = 29AB
+Symbol: ATW100 (ATOW.dgn_o) = 29AF
+Symbol: ATW900 (ATOW.dgn_o) = 29CF
+Symbol: CHROUT (crt.dgn_o) = 59BE
+Symbol: D16010 (DIV16.dgn_o) = 287B
+Symbol: D16020 (DIV16.dgn_o) = 288C
+Symbol: D16030 (DIV16.dgn_o) = 288E
+Symbol: DELAY1 (delay.dgn_o) = 29DA
+Symbol: DELAY9 (delay.dgn_o) = 29E0
+Symbol: DIV16 (DIV16.dgn_o) = 2871
+Symbol: DIV8 (DIV8.dgn_o) = 289B
+Symbol: DIV8BY7 (DIV8BY7.dgn_o) = 28BF
+Symbol: DV8010 (DIV8.dgn_o) = 28A4
+Symbol: DV8020 (DIV8.dgn_o) = 28B1
+Symbol: DV8030 (DIV8.dgn_o) = 28B3
+Symbol: EXIT10 (crt.dgn_o) = 2862
+Symbol: HEXDIG (printf.dgn_o) = 2E09
+Symbol: INILIB (crt.dgn_o) = 280E
+Symbol: INISTK (crt.dgn_o) = 59B4
+Symbol: INITGL (dtet.o) = 54B1
+Symbol: L00124 (dtet.o) = 3152
+Symbol: L00124 (locate.dgn_o) = 2FA9
+Symbol: L00124 (waitkey.dgn_o) = 30FA
+Symbol: L00125 (setSAMRegisters.dgn_o) = 304B
+Symbol: L00126 (cls.dgn_o) = 2F47
+Symbol: L00126 (dtet.o) = 31DA
+Symbol: L00126 (locate.dgn_o) = 2F82
+Symbol: L00126 (screen.dgn_o) = 301B
+Symbol: L00126 (setSAMRegisters.dgn_o) = 3066
+Symbol: L00126 (waitkey.dgn_o) = 30ED
+Symbol: L00127 (cls.dgn_o) = 2F5D
+Symbol: L00128 (dtet.o) = 330C
+Symbol: L00128 (screen.dgn_o) = 2FF6
+Symbol: L00128 (waitkey.dgn_o) = 30ED
+Symbol: L00129 (locate.dgn_o) = 2F8B
+Symbol: L00129 (screen.dgn_o) = 2FFD
+Symbol: L00130 (screen.dgn_o) = 3029
+Symbol: L00132 (screen.dgn_o) = 3036
+Symbol: L00133 (screen.dgn_o) = 303C
+Symbol: L00134 (dtet.o) = 3814
+Symbol: L00140 (dtet.o) = 3D47
+Symbol: L00149 (dtet.o) = 48FD
+Symbol: L00151 (dtet.o) = 4BBA
+Symbol: L00156 (dtet.o) = 4F32
+Symbol: L00234 (dtet.o) = 3126
+Symbol: L00235 (dtet.o) = 314C
+Symbol: L00245 (dtet.o) = 31BC
+Symbol: L00247 (dtet.o) = 31A0
+Symbol: L00248 (dtet.o) = 31AA
+Symbol: L00250 (dtet.o) = 31EA
+Symbol: L00251 (dtet.o) = 322F
+Symbol: L00254 (dtet.o) = 31F6
+Symbol: L00255 (dtet.o) = 3227
+Symbol: L00258 (dtet.o) = 3248
+Symbol: L00259 (dtet.o) = 3300
+Symbol: L00262 (dtet.o) = 324F
+Symbol: L00263 (dtet.o) = 32EF
+Symbol: L00267 (dtet.o) = 32E8
+Symbol: L00269 (dtet.o) = 32A5
+Symbol: L00270 (dtet.o) = 32A0
+Symbol: L00274 (dtet.o) = 32E5
+Symbol: L00280 (dtet.o) = 32E8
+Symbol: L00282 (dtet.o) = 331C
+Symbol: L00283 (dtet.o) = 339F
+Symbol: L00286 (dtet.o) = 3322
+Symbol: L00287 (dtet.o) = 3395
+Symbol: L00291 (dtet.o) = 334F
+Symbol: L00292 (dtet.o) = 3359
+Symbol: L00294 (dtet.o) = 3359
+Symbol: L00297 (dtet.o) = 3379
+Symbol: L00298 (dtet.o) = 3393
+Symbol: L00300 (dtet.o) = 33DA
+Symbol: L00301 (dtet.o) = 33DD
+Symbol: L00303 (dtet.o) = 33E8
+Symbol: L00304 (dtet.o) = 33EB
+Symbol: L00306 (dtet.o) = 33F6
+Symbol: L00307 (dtet.o) = 33F9
+Symbol: L00308 (dtet.o) = 3400
+Symbol: L00309 (dtet.o) = 346E
+Symbol: L00313 (dtet.o) = 3497
+Symbol: L00314 (dtet.o) = 34CB
+Symbol: L00316 (dtet.o) = 34DD
+Symbol: L00317 (dtet.o) = 34E0
+Symbol: L00319 (dtet.o) = 35A2
+Symbol: L00320 (dtet.o) = 35A4
+Symbol: L00322 (dtet.o) = 36CD
+Symbol: L00324 (dtet.o) = 369D
+Symbol: L00325 (dtet.o) = 36C1
+Symbol: L00327 (dtet.o) = 36B6
+Symbol: L00328 (dtet.o) = 36C1
+Symbol: L00329 (dtet.o) = 36E0
+Symbol: L00330 (dtet.o) = 3733
+Symbol: L00332 (dtet.o) = 376D
+Symbol: L00334 (dtet.o) = 3787
+Symbol: L00335 (dtet.o) = 380A
+Symbol: L00338 (dtet.o) = 37DB
+Symbol: L00339 (dtet.o) = 37B3
+Symbol: L00340 (dtet.o) = 37C0
+Symbol: L00341 (dtet.o) = 37D0
+Symbol: L00343 (dtet.o) = 3893
+Symbol: L00344 (dtet.o) = 3895
+Symbol: L00346 (dtet.o) = 38C1
+Symbol: L00347 (dtet.o) = 38CC
+Symbol: L00348 (dtet.o) = 395A
+Symbol: L00349 (dtet.o) = 3A4F
+Symbol: L00352 (dtet.o) = 3961
+Symbol: L00353 (dtet.o) = 3A3E
+Symbol: L00357 (dtet.o) = 3A37
+Symbol: L00362 (dtet.o) = 39CE
+Symbol: L00363 (dtet.o) = 3A1E
+Symbol: L00365 (dtet.o) = 3A1E
+Symbol: L00368 (dtet.o) = 3A76
+Symbol: L00369 (dtet.o) = 3A8A
+Symbol: L00373 (dtet.o) = 3AC7
+Symbol: L00374 (dtet.o) = 3AAE
+Symbol: L00375 (dtet.o) = 3AC1
+Symbol: L00379 (dtet.o) = 3ACE
+Symbol: L00380 (dtet.o) = 3B31
+Symbol: L00383 (dtet.o) = 3AD4
+Symbol: L00384 (dtet.o) = 3B27
+Symbol: L00387 (dtet.o) = 3B3C
+Symbol: L00388 (dtet.o) = 3B58
+Symbol: L00392 (dtet.o) = 3B7D
+Symbol: L00394 (dtet.o) = 3B79
+Symbol: L00395 (dtet.o) = 3B7B
+Symbol: L00397 (dtet.o) = 3B92
+Symbol: L00398 (dtet.o) = 3BF3
+Symbol: L00401 (dtet.o) = 3B98
+Symbol: L00402 (dtet.o) = 3BE9
+Symbol: L00405 (dtet.o) = 3C00
+Symbol: L00406 (dtet.o) = 3C2C
+Symbol: L00410 (dtet.o) = 3C0A
+Symbol: L00411 (dtet.o) = 3C0C
+Symbol: L00413 (dtet.o) = 3C42
+Symbol: L00416 (dtet.o) = 3C56
+Symbol: L00421 (dtet.o) = 3C77
+Symbol: L00422 (dtet.o) = 3C79
+Symbol: L00424 (dtet.o) = 3C7E
+Symbol: L00425 (dtet.o) = 3D41
+Symbol: L00427 (dtet.o) = 3C98
+Symbol: L00428 (dtet.o) = 3CC7
+Symbol: L00430 (dtet.o) = 3CCF
+Symbol: L00432 (dtet.o) = 3CC0
+Symbol: L00435 (dtet.o) = 3D3F
+Symbol: L00437 (dtet.o) = 3D29
+Symbol: L00443 (dtet.o) = 3D5F
+Symbol: L00444 (dtet.o) = 3DCA
+Symbol: L00447 (dtet.o) = 3D68
+Symbol: L00448 (dtet.o) = 3D8F
+Symbol: L00450 (dtet.o) = 3D95
+Symbol: L00452 (dtet.o) = 3D8D
+Symbol: L00455 (dtet.o) = 3DC8
+Symbol: L00457 (dtet.o) = 3DC8
+Symbol: L00462 (dtet.o) = 3EEA
+Symbol: L00464 (dtet.o) = 3EEA
+Symbol: L00466 (dtet.o) = 3EC8
+Symbol: L00470 (dtet.o) = 3EEA
+Symbol: L00475 (dtet.o) = 3F2F
+Symbol: L00478 (dtet.o) = 3F11
+Symbol: L00479 (dtet.o) = 3F25
+Symbol: L00481 (dtet.o) = 3F25
+Symbol: L00483 (dtet.o) = 3F89
+Symbol: L00485 (dtet.o) = 3F89
+Symbol: L00488 (dtet.o) = 3F63
+Symbol: L00489 (dtet.o) = 3F7D
+Symbol: L00491 (dtet.o) = 3F7D
+Symbol: L00494 (dtet.o) = 3F9A
+Symbol: L00495 (dtet.o) = 4049
+Symbol: L00498 (dtet.o) = 3FA1
+Symbol: L00499 (dtet.o) = 4038
+Symbol: L00503 (dtet.o) = 4031
+Symbol: L00510 (dtet.o) = 4068
+Symbol: L00514 (dtet.o) = 40FA
+Symbol: L00518 (dtet.o) = 419D
+Symbol: L00520 (dtet.o) = 4117
+Symbol: L00523 (dtet.o) = 416F
+Symbol: L00524 (dtet.o) = 419A
+Symbol: L00525 (dtet.o) = 4238
+Symbol: L00526 (dtet.o) = 42A7
+Symbol: L00529 (dtet.o) = 42DE
+Symbol: L00531 (dtet.o) = 4303
+Symbol: L00536 (dtet.o) = 46A3
+Symbol: L00537 (dtet.o) = 46A6
+Symbol: L00539 (dtet.o) = 4764
+Symbol: L00540 (dtet.o) = 476F
+Symbol: L00542 (dtet.o) = 4790
+Symbol: L00543 (dtet.o) = 479B
+Symbol: L00544 (dtet.o) = 47BE
+Symbol: L00548 (dtet.o) = 482F
+Symbol: L00550 (dtet.o) = 4800
+Symbol: L00555 (dtet.o) = 48F0
+Symbol: L00557 (dtet.o) = 488B
+Symbol: L00559 (dtet.o) = 485C
+Symbol: L00564 (dtet.o) = 48F0
+Symbol: L00565 (dtet.o) = 4899
+Symbol: L00566 (dtet.o) = 48F0
+Symbol: L00569 (dtet.o) = 48AC
+Symbol: L00571 (dtet.o) = 48D6
+Symbol: L00572 (dtet.o) = 48BA
+Symbol: L00573 (dtet.o) = 48C7
+Symbol: L00576 (dtet.o) = 49F4
+Symbol: L00580 (dtet.o) = 4A65
+Symbol: L00582 (dtet.o) = 4A36
+Symbol: L00587 (dtet.o) = 4BAD
+Symbol: L00589 (dtet.o) = 4AC1
+Symbol: L00591 (dtet.o) = 4A92
+Symbol: L00596 (dtet.o) = 4BAD
+Symbol: L00597 (dtet.o) = 4ACF
+Symbol: L00598 (dtet.o) = 4BAD
+Symbol: L00601 (dtet.o) = 4AE2
+Symbol: L00603 (dtet.o) = 4B93
+Symbol: L00604 (dtet.o) = 4B16
+Symbol: L00605 (dtet.o) = 4B2A
+Symbol: L00606 (dtet.o) = 4B40
+Symbol: L00607 (dtet.o) = 4B58
+Symbol: L00608 (dtet.o) = 4B5D
+Symbol: L00609 (dtet.o) = 4B75
+Symbol: L00610 (dtet.o) = 4B93
+Symbol: L00611 (dtet.o) = 4B0A
+Symbol: L00619 (dtet.o) = 4BF9
+Symbol: L00620 (dtet.o) = 4C1F
+Symbol: L00623 (dtet.o) = 4C2B
+Symbol: L00624 (dtet.o) = 4CCF
+Symbol: L00628 (dtet.o) = 4D54
+Symbol: L00631 (dtet.o) = 4E20
+Symbol: L00634 (dtet.o) = 4E7F
+Symbol: L00637 (dtet.o) = 4EDC
+Symbol: L00640 (dtet.o) = 4F31
+Symbol: L00642 (dtet.o) = 4F60
+Symbol: L00643 (dtet.o) = 5233
+Symbol: L00644 (dtet.o) = 5236
+Symbol: L00646 (dtet.o) = 4FA1
+Symbol: L00647 (dtet.o) = 4F78
+Symbol: L00648 (dtet.o) = 4F78
+Symbol: L00650 (dtet.o) = 4F80
+Symbol: L00651 (dtet.o) = 4F8A
+Symbol: L00653 (dtet.o) = 4FFB
+Symbol: L00655 (dtet.o) = 4FCB
+Symbol: L00656 (dtet.o) = 4FC0
+Symbol: L00660 (dtet.o) = 4FFB
+Symbol: L00662 (dtet.o) = 4FFB
+Symbol: L00663 (dtet.o) = 4FED
+Symbol: L00667 (dtet.o) = 5028
+Symbol: L00668 (dtet.o) = 503F
+Symbol: L00672 (dtet.o) = 503F
+Symbol: L00675 (dtet.o) = 506C
+Symbol: L00676 (dtet.o) = 5085
+Symbol: L00680 (dtet.o) = 5085
+Symbol: L00683 (dtet.o) = 50B2
+Symbol: L00684 (dtet.o) = 50BA
+Symbol: L00688 (dtet.o) = 50E7
+Symbol: L00689 (dtet.o) = 5100
+Symbol: L00693 (dtet.o) = 5100
+Symbol: L00697 (dtet.o) = 51D4
+Symbol: L00698 (dtet.o) = 5124
+Symbol: L00699 (dtet.o) = 513E
+Symbol: L00702 (dtet.o) = 513E
+Symbol: L00705 (dtet.o) = 515C
+Symbol: L00706 (dtet.o) = 5177
+Symbol: L00709 (dtet.o) = 5177
+Symbol: L00712 (dtet.o) = 5193
+Symbol: L00713 (dtet.o) = 519B
+Symbol: L00716 (dtet.o) = 51B9
+Symbol: L00717 (dtet.o) = 51D4
+Symbol: L00720 (dtet.o) = 51D4
+Symbol: L00724 (dtet.o) = 51DA
+Symbol: L00725 (dtet.o) = 5229
+Symbol: L00729 (dtet.o) = 5227
+Symbol: L00733 (dtet.o) = 5438
+Symbol: L00734 (dtet.o) = 5303
+Symbol: L00735 (dtet.o) = 5324
+Symbol: L00737 (dtet.o) = 533F
+Symbol: L00738 (dtet.o) = 535D
+Symbol: L00739 (dtet.o) = 53D8
+Symbol: L00741 (dtet.o) = 53E1
+Symbol: L00747 (dtet.o) = 53D1
+Symbol: L00749 (dtet.o) = 543C
+Symbol: L00752 (dtet.o) = 544E
+Symbol: L00753 (dtet.o) = 544E
+Symbol: L00758 (dtet.o) = 5473
+Symbol: L00760 (dtet.o) = 547F
+Symbol: MUL16 (MUL16.dgn_o) = 28F5
+Symbol: MUL168 (MUL168.dgn_o) = 2ADA
+Symbol: MUL16BY10 (MUL16BY10.dgn_o) = 290D
+Symbol: PADHEX (printf.dgn_o) = 2D7D
+Symbol: PADSTR_050 (printf.dgn_o) = 2D5A
+Symbol: PADSTR_100 (printf.dgn_o) = 2D5C
+Symbol: PADSTR_900 (printf.dgn_o) = 2D66
+Symbol: PADSTR_POST (printf.dgn_o) = 2D6A
+Symbol: PADSTR_PRE (printf.dgn_o) = 2D4B
+Symbol: PADWRD (printf.dgn_o) = 2D0C
+Symbol: PAUL (DIV8BY7.dgn_o) = 28CB
+Symbol: PHX020 (printf.dgn_o) = 2D8B
+Symbol: PHX030 (printf.dgn_o) = 2D93
+Symbol: PHX050 (printf.dgn_o) = 2D9B
+Symbol: PHX060 (printf.dgn_o) = 2DA0
+Symbol: PHX900 (printf.dgn_o) = 2DAA
+Symbol: PRINTC (printf.dgn_o) = 2E70
+Symbol: PRINTS (printf.dgn_o) = 2E79
+Symbol: PRNTWD (printf.dgn_o) = 2E19
+Symbol: PRNTWH (printf.dgn_o) = 2DB4
+Symbol: PRS010 (printf.dgn_o) = 2E7F
+Symbol: PRS020 (printf.dgn_o) = 2E82
+Symbol: PRWD10 (printf.dgn_o) = 2E1D
+Symbol: PRWD20 (printf.dgn_o) = 2E29
+Symbol: PRWD30 (printf.dgn_o) = 2E35
+Symbol: PRWD40 (printf.dgn_o) = 2E41
+Symbol: PRWD60 (printf.dgn_o) = 2E54
+Symbol: PRWD70 (printf.dgn_o) = 2E62
+Symbol: PRWD80 (printf.dgn_o) = 2E64
+Symbol: PRWD90 (printf.dgn_o) = 2E6E
+Symbol: PRWH10 (printf.dgn_o) = 2DC3
+Symbol: PRWH30 (printf.dgn_o) = 2DF3
+Symbol: PRWH40 (printf.dgn_o) = 2DFC
+Symbol: PRWH99 (printf.dgn_o) = 2E07
+Symbol: PTF010 (printf.dgn_o) = 2B05
+Symbol: PTF020 (printf.dgn_o) = 2B0F
+Symbol: PTF490 (printf.dgn_o) = 2B14
+Symbol: PTF500 (printf.dgn_o) = 2B1C
+Symbol: PTF510 (printf.dgn_o) = 2B29
+Symbol: PTF515 (printf.dgn_o) = 2B37
+Symbol: PTF517 (printf.dgn_o) = 2B4F
+Symbol: PTF518 (printf.dgn_o) = 2B5E
+Symbol: PTF520 (printf.dgn_o) = 2B65
+Symbol: PTF522 (printf.dgn_o) = 2B69
+Symbol: PTF525 (printf.dgn_o) = 2B73
+Symbol: PTF530 (printf.dgn_o) = 2B8C
+Symbol: PTF532 (printf.dgn_o) = 2B99
+Symbol: PTF538 (printf.dgn_o) = 2BA7
+Symbol: PTF540 (printf.dgn_o) = 2BAC
+Symbol: PTF550 (printf.dgn_o) = 2BBA
+Symbol: PTF555 (printf.dgn_o) = 2BCA
+Symbol: PTF559 (printf.dgn_o) = 2CC1
+Symbol: PTF560 (printf.dgn_o) = 2CCC
+Symbol: PTF562 (printf.dgn_o) = 2CDE
+Symbol: PTF565 (printf.dgn_o) = 2CEE
+Symbol: PTF567 (printf.dgn_o) = 2CF0
+Symbol: PTF570 (printf.dgn_o) = 2CF8
+Symbol: PTF800 (printf.dgn_o) = 2CF8
+Symbol: PTF900 (printf.dgn_o) = 2D08
+Symbol: PWD020 (printf.dgn_o) = 2D1A
+Symbol: PWD030 (printf.dgn_o) = 2D22
+Symbol: PWD040 (printf.dgn_o) = 2D2A
+Symbol: PWD050 (printf.dgn_o) = 2D32
+Symbol: PWD060 (printf.dgn_o) = 2D37
+Symbol: PWD900 (printf.dgn_o) = 2D41
+Symbol: S00160 (dtet.o) = 54B2
+Symbol: S00161 (dtet.o) = 54B9
+Symbol: S00162 (dtet.o) = 54BA
+Symbol: S00163 (dtet.o) = 54C5
+Symbol: S00164 (dtet.o) = 54D7
+Symbol: S00165 (dtet.o) = 54E9
+Symbol: S00166 (dtet.o) = 54F3
+Symbol: S00167 (dtet.o) = 54FF
+Symbol: S00168 (dtet.o) = 550A
+Symbol: S00169 (dtet.o) = 5512
+Symbol: S00170 (dtet.o) = 5518
+Symbol: S00171 (dtet.o) = 5520
+Symbol: S00172 (dtet.o) = 552B
+Symbol: S00173 (dtet.o) = 5537
+Symbol: S00174 (dtet.o) = 5542
+Symbol: S00175 (dtet.o) = 5553
+Symbol: S00176 (dtet.o) = 5564
+Symbol: S00177 (dtet.o) = 5575
+Symbol: S00178 (dtet.o) = 5586
+Symbol: S00179 (dtet.o) = 5597
+Symbol: S00180 (dtet.o) = 55A8
+Symbol: S00181 (dtet.o) = 55B9
+Symbol: S00182 (dtet.o) = 55C4
+Symbol: S00183 (dtet.o) = 55D2
+Symbol: S00184 (dtet.o) = 55D5
+Symbol: S00185 (dtet.o) = 55D9
+Symbol: S00186 (dtet.o) = 55F4
+Symbol: S00187 (dtet.o) = 5603
+Symbol: S00188 (dtet.o) = 5612
+Symbol: S00189 (dtet.o) = 5621
+Symbol: S00190 (dtet.o) = 5630
+Symbol: S00191 (dtet.o) = 563F
+Symbol: S00192 (dtet.o) = 564E
+Symbol: S00193 (dtet.o) = 565D
+Symbol: S00194 (dtet.o) = 566C
+Symbol: S00195 (dtet.o) = 567B
+Symbol: S00196 (dtet.o) = 568A
+Symbol: S00197 (dtet.o) = 5699
+Symbol: S00198 (dtet.o) = 56A8
+Symbol: S00199 (dtet.o) = 56B7
+Symbol: S00200 (dtet.o) = 56C6
+Symbol: S00201 (dtet.o) = 56E7
+Symbol: S00202 (dtet.o) = 5708
+Symbol: S00203 (dtet.o) = 5729
+Symbol: S00204 (dtet.o) = 5747
+Symbol: S00205 (dtet.o) = 5765
+Symbol: S00206 (dtet.o) = 5783
+Symbol: S00207 (dtet.o) = 57A1
+Symbol: S00208 (dtet.o) = 57BF
+Symbol: S00209 (dtet.o) = 57DD
+Symbol: S00210 (dtet.o) = 57FB
+Symbol: S00211 (dtet.o) = 580D
+Symbol: S00212 (dtet.o) = 5814
+Symbol: S00213 (dtet.o) = 5819
+Symbol: S00214 (dtet.o) = 5836
+Symbol: S00215 (dtet.o) = 583A
+Symbol: S00216 (dtet.o) = 583E
+Symbol: S00217 (dtet.o) = 584C
+Symbol: S00218 (dtet.o) = 585B
+Symbol: S00219 (dtet.o) = 5867
+Symbol: S00220 (dtet.o) = 586F
+Symbol: S00221 (dtet.o) = 5874
+Symbol: S00222 (dtet.o) = 5879
+Symbol: S00223 (dtet.o) = 5898
+Symbol: S00224 (dtet.o) = 58A1
+Symbol: S00225 (dtet.o) = 58AA
+Symbol: S00226 (dtet.o) = 58B3
+Symbol: S00227 (dtet.o) = 58BC
+Symbol: S00228 (dtet.o) = 58C7
+Symbol: S00229 (dtet.o) = 58DC
+Symbol: S00230 (dtet.o) = 58E4
+Symbol: SDIV16 (SDIV16.dgn_o) = 2930
+Symbol: SDIV16_10 (SDIV16.dgn_o) = 2942
+Symbol: SDIV16_20 (SDIV16.dgn_o) = 2951
+Symbol: SDIV16_30 (SDIV16.dgn_o) = 2965
+Symbol: SDIV16_40 (SDIV16.dgn_o) = 296E
+Symbol: __CMOC_pmodeNo (pmodevars.dgn_o) = 5924
+Symbol: __CMOC_pmodeScreenBuffer (pmodevars.dgn_o) = 5925
+Symbol: __Rand_seed (rand.dgn_o) = 5922
+Symbol: _backgroundChar (dtet.o) = 5B67
+Symbol: _backgroundCharList (dtet.o) = 58E8
+Symbol: _canProcessInput (dtet.o) = 4EE0
+Symbol: _cancelled (dtet.o) = 594B
+Symbol: _checkForFullRows (dtet.o) = 3D4B
+Symbol: _checkScore (dtet.o) = 523A
+Symbol: _cls (cls.dgn_o) = 2F31
+Symbol: _colourShift (dtet.o) = 5948
+Symbol: _createNextShape (dtet.o) = 3818
+Symbol: _createShape (dtet.o) = 3866
+Symbol: _delay (delay.dgn_o) = 29D3
+Symbol: _displayStatus (dtet.o) = 35B0
+Symbol: _drawBlock (dtet.o) = 3177
+Symbol: _drawHeader (dtet.o) = 33AB
+Symbol: _drawHelp (dtet.o) = 4307
+Symbol: _drawHighScores (dtet.o) = 41F9
+Symbol: _drawMenu (dtet.o) = 4901
+Symbol: _drawMenuPtr (dtet.o) = 4694
+Symbol: _drawNextShape (dtet.o) = 3310
+Symbol: _drawOptionsMenu (dtet.o) = 46BE
+Symbol: _drawPit (dtet.o) = 31DE
+Symbol: _drawPlayerStatus (dtet.o) = 34CF
+Symbol: _drawShape (dtet.o) = 394D
+Symbol: _dropRate (dtet.o) = 592C
+Symbol: _dropShape (dtet.o) = 406C
+Symbol: _dwtoa (dwtoa.dgn_o) = 2A21
+Symbol: _emptyBackground (dtet.o) = 5949
+Symbol: _exit (crt.dgn_o) = 285C
+Symbol: _gameOver (dtet.o) = 592A
+Symbol: _getRotatedShapeMap (dtet.o) = 3742
+Symbol: _getShapeMap (dtet.o) = 36EF
+Symbol: _init (dtet.o) = 4BBE
+Symbol: _inkey (inkey.dgn_o) = 2F61
+Symbol: _isKeyPressed (isKeyPressed.dgn_o) = 2F68
+Symbol: _key (dtet.o) = 5927
+Symbol: _lastInputTime (dtet.o) = 5B69
+Symbol: _lastLines (dtet.o) = 5B64
+Symbol: _lastPoints (dtet.o) = 5B65
+Symbol: _level (dtet.o) = 5934
+Symbol: _lines (dtet.o) = 5936
+Symbol: _linesPiecesPlayed (dtet.o) = 5B75
+Symbol: _locate (locate.dgn_o) = 2F75
+Symbol: _main (dtet.o) = 543C
+Symbol: _mainLoop (dtet.o) = 4F36
+Symbol: _memcpy (memcpy.dgn_o) = 2A9F
+Symbol: _memset (memset.dgn_o) = 2ABC
+Symbol: _memset_cond (memset.dgn_o) = 2AD0
+Symbol: _memset_loop (memset.dgn_o) = 2ACE
+Symbol: _menu (dtet.o) = 49D2
+Symbol: _moveLeftKeyPressed (dtet.o) = 4E24
+Symbol: _moveRightKeyPressed (dtet.o) = 4E83
+Symbol: _muted (dtet.o) = 594A
+Symbol: _names (dtet.o) = 594C
+Symbol: _newScore (dtet.o) = 5928
+Symbol: _nextShape (dtet.o) = 593C
+Symbol: _nextShapeMap (dtet.o) = 5B24
+Symbol: _numPlayers (dtet.o) = 59C3
+Symbol: _optionsMenu (dtet.o) = 479C
+Symbol: _pit (dtet.o) = 59C4
+Symbol: _pitLeft (dtet.o) = 58E6
+Symbol: _playTune (dtet.o) = 3116
+Symbol: _previousLevel (dtet.o) = 5B77
+Symbol: _printBlock (dtet.o) = 3156
+Symbol: _printf (printf.dgn_o) = 2AEB
+Symbol: _putchar (putchar_a.dgn_o) = 2EAD
+Symbol: _rand (rand.dgn_o) = 2EF6
+Symbol: _readJoystickPositions (readJoystickPositions.dgn_o) = 2FAD
+Symbol: _readline (readline.dgn_o) = 2EB9
+Symbol: _removeFullRow (dtet.o) = 3A5D
+Symbol: _rotateKeyPressed (dtet.o) = 4D58
+Symbol: _rotatedMap (dtet.o) = 5B44
+Symbol: _roundWindow (dtet.o) = 41A1
+Symbol: _scores (dtet.o) = 59A4
+Symbol: _screen (screen.dgn_o) = 2FB8
+Symbol: _setSAMRegisters (setSAMRegisters.dgn_o) = 3045
+Symbol: _setTrapBlock (dtet.o) = 3C5A
+Symbol: _setTrapLine (dtet.o) = 3B62
+Symbol: _settleActiveShapeInPit (dtet.o) = 3F8D
+Symbol: _shape (dtet.o) = 593A
+Symbol: _shapeAngle (dtet.o) = 593E
+Symbol: _shapeCanMove (dtet.o) = 323B
+Symbol: _shapeMap (dtet.o) = 5B04
+Symbol: _shapeX (dtet.o) = 5940
+Symbol: _shapeY (dtet.o) = 5944
+Symbol: _showGraphicsAddress (showGraphicsAddress.dgn_o) = 306E
+Symbol: _showLowResTextAddress (showLowResTextAddress.dgn_o) = 309C
+Symbol: _sound (sound.dgn_o) = 30C2
+Symbol: _srand (rand.dgn_o) = 2F25
+Symbol: _startTime (dtet.o) = 5930
+Symbol: _strlen (strlen.dgn_o) = 2EC0
+Symbol: _strncpy (strncpy.dgn_o) = 2ECE
+Symbol: _tune1Durations (dtet.o) = 58F7
+Symbol: _tune1Notes (dtet.o) = 58F0
+Symbol: _tune2Durations (dtet.o) = 5906
+Symbol: _tune2Notes (dtet.o) = 58FE
+Symbol: _tune3Durations (dtet.o) = 5918
+Symbol: _tune3Notes (dtet.o) = 590E
+Symbol: _vprintf (printf.dgn_o) = 2AF7
+Symbol: _waitkey (waitkey.dgn_o) = 30D8
+Symbol: bss_end (cls.dgn_o) = 59C3
+Symbol: bss_end (dtet.o) = 5B88
+Symbol: bss_end (inkey.dgn_o) = 59C3
+Symbol: bss_end (isKeyPressed.dgn_o) = 59C3
+Symbol: bss_end (locate.dgn_o) = 59C3
+Symbol: bss_end (pmodevars.dgn_o) = 59C3
+Symbol: bss_end (rand.dgn_o) = 59C3
+Symbol: bss_end (readJoystickPositions.dgn_o) = 59C3
+Symbol: bss_end (screen.dgn_o) = 59C3
+Symbol: bss_end (setSAMRegisters.dgn_o) = 59C3
+Symbol: bss_end (showGraphicsAddress.dgn_o) = 59C3
+Symbol: bss_end (showLowResTextAddress.dgn_o) = 59C3
+Symbol: bss_end (sound.dgn_o) = 59C3
+Symbol: bss_end (waitkey.dgn_o) = 59C3
+Symbol: bss_start (cls.dgn_o) = 59C3
+Symbol: bss_start (dtet.o) = 59C3
+Symbol: bss_start (inkey.dgn_o) = 59C3
+Symbol: bss_start (isKeyPressed.dgn_o) = 59C3
+Symbol: bss_start (locate.dgn_o) = 59C3
+Symbol: bss_start (pmodevars.dgn_o) = 59C3
+Symbol: bss_start (rand.dgn_o) = 59C3
+Symbol: bss_start (readJoystickPositions.dgn_o) = 59C3
+Symbol: bss_start (screen.dgn_o) = 59C3
+Symbol: bss_start (setSAMRegisters.dgn_o) = 59C3
+Symbol: bss_start (showGraphicsAddress.dgn_o) = 59C3
+Symbol: bss_start (showLowResTextAddress.dgn_o) = 59C3
+Symbol: bss_start (sound.dgn_o) = 59C3
+Symbol: bss_start (waitkey.dgn_o) = 59C3
+Symbol: constructors (crt.dgn_o) = 54A1
+Symbol: destructors (crt.dgn_o) = 54B0
+Symbol: doDigit (dwtoa.dgn_o) = 29E1
+Symbol: doDigit_010 (dwtoa.dgn_o) = 29E9
+Symbol: doDigit_020 (dwtoa.dgn_o) = 2A11
+Symbol: doDigit_030 (dwtoa.dgn_o) = 2A15
+Symbol: dwtoa_010 (dwtoa.dgn_o) = 2A37
+Symbol: dwtoa_020 (dwtoa.dgn_o) = 2A57
+Symbol: dwtoa_030 (dwtoa.dgn_o) = 2A67
+Symbol: dwtoa_040 (dwtoa.dgn_o) = 2A75
+Symbol: end_of_sbrk_mem (crt.dgn_o) = 59BA
+Symbol: funcend_canProcessInput (dtet.o) = 4F36
+Symbol: funcend_checkForFullRows (dtet.o) = 3F8D
+Symbol: funcend_checkScore (dtet.o) = 543C
+Symbol: funcend_cls (cls.dgn_o) = 2F61
+Symbol: funcend_createNextShape (dtet.o) = 3866
+Symbol: funcend_createShape (dtet.o) = 394D
+Symbol: funcend_displayStatus (dtet.o) = 36EF
+Symbol: funcend_drawBlock (dtet.o) = 31DE
+Symbol: funcend_drawHeader (dtet.o) = 34CF
+Symbol: funcend_drawHelp (dtet.o) = 4694
+Symbol: funcend_drawHighScores (dtet.o) = 4307
+Symbol: funcend_drawMenu (dtet.o) = 49D2
+Symbol: funcend_drawMenuPtr (dtet.o) = 46BE
+Symbol: funcend_drawNextShape (dtet.o) = 33AB
+Symbol: funcend_drawOptionsMenu (dtet.o) = 479C
+Symbol: funcend_drawPit (dtet.o) = 323B
+Symbol: funcend_drawPlayerStatus (dtet.o) = 35B0
+Symbol: funcend_drawShape (dtet.o) = 3A5D
+Symbol: funcend_dropShape (dtet.o) = 41A1
+Symbol: funcend_getRotatedShapeMap (dtet.o) = 3818
+Symbol: funcend_getShapeMap (dtet.o) = 3742
+Symbol: funcend_init (dtet.o) = 4D58
+Symbol: funcend_inkey (inkey.dgn_o) = 2F68
+Symbol: funcend_isKeyPressed (isKeyPressed.dgn_o) = 2F75
+Symbol: funcend_locate (locate.dgn_o) = 2FAD
+Symbol: funcend_main (dtet.o) = 54A1
+Symbol: funcend_mainLoop (dtet.o) = 523A
+Symbol: funcend_menu (dtet.o) = 4BBE
+Symbol: funcend_moveLeftKeyPressed (dtet.o) = 4E83
+Symbol: funcend_moveRightKeyPressed (dtet.o) = 4EE0
+Symbol: funcend_optionsMenu (dtet.o) = 4901
+Symbol: funcend_playTune (dtet.o) = 3156
+Symbol: funcend_printBlock (dtet.o) = 3177
+Symbol: funcend_rand (rand.dgn_o) = 2F25
+Symbol: funcend_readJoystickPositions (readJoystickPositions.dgn_o) = 2FB8
+Symbol: funcend_removeFullRow (dtet.o) = 3B62
+Symbol: funcend_rotateKeyPressed (dtet.o) = 4E24
+Symbol: funcend_roundWindow (dtet.o) = 41F9
+Symbol: funcend_screen (screen.dgn_o) = 3045
+Symbol: funcend_setSAMRegisters (setSAMRegisters.dgn_o) = 306E
+Symbol: funcend_setTrapBlock (dtet.o) = 3D4B
+Symbol: funcend_setTrapLine (dtet.o) = 3C5A
+Symbol: funcend_settleActiveShapeInPit (dtet.o) = 406C
+Symbol: funcend_shapeCanMove (dtet.o) = 3310
+Symbol: funcend_showGraphicsAddress (showGraphicsAddress.dgn_o) = 309C
+Symbol: funcend_showLowResTextAddress (showLowResTextAddress.dgn_o) = 30C2
+Symbol: funcend_sound (sound.dgn_o) = 30D8
+Symbol: funcend_srand (rand.dgn_o) = 2F31
+Symbol: funcend_waitkey (waitkey.dgn_o) = 30FE
+Symbol: funcsize_canProcessInput (dtet.o) = 316C
+Symbol: funcsize_checkForFullRows (dtet.o) = 3358
+Symbol: funcsize_checkScore (dtet.o) = 3318
+Symbol: funcsize_cls (cls.dgn_o) = 2F61
+Symbol: funcsize_createNextShape (dtet.o) = 3164
+Symbol: funcsize_createShape (dtet.o) = 31FD
+Symbol: funcsize_displayStatus (dtet.o) = 3255
+Symbol: funcsize_drawBlock (dtet.o) = 317D
+Symbol: funcsize_drawHeader (dtet.o) = 323A
+Symbol: funcsize_drawHelp (dtet.o) = 34A3
+Symbol: funcsize_drawHighScores (dtet.o) = 3224
+Symbol: funcsize_drawMenu (dtet.o) = 31E7
+Symbol: funcsize_drawMenuPtr (dtet.o) = 3140
+Symbol: funcsize_drawNextShape (dtet.o) = 31B1
+Symbol: funcsize_drawOptionsMenu (dtet.o) = 31F4
+Symbol: funcsize_drawPit (dtet.o) = 3173
+Symbol: funcsize_drawPlayerStatus (dtet.o) = 31F7
+Symbol: funcsize_drawShape (dtet.o) = 3226
+Symbol: funcsize_dropShape (dtet.o) = 324B
+Symbol: funcsize_getRotatedShapeMap (dtet.o) = 31EC
+Symbol: funcsize_getShapeMap (dtet.o) = 3169
+Symbol: funcsize_init (dtet.o) = 32B0
+Symbol: funcsize_inkey (inkey.dgn_o) = 2F68
+Symbol: funcsize_isKeyPressed (isKeyPressed.dgn_o) = 2F75
+Symbol: funcsize_locate (locate.dgn_o) = 2FAD
+Symbol: funcsize_main (dtet.o) = 317B
+Symbol: funcsize_mainLoop (dtet.o) = 341A
+Symbol: funcsize_menu (dtet.o) = 3302
+Symbol: funcsize_moveLeftKeyPressed (dtet.o) = 3175
+Symbol: funcsize_moveRightKeyPressed (dtet.o) = 3173
+Symbol: funcsize_optionsMenu (dtet.o) = 327B
+Symbol: funcsize_playTune (dtet.o) = 3156
+Symbol: funcsize_printBlock (dtet.o) = 3137
+Symbol: funcsize_rand (rand.dgn_o) = 2F25
+Symbol: funcsize_readJoystickPositions (readJoystickPositions.dgn_o) = 2FB8
+Symbol: funcsize_removeFullRow (dtet.o) = 321B
+Symbol: funcsize_rotateKeyPressed (dtet.o) = 31E2
+Symbol: funcsize_roundWindow (dtet.o) = 316E
+Symbol: funcsize_screen (screen.dgn_o) = 3045
+Symbol: funcsize_setSAMRegisters (setSAMRegisters.dgn_o) = 306E
+Symbol: funcsize_setTrapBlock (dtet.o) = 3207
+Symbol: funcsize_setTrapLine (dtet.o) = 320E
+Symbol: funcsize_settleActiveShapeInPit (dtet.o) = 31F5
+Symbol: funcsize_shapeCanMove (dtet.o) = 31EB
+Symbol: funcsize_showGraphicsAddress (showGraphicsAddress.dgn_o) = 309C
+Symbol: funcsize_showLowResTextAddress (showLowResTextAddress.dgn_o) = 30C2
+Symbol: funcsize_sound (sound.dgn_o) = 30D8
+Symbol: funcsize_srand (rand.dgn_o) = 2F02
+Symbol: funcsize_waitkey (waitkey.dgn_o) = 30FE
+Symbol: l_bss (<synthetic>) = 01D4
+Symbol: l_code (<synthetic>) = 2C93
+Symbol: l_constructors (<synthetic>) = 000E
+Symbol: l_constructors_end (<synthetic>) = 0001
+Symbol: l_constructors_start (<synthetic>) = 0000
+Symbol: l_destructors_end (<synthetic>) = 0001
+Symbol: l_destructors_start (<synthetic>) = 0000
+Symbol: l_initgl (<synthetic>) = 0000
+Symbol: l_initgl_end (<synthetic>) = 0001
+Symbol: l_initgl_start (<synthetic>) = 0000
+Symbol: l_program_end (<synthetic>) = 0000
+Symbol: l_rodata (<synthetic>) = 0470
+Symbol: l_rwdata (<synthetic>) = 0092
+Symbol: l_start (<synthetic>) = 000E
+Symbol: negateDWord (negateDWord.dgn_o) = 2918
+Symbol: nop_handler (crt.dgn_o) = 2870
+Symbol: null_ptr_handler (crt.dgn_o) = 59B6
+Symbol: powersOfTen (dwtoa.dgn_o) = 2A7B
+Symbol: printReal (printf.dgn_o) = 2E88
+Symbol: program_break (crt.dgn_o) = 59BC
+Symbol: program_end (dtet.o) = 5B88
+Symbol: program_start (dtet.o) = 2800
+Symbol: putchar_a (putchar_a.dgn_o) = 2EAF
+Symbol: s_bss (<synthetic>) = 59B4
+Symbol: s_code (<synthetic>) = 280E
+Symbol: s_constructors (<synthetic>) = 54A1
+Symbol: s_constructors_end (<synthetic>) = 54AF
+Symbol: s_constructors_start (<synthetic>) = 54A1
+Symbol: s_destructors_end (<synthetic>) = 54B0
+Symbol: s_destructors_start (<synthetic>) = 54B0
+Symbol: s_initgl (<synthetic>) = 54B1
+Symbol: s_initgl_end (<synthetic>) = 54B1
+Symbol: s_initgl_start (<synthetic>) = 54B1
+Symbol: s_program_end (<synthetic>) = 5B88
+Symbol: s_rodata (<synthetic>) = 54B2
+Symbol: s_rwdata (<synthetic>) = 5922
+Symbol: s_start (<synthetic>) = 2800
+Symbol: signedJumpTableSwitch (jumpTableSwitch.dgn_o) = 28D7
+Symbol: singlePrecisionSize (crt.dgn_o) = 59C2
+Symbol: stack_overflow_handler (crt.dgn_o) = 59B8
+Symbol: string_literals_end (cls.dgn_o) = 54B2
+Symbol: string_literals_end (dtet.o) = 58E6
+Symbol: string_literals_end (inkey.dgn_o) = 54B2
+Symbol: string_literals_end (isKeyPressed.dgn_o) = 54B2
+Symbol: string_literals_end (locate.dgn_o) = 54B2
+Symbol: string_literals_end (pmodevars.dgn_o) = 54B2
+Symbol: string_literals_end (rand.dgn_o) = 54B2
+Symbol: string_literals_end (readJoystickPositions.dgn_o) = 54B2
+Symbol: string_literals_end (screen.dgn_o) = 54B2
+Symbol: string_literals_end (setSAMRegisters.dgn_o) = 54B2
+Symbol: string_literals_end (showGraphicsAddress.dgn_o) = 54B2
+Symbol: string_literals_end (showLowResTextAddress.dgn_o) = 54B2
+Symbol: string_literals_end (sound.dgn_o) = 54B2
+Symbol: string_literals_end (waitkey.dgn_o) = 54B2
+Symbol: string_literals_start (cls.dgn_o) = 54B2
+Symbol: string_literals_start (dtet.o) = 54B2
+Symbol: string_literals_start (inkey.dgn_o) = 54B2
+Symbol: string_literals_start (isKeyPressed.dgn_o) = 54B2
+Symbol: string_literals_start (locate.dgn_o) = 54B2
+Symbol: string_literals_start (pmodevars.dgn_o) = 54B2
+Symbol: string_literals_start (rand.dgn_o) = 54B2
+Symbol: string_literals_start (readJoystickPositions.dgn_o) = 54B2
+Symbol: string_literals_start (screen.dgn_o) = 54B2
+Symbol: string_literals_start (setSAMRegisters.dgn_o) = 54B2
+Symbol: string_literals_start (showGraphicsAddress.dgn_o) = 54B2
+Symbol: string_literals_start (showLowResTextAddress.dgn_o) = 54B2
+Symbol: string_literals_start (sound.dgn_o) = 54B2
+Symbol: string_literals_start (waitkey.dgn_o) = 54B2
+Symbol: sub32 (sub32.dgn_o) = 2971
+Symbol: sub32xu (sub32xu.dgn_o) = 2992
+Symbol: tfrZtoB (tfrZtoB.dgn_o) = 29A4
+Symbol: unpackSingleAndConvertToASCII (unpackSingleAndConvertToASCII.dgn_o) = 30FE
+Symbol: unpackSingleAndConvertToASCII_dummy (crt.dgn_o) = 2855
+Symbol: unpackSingleAndConvertToASCII_hook (crt.dgn_o) = 59C0
+Symbol: unsignedJumpTableSwitch (jumpTableSwitch.dgn_o) = 28E2

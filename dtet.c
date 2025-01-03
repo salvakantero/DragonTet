@@ -27,12 +27,16 @@
 
 Compilation Instructions:
 use the CMOC compiler 0.1.89 or higher...
-"cmoc --dragon -D Dragon -o dtet-dr.bin dtet.c"
-"cmoc --coco -D Coco -o dtet-cc.bin dtet.c"
+"cmoc --dragon -D Dragon -i -o dtetdr.bin dtet.c"
+"cmoc --coco -D Coco -i -o dtetcc.bin dtet.c"
 
 Testing:
 use xroar to test (dragon)...
-"xroar -run dtet-dr.bin"
+"xroar -run dtetdr.bin"
+
+CAS/WAV files:
+"perl bin2cas.pl -o dtetdr.cas -D dtetdr.bin -A -e 0x2800"
+
 
 Level description:
 level 1: 36 delay ticks
