@@ -49,6 +49,10 @@ level 7: 12 delay ticks +   "     "    "
 level 8:  8 delay ticks +   "     "    "
 level x:  6 delay ticks +   "     "    "
 
+- no generar trampas al contrario si gameover
+- depurar melodías
+- CAS/WAV
+
 */
 
 
