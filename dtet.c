@@ -45,33 +45,6 @@ level 7: 12 delay ticks +   "     "    "
 level 8:  8 delay ticks +   "     "    "
 level x:  6 delay ticks +   "     "    "
 
-TODO
-====
-- opción autorepetición?
-- control de teclado para Dragon
-
-DR  COCO
-W  =  7
-A  =  Q
-S  =  3
-D  =  T
-
-UP = SEMICOLON
-LEFT = HYPHEN
-DOWN = COMMA
-RIGH = PERIOD
-
-I  =  Y
-J  =  Z
-K  =  UP
-L  =  DOWN
-
-H  =  X
-X  =  8
-ENTER =  ENTER
-SPC =  SLASH
-
-
 */
 
 
@@ -593,7 +566,7 @@ void dropShape(unsigned char i) {
 }
 
 
-// Rounds the text window by drawing the corners
+// rounds the text window by drawing the corners
 // +16:yellow +32:blue +48:red +64:white +80:cyan +96:magenta +112:orange 
 void roundWindow(int ulx, int uly, int brx, int bry, unsigned char offset) {
     printBlock(ulx, uly, 129 + offset); // upper left corner
@@ -901,53 +874,91 @@ void mainLoop() {
     while (TRUE) {
         const byte *joystickPositions = readJoystickPositions();
 
+    /* Coco to Dragon key equivalences
+
+    DRAGON  COCO
+    ******  ****
+    W       7       <-- player 1
+    A       Q
+    S       3
+    D       T
+    UP      SEMICOLON
+    LEFT    HYPHEN
+    DOWN    COMMA
+    RIGHT   PERIOD
+
+    I       Y       <-- player 2
+    J       Z
+    K       UP
+    L       DOWN
+
+    H       X       <-- common
+    X       8
+    ENTER   ENTER
+    SPACE   SLASH
+
+    */
+
 #ifdef Dragon
         // check for pause, exit, or game over actions
-        key = inkey();
         // pause
-        if (key == 'H') {
+        if (isKeyPressed(KEY_PROBE_X, KEY_BIT_X)) {
             while (inkey() != '\0'); // clear input buffer
             while (inkey() == '\0') delay(1); // wait for key press
             startTime[0] = startTime[1] = getTimer(); // reset timers
             continue;
         // cancel/exit to main menu
-        } else if (key == 'X') {
+        } else if (isKeyPressed(KEY_PROBE_8, KEY_BIT_8)) {
             if (!gameOver[0] || !gameOver[1])
                 cancelled = TRUE;
             break;
         // enter/space after game over
-        } else if ((key == 13 || key == 32) && (gameOver[0] && gameOver[1])) {
+        } else if ((isKeyPressed(KEY_PROBE_ENTER, KEY_BIT_ENTER) 
+            || isKeyPressed(KEY_PROBE_SLASH, KEY_BIT_SLASH)) 
+            && (gameOver[0] && gameOver[1])) {
             break;
         }
-        //////////////////////// PLAYER 1 ///////////////////////////
+        /////////////////// PLAYER 1 ///////////////////////
         // rotation (key, cursor, joystick)
-        if (key == 'W' || key == 94 || joystickPositions[JOYSTK_LEFT_VERT] < JTHRESHOLD_LOW)
-            rotateKeyPressed(0);
+        if (isKeyPressed(KEY_PROBE_7, KEY_BIT_7) 
+            || isKeyPressed(KEY_PROBE_SEMICOLON, KEY_BIT_SEMICOLON) 
+            || joystickPositions[JOYSTK_LEFT_VERT] < JTHRESHOLD_LOW)
+            if (canProcessInput(0,0)) rotateKeyPressed(0);
         // move left (key, cursor, joystick)
-        if (key == 'A' || key == 8 || joystickPositions[JOYSTK_LEFT_HORIZ] < JTHRESHOLD_LOW)
-            moveLeftKeyPressed(0);
+        if (isKeyPressed(KEY_PROBE_Q, KEY_BIT_Q) 
+            || isKeyPressed(KEY_PROBE_HYPHEN, KEY_BIT_HYPHEN) 
+            || joystickPositions[JOYSTK_LEFT_HORIZ] < JTHRESHOLD_LOW) 
+            if (canProcessInput(0,1)) moveLeftKeyPressed(0);
         // fast drop (key, cursor, joystick)
-        if (key == 'S' || key == 10 || joystickPositions[JOYSTK_LEFT_VERT] > JTHRESHOLD_HIGH)
-            dropRate[0] = 0;            
+        if (isKeyPressed(KEY_PROBE_3, KEY_BIT_3) 
+            || isKeyPressed(KEY_PROBE_COMMA, KEY_BIT_COMMA) 
+            || joystickPositions[JOYSTK_LEFT_VERT] > JTHRESHOLD_HIGH) 
+            dropRate[0] = 0;
         // move right (key, cursor, joystick)
-        if (key == 'D' || key == 9 || joystickPositions[JOYSTK_LEFT_HORIZ] > JTHRESHOLD_HIGH)
-            moveRightKeyPressed(0);
+        if (isKeyPressed(KEY_PROBE_T, KEY_BIT_T) 
+            || isKeyPressed(KEY_PROBE_PERIOD, KEY_BIT_PERIOD) 
+            || joystickPositions[JOYSTK_LEFT_HORIZ] > JTHRESHOLD_HIGH) 
+            if (canProcessInput(0,2)) moveRightKeyPressed(0);
 
-        //////////////////////// PLAYER 2 ///////////////////////////
+        //////////////////// PLAYER 2 ///////////////////////
         if (numPlayers > 0) {
-            // rotation (key, joystick)
-            if (key == 'I' || joystickPositions[JOYSTK_RIGHT_VERT] < JTHRESHOLD_LOW)
-                rotateKeyPressed(1);
-            // move left (key, joystick)
-            if (key == 'J' || joystickPositions[JOYSTK_RIGHT_HORIZ] < JTHRESHOLD_LOW)
-                moveLeftKeyPressed(1);
+            // rotation (key, cursor, joystick)
+            if (isKeyPressed(KEY_PROBE_Y, KEY_BIT_Y) 
+                || joystickPositions[JOYSTK_RIGHT_VERT] < JTHRESHOLD_LOW) 
+                if (canProcessInput(1,0)) rotateKeyPressed(1);
+            // move left (key joystick)
+            if (isKeyPressed(KEY_PROBE_Z, KEY_BIT_Z) 
+                || joystickPositions[JOYSTK_RIGHT_HORIZ] < JTHRESHOLD_LOW) 
+                if (canProcessInput(1,1)) moveLeftKeyPressed(1);
             // fast drop (key, joystick)
-            if (key == 'K' || joystickPositions[JOYSTK_RIGHT_VERT] > JTHRESHOLD_HIGH)
-                dropRate[1] = 0;              
+            if (isKeyPressed(KEY_PROBE_UP, KEY_BIT_UP) 
+                || joystickPositions[JOYSTK_RIGHT_VERT] > JTHRESHOLD_HIGH) 
+                dropRate[1] = 0;
             // move right (key, joystick)
-            if (key == 'L' || joystickPositions[JOYSTK_RIGHT_HORIZ] > JTHRESHOLD_HIGH)
-                moveRightKeyPressed(1);
-        }
+            if (isKeyPressed(KEY_PROBE_DOWN, KEY_BIT_DOWN) 
+                || joystickPositions[JOYSTK_RIGHT_HORIZ] > JTHRESHOLD_HIGH) 
+                if (canProcessInput(1,2)) moveRightKeyPressed(1);
+        }            
 #endif
 
 #ifdef Coco
