@@ -27,8 +27,8 @@
 
 Compilation Instructions:
 use the CMOC compiler 0.1.89 or higher...
-"cmoc --dragon -D Dragon -i -o dtetdr.bin dtet.c"
-"cmoc --coco -D Coco -i -o dtetcc.bin dtet.c"
+"cmoc --dragon -D Dragon -o dtetdr.bin dtet.c"
+"cmoc --coco -D Coco -o dtetcc.bin dtet.c"
 
 Testing:
 use xroar to test (dragon)...
@@ -49,7 +49,6 @@ level 7: 12 delay ticks +   "     "    "
 level 8:  8 delay ticks +   "     "    "
 level x:  6 delay ticks +   "     "    "
 
-- no generar trampas al contrario si gameover
 - depurar melodías
 - CAS/WAV
 
@@ -72,7 +71,7 @@ level x:  6 delay ticks +   "     "    "
 #define NO_BLOCK '0' // character representing an empty block
 #define PIT_WIDTH 10 // width of the pit in blocks
 #define PIT_HEIGHT 16 // height of the pit in blocks
-#define LINES_LEVEL 10 // lines per level
+#define LINES_LEVEL 4 // lines per level
 #define DROP_RATE_LEVEL 4 // decrease of waiting time per level for piece drop
 #define MIN_DROP_RATE_LEVEL 6 // minimum waiting time for piece drop
 #define PIECES_TRAP 12 // pieces to generate a trap
@@ -117,13 +116,14 @@ unsigned int scores[8] = {2000, 1800, 1600, 1400, 1200, 1000, 0, 0};
 
 // tunes
 // hall of fame
-const unsigned char tune1Notes[] = { 201, 201, 201, 208, 195, 210, 218 };
+//const unsigned char tune1Notes[] = { 201, 201, 201, 208, 195, 210, 218 };
+const unsigned char tune1Notes[] = { 196, 196, 196, 204, 191, 206, 214 };
 const unsigned char tune1Durations[] = { 4, 2, 2, 3, 3, 3, 7 };
 // start of game
 const unsigned char tune2Notes[] = { 191, 200, 210, 216, 200, 180, 190, 200 };
 const unsigned char tune2Durations[] = { 2, 2, 2, 2, 4, 2, 2, 4 };
 // game over
-const unsigned char tune3Notes[] = { 165, 140, 155, 135, 150, 130, 140, 120, 110, 100 };
+const unsigned char tune3Notes[] = { 165, 140, 155, 135, 150, 130, 140, 120, 110, 102 };
 const unsigned char tune3Durations[] = { 3, 1, 3, 1, 3, 1, 2, 1, 2, 4 };
 
 
@@ -406,8 +406,11 @@ void setTrapLine(unsigned char i) {
     unsigned char x, y, emptyX;
 
     // with two players generates line in the opposing pit
-    if (numPlayers == 1)
-        i = (i == 0) ? 1 : 0;
+    if (numPlayers == 1) {
+        i = 1 - i;
+        if (gameOver[i])
+            return;
+    }
 
     // generates a random empty space on the new line
     emptyX = (unsigned char) rand() % PIT_WIDTH;
@@ -433,8 +436,11 @@ void setTrapBlock(unsigned char i) {
     unsigned char rowEmpty, attempts = 5;
 
     // with two players generates block in the opposing pit
-    if (numPlayers == 1)
-        i = (i == 0) ? 1 : 0;
+    if (numPlayers == 1) {
+        i = 1 - i;
+        if (gameOver[i])
+            return;
+    }
 
     while (attempts > 0) {
         // generate a random position from the sixth row downwards
