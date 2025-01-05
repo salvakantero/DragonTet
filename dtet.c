@@ -36,6 +36,7 @@ use xroar to test (dragon)...
 
 CAS/WAV files:
 "perl bin2cas.pl -o dtetdr.cas -D dtetdr.bin"
+"perl bin2cas.pl -o dtetcc.cas -C dtetcc.bin"
 then CLOADM / EXEC
 
 
@@ -50,7 +51,8 @@ level 7: 12 delay ticks +   "     "    "
 level 8:  8 delay ticks +   "     "    "
 level x:  6 delay ticks +   "     "    "
 
-- depurar melodías
+- opción sin autorepetición
+- mensaje de espera con gameover si 2 players
 - CAS/WAV
 
 */
@@ -77,7 +79,7 @@ level x:  6 delay ticks +   "     "    "
 #define MIN_DROP_RATE_LEVEL 6 // minimum waiting time for piece drop
 #define PIECES_TRAP 12 // pieces to generate a trap
 #define LINES_TRAP 3 // lines to generate a trap
-#define INPUT_DELAY 6 // delay for processing inputs
+#define INPUT_DELAY 7 // delay for processing inputs
 #define JTHRESHOLD_LOW 16 // low level of joystick motion activation
 #define JTHRESHOLD_HIGH 48 // high level of joystick motion activation
 
@@ -118,14 +120,14 @@ unsigned int scores[8] = {2000, 1800, 1600, 1400, 1200, 1000, 0, 0};
 // tunes
 // hall of fame
 //const unsigned char tune1Notes[] = { 201, 201, 201, 208, 195, 210, 218 };
-const unsigned char tune1Notes[] = { 196, 196, 196, 204, 191, 206, 214 };
+const unsigned char tune1Notes[] = { 196, 196, 196, 204, 191, 206, 213 };
 const unsigned char tune1Durations[] = { 4, 2, 2, 3, 3, 3, 7 };
 // start of game
-const unsigned char tune2Notes[] = { 191, 200, 210, 216, 200, 180, 190, 200 };
+const unsigned char tune2Notes[] = { 190, 200, 210, 216, 200, 180, 190, 200 };
 const unsigned char tune2Durations[] = { 2, 2, 2, 2, 4, 2, 2, 4 };
 // game over
 const unsigned char tune3Notes[] = { 165, 140, 155, 135, 150, 130, 140, 120, 110, 102 };
-const unsigned char tune3Durations[] = { 3, 1, 3, 1, 3, 1, 2, 1, 2, 4 };
+const unsigned char tune3Durations[] = { 3, 1, 3, 1, 3, 1, 2, 1, 2, 6 };
 
 
 void playTune(const unsigned char notes[], const unsigned char durations[], unsigned char numNotes) {
@@ -428,7 +430,9 @@ void setTrapLine(unsigned char i) {
     // redraws the pit at the moment (only when it goes to the opposite pit)
     if (numPlayers > 0) drawPit(i);
 
-    if (!muted) sound(1, 1);
+    if (!muted) 
+        for (unsigned char k = 70; k > 0; k -= 5)
+            sound(k,0);
 }
 
 
@@ -460,7 +464,9 @@ void setTrapBlock(unsigned char i) {
             // paints the block at the moment when it goes to the opposite pit
             if (numPlayers > 0) printBlock(x + pitLeft[i], y, WHITE_BLOCK);
 
-            if (!muted) sound(1,1);
+            if (!muted)
+                for (unsigned char k = 70; k > 0; k -= 5)
+                    sound(k,0);
             return;
         }
         attempts--;
@@ -510,8 +516,8 @@ void checkForFullRows(unsigned char i) { // searches for full rows
                 backgroundChar[i] = backgroundCharList[level[i]-1];
             // level change sound
             if (!muted) {
-                sound(230, 1); 
-                sound(220, 2);
+                for (unsigned char k = 0; k < 245; k += 10)
+                    sound(k,0);
             }
         }
     }
