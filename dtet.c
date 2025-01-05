@@ -35,7 +35,8 @@ use xroar to test (dragon)...
 "xroar -run dtetdr.bin"
 
 CAS/WAV files:
-"perl bin2cas.pl -o dtetdr.cas -D dtetdr.bin -A -e 0x2800"
+"perl bin2cas.pl -o dtetdr.cas -D dtetdr.bin"
+then CLOADM / EXEC
 
 
 Level description:
