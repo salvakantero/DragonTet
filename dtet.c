@@ -3,6 +3,9 @@
 
   .::DragonTet::.
 
+  Programming: salvaKantero
+  Betatesting: Luna_314
+
   A Tetris Clone for Dragon 32/64 and Tandy CoCo 1/2/3.
   Based on Peter Swinkels' PC Qbasic code (QBBlocks v1.0).
 
@@ -37,7 +40,7 @@ use xroar to test (dragon)...
 CAS/WAV files:
 "perl bin2cas.pl -o dtetdr.cas -D dtetdr.bin"
 "perl bin2cas.pl -o dtetcc.cas -C dtetcc.bin"
-then CLOADM / EXEC
+...then "CLOADM" and "EXEC" already inside the emulator.
 
 
 Level description:
@@ -51,8 +54,6 @@ level 7: 12 delay ticks +   "     "    "
 level 8:  8 delay ticks +   "     "    "
 level x:  6 delay ticks +   "     "    "
 
-- opción sin autorepetición
-- mensaje de espera con gameover si 2 players
 - CAS/WAV
 
 */
@@ -102,7 +103,8 @@ char nextShapeMap[2][BLOCK_SIZE]; // next shape design
 char rotatedMap[2][BLOCK_SIZE]; // design of the already rotated shape
 unsigned char colourShift = 0; // colour shift effect in the title
 BOOL emptyBackground = FALSE; // enables/disables the chars in the pit (options menu)
-BOOL muted = FALSE; // enables/disables the sound effects and tunes
+BOOL muted = FALSE; // enables/disables the sound effects and tunes (options menu)
+BOOL autorepeatKeys = TRUE; // enables/disables autorepeat keys (options menu)
 BOOL cancelled = FALSE; // TRUE = 'X' was pressed to cancel the game
 unsigned char lastLines; // lines in the last move (for the status line)
 unsigned int lastPoints; // points in the last move (for the status line)
@@ -678,14 +680,18 @@ void drawOptionsMenu() {
 	cls(1);
     roundWindow(0, 0, 31, 15, 80);	
     locate(7, 8);  printf("EMPTY BACKGROUND:");
-    locate(7, 9);  printf("MUTED:");
-    locate(7, 10); printf("BACK");
+    locate(7, 9);  printf("AUTOREPEAT KEYS:");
+    locate(7, 10); printf("MUTED:");
+    locate(7, 11); printf("BACK");
     locate(2, 14); printf("SELECT OPTION (CURSOR/ENTER)");
     // on/off switches
     locate(25, 8);
     if (emptyBackground) printf("on ");
     else printf("off");
     locate(25, 9);
+    if (autorepeatKeys) printf("on ");
+    else printf("off");
+    locate(25, 10);
     if (muted) printf("on ");
     else printf("off");
 }
@@ -700,13 +706,13 @@ void optionsMenu() {
         key = inkey();
         if (key == 10) { // cursor down
             drawMenuPtr(5, 8, optNumber, TRUE);
-            if (optNumber++ == 2) optNumber = 0;
+            if (optNumber++ == 3) optNumber = 0;
             drawMenuPtr(5, 8, optNumber, FALSE);
             if (!muted) sound(200,0);
         }
         else if (key == 94) { // cursor up
             drawMenuPtr(5, 8, optNumber, TRUE);
-            if (optNumber-- == 0) optNumber = 2;
+            if (optNumber-- == 0) optNumber = 3;
             drawMenuPtr(5, 8, optNumber, FALSE);
             if (!muted) sound(200,0);
         }
@@ -717,9 +723,12 @@ void optionsMenu() {
                     emptyBackground = !emptyBackground;
                     break;
                 case 1:
+                    autorepeatKeys = !autorepeatKeys;                
+                    break; 
+                case 2:
                     muted = !muted;                
                     break;                    
-                case 2:
+                case 3:
                     return;
             }
             drawOptionsMenu();
@@ -895,154 +904,210 @@ void mainLoop() {
     while (TRUE) {
         const byte *joystickPositions = readJoystickPositions();
 
-    /* Coco to Dragon key equivalences
+        if (autorepeatKeys) {
+            /* Coco to Dragon key equivalences
 
-    DRAGON  COCO
-    ******  ****
-    W       7       <-- player 1
-    A       Q
-    S       3
-    D       T
-    UP      SEMICOLON
-    LEFT    HYPHEN
-    DOWN    COMMA
-    RIGHT   PERIOD
+            DRAGON  COCO
+            ******  ****
+            W       7       <-- player 1
+            A       Q
+            S       3
+            D       T
+            UP      SEMICOLON
+            LEFT    HYPHEN
+            DOWN    COMMA
+            RIGHT   PERIOD
 
-    I       Y       <-- player 2
-    J       Z
-    K       UP
-    L       DOWN
+            I       Y       <-- player 2
+            J       Z
+            K       UP
+            L       DOWN
 
-    H       X       <-- common
-    X       8
-    ENTER   ENTER
-    SPACE   SLASH
+            H       X       <-- common
+            X       8
+            ENTER   ENTER
+            SPACE   SLASH
 
-    */
+            */
 
 #ifdef Dragon
-        // check for pause, exit, or game over actions
-        // pause
-        if (isKeyPressed(KEY_PROBE_X, KEY_BIT_X)) {
-            while (inkey() != '\0'); // clear input buffer
-            while (inkey() == '\0') delay(1); // wait for key press
-            startTime[0] = startTime[1] = getTimer(); // reset timers
-            continue;
-        // cancel/exit to main menu
-        } else if (isKeyPressed(KEY_PROBE_8, KEY_BIT_8)) {
-            if (!gameOver[0] || !gameOver[1])
-                cancelled = TRUE;
-            break;
-        // enter/space after game over
-        } else if ((isKeyPressed(KEY_PROBE_ENTER, KEY_BIT_ENTER) 
-            || isKeyPressed(KEY_PROBE_SLASH, KEY_BIT_SLASH)) 
-            && (gameOver[0] && gameOver[1])) {
-            break;
-        }
-        /////////////////// PLAYER 1 ///////////////////////
-        // rotation (key, cursor, joystick)
-        if (isKeyPressed(KEY_PROBE_7, KEY_BIT_7) 
-            || isKeyPressed(KEY_PROBE_SEMICOLON, KEY_BIT_SEMICOLON) 
-            || joystickPositions[JOYSTK_LEFT_VERT] < JTHRESHOLD_LOW)
-            if (canProcessInput(0,0)) rotateKeyPressed(0);
-        // move left (key, cursor, joystick)
-        if (isKeyPressed(KEY_PROBE_Q, KEY_BIT_Q) 
-            || isKeyPressed(KEY_PROBE_HYPHEN, KEY_BIT_HYPHEN) 
-            || joystickPositions[JOYSTK_LEFT_HORIZ] < JTHRESHOLD_LOW) 
-            if (canProcessInput(0,1)) moveLeftKeyPressed(0);
-        // fast drop (key, cursor, joystick)
-        if (isKeyPressed(KEY_PROBE_3, KEY_BIT_3) 
-            || isKeyPressed(KEY_PROBE_COMMA, KEY_BIT_COMMA) 
-            || joystickPositions[JOYSTK_LEFT_VERT] > JTHRESHOLD_HIGH) 
-            dropRate[0] = 0;
-        // move right (key, cursor, joystick)
-        if (isKeyPressed(KEY_PROBE_T, KEY_BIT_T) 
-            || isKeyPressed(KEY_PROBE_PERIOD, KEY_BIT_PERIOD) 
-            || joystickPositions[JOYSTK_LEFT_HORIZ] > JTHRESHOLD_HIGH) 
-            if (canProcessInput(0,2)) moveRightKeyPressed(0);
-
-        //////////////////// PLAYER 2 ///////////////////////
-        if (numPlayers > 0) {
+            // check for pause, exit, or game over actions
+            // pause
+            if (isKeyPressed(KEY_PROBE_X, KEY_BIT_X)) {
+                while (inkey() != '\0'); // clear input buffer
+                while (inkey() == '\0') delay(1); // wait for key press
+                startTime[0] = startTime[1] = getTimer(); // reset timers
+                continue;
+            // cancel/exit to main menu
+            } else if (isKeyPressed(KEY_PROBE_8, KEY_BIT_8)) {
+                if (!gameOver[0] || !gameOver[1])
+                    cancelled = TRUE;
+                break;
+            // enter/space after game over
+            } else if ((isKeyPressed(KEY_PROBE_ENTER, KEY_BIT_ENTER) 
+                || isKeyPressed(KEY_PROBE_SLASH, KEY_BIT_SLASH)) 
+                && (gameOver[0] && gameOver[1])) {
+                break;
+            }
+            /////////////////// PLAYER 1 ///////////////////////
             // rotation (key, cursor, joystick)
-            if (isKeyPressed(KEY_PROBE_Y, KEY_BIT_Y) 
-                || joystickPositions[JOYSTK_RIGHT_VERT] < JTHRESHOLD_LOW) 
-                if (canProcessInput(1,0)) rotateKeyPressed(1);
-            // move left (key joystick)
-            if (isKeyPressed(KEY_PROBE_Z, KEY_BIT_Z) 
-                || joystickPositions[JOYSTK_RIGHT_HORIZ] < JTHRESHOLD_LOW) 
-                if (canProcessInput(1,1)) moveLeftKeyPressed(1);
-            // fast drop (key, joystick)
-            if (isKeyPressed(KEY_PROBE_UP, KEY_BIT_UP) 
-                || joystickPositions[JOYSTK_RIGHT_VERT] > JTHRESHOLD_HIGH) 
-                dropRate[1] = 0;
-            // move right (key, joystick)
-            if (isKeyPressed(KEY_PROBE_DOWN, KEY_BIT_DOWN) 
-                || joystickPositions[JOYSTK_RIGHT_HORIZ] > JTHRESHOLD_HIGH) 
-                if (canProcessInput(1,2)) moveRightKeyPressed(1);
-        }            
+            if (isKeyPressed(KEY_PROBE_7, KEY_BIT_7) 
+                || isKeyPressed(KEY_PROBE_SEMICOLON, KEY_BIT_SEMICOLON) 
+                || joystickPositions[JOYSTK_LEFT_VERT] < JTHRESHOLD_LOW)
+                if (canProcessInput(0,0)) rotateKeyPressed(0);
+            // move left (key, cursor, joystick)
+            if (isKeyPressed(KEY_PROBE_Q, KEY_BIT_Q) 
+                || isKeyPressed(KEY_PROBE_HYPHEN, KEY_BIT_HYPHEN) 
+                || joystickPositions[JOYSTK_LEFT_HORIZ] < JTHRESHOLD_LOW) 
+                if (canProcessInput(0,1)) moveLeftKeyPressed(0);
+            // fast drop (key, cursor, joystick)
+            if (isKeyPressed(KEY_PROBE_3, KEY_BIT_3) 
+                || isKeyPressed(KEY_PROBE_COMMA, KEY_BIT_COMMA) 
+                || joystickPositions[JOYSTK_LEFT_VERT] > JTHRESHOLD_HIGH) 
+                dropRate[0] = 0;
+            // move right (key, cursor, joystick)
+            if (isKeyPressed(KEY_PROBE_T, KEY_BIT_T) 
+                || isKeyPressed(KEY_PROBE_PERIOD, KEY_BIT_PERIOD) 
+                || joystickPositions[JOYSTK_LEFT_HORIZ] > JTHRESHOLD_HIGH) 
+                if (canProcessInput(0,2)) moveRightKeyPressed(0);
+
+            //////////////////// PLAYER 2 ///////////////////////
+            if (numPlayers > 0) {
+                // rotation (key, cursor, joystick)
+                if (isKeyPressed(KEY_PROBE_Y, KEY_BIT_Y) 
+                    || joystickPositions[JOYSTK_RIGHT_VERT] < JTHRESHOLD_LOW) 
+                    if (canProcessInput(1,0)) rotateKeyPressed(1);
+                // move left (key joystick)
+                if (isKeyPressed(KEY_PROBE_Z, KEY_BIT_Z) 
+                    || joystickPositions[JOYSTK_RIGHT_HORIZ] < JTHRESHOLD_LOW) 
+                    if (canProcessInput(1,1)) moveLeftKeyPressed(1);
+                // fast drop (key, joystick)
+                if (isKeyPressed(KEY_PROBE_UP, KEY_BIT_UP) 
+                    || joystickPositions[JOYSTK_RIGHT_VERT] > JTHRESHOLD_HIGH) 
+                    dropRate[1] = 0;
+                // move right (key, joystick)
+                if (isKeyPressed(KEY_PROBE_DOWN, KEY_BIT_DOWN) 
+                    || joystickPositions[JOYSTK_RIGHT_HORIZ] > JTHRESHOLD_HIGH) 
+                    if (canProcessInput(1,2)) moveRightKeyPressed(1);
+            }            
 #endif
 
 #ifdef Coco
-        // check for pause, exit, or game over actions
-        // pause
-        if (isKeyPressed(KEY_PROBE_H, KEY_BIT_H)) {
-            while (inkey() != '\0'); // clear input buffer
-            while (inkey() == '\0') delay(1); // wait for key press
-            startTime[0] = startTime[1] = getTimer(); // reset timers
-            continue;
-        // cancel/exit to main menu
-        } else if (isKeyPressed(KEY_PROBE_X, KEY_BIT_X)) {
-            if (!gameOver[0] || !gameOver[1])
-                cancelled = TRUE;
-            break;
-        // enter/space after game over
-        } else if ((isKeyPressed(KEY_PROBE_ENTER, KEY_BIT_ENTER) 
-            || isKeyPressed(KEY_PROBE_SPACE, KEY_BIT_SPACE)) 
-            && (gameOver[0] && gameOver[1])) {
-            break;
-        }
-        /////////////////// PLAYER 1 ///////////////////////
-        // rotation (key, cursor, joystick)
-        if (isKeyPressed(KEY_PROBE_W, KEY_BIT_W) 
-            || isKeyPressed(KEY_PROBE_UP, KEY_BIT_UP) 
-            || joystickPositions[JOYSTK_LEFT_VERT] < JTHRESHOLD_LOW)
-            if (canProcessInput(0,0)) rotateKeyPressed(0);
-        // move left (key, cursor, joystick)
-        if (isKeyPressed(KEY_PROBE_A, KEY_BIT_A) 
-            || isKeyPressed(KEY_PROBE_LEFT, KEY_BIT_LEFT) 
-            || joystickPositions[JOYSTK_LEFT_HORIZ] < JTHRESHOLD_LOW) 
-            if (canProcessInput(0,1)) moveLeftKeyPressed(0);
-        // fast drop (key, cursor, joystick)
-        if (isKeyPressed(KEY_PROBE_S, KEY_BIT_S) 
-            || isKeyPressed(KEY_PROBE_DOWN, KEY_BIT_DOWN) 
-            || joystickPositions[JOYSTK_LEFT_VERT] > JTHRESHOLD_HIGH) 
-            dropRate[0] = 0;
-        // move right (key, cursor, joystick)
-        if (isKeyPressed(KEY_PROBE_D, KEY_BIT_D) 
-            || isKeyPressed(KEY_PROBE_RIGHT, KEY_BIT_RIGHT) 
-            || joystickPositions[JOYSTK_LEFT_HORIZ] > JTHRESHOLD_HIGH) 
-            if (canProcessInput(0,2)) moveRightKeyPressed(0);
-
-        //////////////////// PLAYER 2 ///////////////////////
-        if (numPlayers > 0) {
+            // check for pause, exit, or game over actions
+            // pause
+            if (isKeyPressed(KEY_PROBE_H, KEY_BIT_H)) {
+                while (inkey() != '\0'); // clear input buffer
+                while (inkey() == '\0') delay(1); // wait for key press
+                startTime[0] = startTime[1] = getTimer(); // reset timers
+                continue;
+            // cancel/exit to main menu
+            } else if (isKeyPressed(KEY_PROBE_X, KEY_BIT_X)) {
+                if (!gameOver[0] || !gameOver[1])
+                    cancelled = TRUE;
+                break;
+            // enter/space after game over
+            } else if ((isKeyPressed(KEY_PROBE_ENTER, KEY_BIT_ENTER) 
+                || isKeyPressed(KEY_PROBE_SPACE, KEY_BIT_SPACE)) 
+                && (gameOver[0] && gameOver[1])) {
+                break;
+            }
+            /////////////////// PLAYER 1 ///////////////////////
             // rotation (key, cursor, joystick)
-            if (isKeyPressed(KEY_PROBE_I, KEY_BIT_I) 
-                || joystickPositions[JOYSTK_RIGHT_VERT] < JTHRESHOLD_LOW) 
-                if (canProcessInput(1,0)) rotateKeyPressed(1);
-            // move left (key joystick)
-            if (isKeyPressed(KEY_PROBE_J, KEY_BIT_J) 
-                || joystickPositions[JOYSTK_RIGHT_HORIZ] < JTHRESHOLD_LOW) 
-                if (canProcessInput(1,1)) moveLeftKeyPressed(1);
-            // fast drop (key, joystick)
-            if (isKeyPressed(KEY_PROBE_K, KEY_BIT_K) 
-                || joystickPositions[JOYSTK_RIGHT_VERT] > JTHRESHOLD_HIGH) 
-                dropRate[1] = 0;
-            // move right (key, joystick)
-            if (isKeyPressed(KEY_PROBE_L, KEY_BIT_L) 
-                || joystickPositions[JOYSTK_RIGHT_HORIZ] > JTHRESHOLD_HIGH) 
-                if (canProcessInput(1,2)) moveRightKeyPressed(1);
-        }            
+            if (isKeyPressed(KEY_PROBE_W, KEY_BIT_W) 
+                || isKeyPressed(KEY_PROBE_UP, KEY_BIT_UP) 
+                || joystickPositions[JOYSTK_LEFT_VERT] < JTHRESHOLD_LOW)
+                if (canProcessInput(0,0)) rotateKeyPressed(0);
+            // move left (key, cursor, joystick)
+            if (isKeyPressed(KEY_PROBE_A, KEY_BIT_A) 
+                || isKeyPressed(KEY_PROBE_LEFT, KEY_BIT_LEFT) 
+                || joystickPositions[JOYSTK_LEFT_HORIZ] < JTHRESHOLD_LOW) 
+                if (canProcessInput(0,1)) moveLeftKeyPressed(0);
+            // fast drop (key, cursor, joystick)
+            if (isKeyPressed(KEY_PROBE_S, KEY_BIT_S) 
+                || isKeyPressed(KEY_PROBE_DOWN, KEY_BIT_DOWN) 
+                || joystickPositions[JOYSTK_LEFT_VERT] > JTHRESHOLD_HIGH) 
+                dropRate[0] = 0;
+            // move right (key, cursor, joystick)
+            if (isKeyPressed(KEY_PROBE_D, KEY_BIT_D) 
+                || isKeyPressed(KEY_PROBE_RIGHT, KEY_BIT_RIGHT) 
+                || joystickPositions[JOYSTK_LEFT_HORIZ] > JTHRESHOLD_HIGH) 
+                if (canProcessInput(0,2)) moveRightKeyPressed(0);
+
+            //////////////////// PLAYER 2 ///////////////////////
+            if (numPlayers > 0) {
+                // rotation (key, cursor, joystick)
+                if (isKeyPressed(KEY_PROBE_I, KEY_BIT_I) 
+                    || joystickPositions[JOYSTK_RIGHT_VERT] < JTHRESHOLD_LOW) 
+                    if (canProcessInput(1,0)) rotateKeyPressed(1);
+                // move left (key joystick)
+                if (isKeyPressed(KEY_PROBE_J, KEY_BIT_J) 
+                    || joystickPositions[JOYSTK_RIGHT_HORIZ] < JTHRESHOLD_LOW) 
+                    if (canProcessInput(1,1)) moveLeftKeyPressed(1);
+                // fast drop (key, joystick)
+                if (isKeyPressed(KEY_PROBE_K, KEY_BIT_K) 
+                    || joystickPositions[JOYSTK_RIGHT_VERT] > JTHRESHOLD_HIGH) 
+                    dropRate[1] = 0;
+                // move right (key, joystick)
+                if (isKeyPressed(KEY_PROBE_L, KEY_BIT_L) 
+                    || joystickPositions[JOYSTK_RIGHT_HORIZ] > JTHRESHOLD_HIGH) 
+                    if (canProcessInput(1,2)) moveRightKeyPressed(1);
+            }            
 #endif
+        }
+        else { // no autorepeat keys
+            key = inkey(); // read keypresses
+            // check for pause, exit, or game over actions
+            if (key == 'H') { // pause
+                while (inkey() != '\0'); // clear input buffer
+                while (inkey() == '\0') delay(1); // wait for key press
+                startTime[0] = startTime[1] = getTimer(); // reset timers
+                continue;
+            // exit to main menu
+            } else if (key == 'X') {
+                if (!gameOver[0] || !gameOver[1])
+                    cancelled = TRUE;
+                break;
+            // ENTER/space after game over
+            } else if ((key == 13 || key == 32) && (gameOver[0] && gameOver[1]))
+                break;
+
+            // alternate between players
+            for (i = 0; i < 2; i++) {
+                if (gameOver[i]) continue; // skip player if already lost
+
+                 // player 1
+                if (i == 0) {
+                    // rotation (key, cursor, joystick)
+                    if (key == 'W' || key == 94 || joystickPositions[JOYSTK_LEFT_VERT] < 16)
+                        rotateKeyPressed(0);
+                    // move left (key, cursor, joystick)
+                    else if (key == 'A' || key == 8 || joystickPositions[JOYSTK_LEFT_HORIZ] < 16)
+                        moveLeftKeyPressed(0);
+                    // move right (key, cursor, joystick)
+                    else if (key == 'D' || key == 9 || joystickPositions[JOYSTK_LEFT_HORIZ] > 48)
+                        moveRightKeyPressed(0);
+                    // fast drop
+                    else if (key == 'S' || key == 10 || joystickPositions[JOYSTK_LEFT_VERT] > 48)
+                        dropRate[0] = 0;
+                }
+                // player 2
+                else {
+                    // rotation (key, joystick)
+                    if (key == 'I' || joystickPositions[JOYSTK_RIGHT_VERT] < 16)
+                        rotateKeyPressed(1);
+                    // move left (key, joystick)
+                    else if (key == 'J' || joystickPositions[JOYSTK_RIGHT_HORIZ] < 16)
+                        moveLeftKeyPressed(1);
+                    // move right (key, joystick)
+                    else if (key == 'L' || joystickPositions[JOYSTK_RIGHT_HORIZ] > 48)
+                        moveRightKeyPressed(1);
+                    // fast drop (key, joystick)
+                    else if (key == 'K' || joystickPositions[JOYSTK_RIGHT_VERT] > 48)
+                        dropRate[1] = 0;
+                }
+            }           
+        }
+
         // check if the falling time has been exceeded
         for (i = 0; i <= numPlayers; i++) {
             if (!gameOver[i] && getTimer() >= startTime[i] + dropRate[i]) {
