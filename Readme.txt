@@ -9,8 +9,8 @@ Compatible with:
 
 
 Package Contents:
-- dtetdr.cas: Cassette file for loading on Dragon 32/64/200/Tano emulators.
-- dtetcc.cas: Cassette file for loading on Tandy Coco 1/2/3 emulators.
+- dtetdr.cas: Simple cassette file for loading on Dragon 32/64/200/Tano emulators.
+- dtetcc.cas: Simple cassette file for loading on Tandy Coco 1/2/3 emulators.
 - dtetdr.bin: Binary file for running on Dragon 32/64/200/Tano emulators.
 - dtetcc.bin: Binary file for running on Tandy Coco 1/2/3 emulators.
 - dtetdr.wav: Audio file for recording onto a real cassette compatible with Dragon 32/64/200/Tano.

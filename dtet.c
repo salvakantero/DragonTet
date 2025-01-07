@@ -41,6 +41,7 @@ CAS/WAV files:
 "perl bin2cas.pl -o dtetdr.cas -D dtetdr.bin"
 "perl bin2cas.pl -o dtetcc.cas -C dtetcc.bin"
 ...then "CLOADM" and "EXEC" already inside the emulator.
+(after uploading the .cas file)
 
 
 Level description:
@@ -53,6 +54,7 @@ level 6: 16 delay ticks + upper trap blocks
 level 7: 12 delay ticks +   "     "    "
 level 8:  8 delay ticks +   "     "    "
 level x:  6 delay ticks +   "     "    "
+
 */
 
 
@@ -1070,7 +1072,7 @@ void mainLoop() {
                 // move left (key, cursor, joystick)
                 else if (key == 'A' || key == 8 || joystickPositions[JOYSTK_LEFT_HORIZ] < 16)
                     moveLeftKeyPressed(0);
-                // fast drop
+                // fast drop (key, cursor, joystick)
                 else if (key == 'S' || key == 10 || joystickPositions[JOYSTK_LEFT_VERT] > 48)
                     dropRate[0] = 0;
                 // move right (key, cursor, joystick)
