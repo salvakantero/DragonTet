@@ -53,9 +53,6 @@ level 6: 16 delay ticks + upper trap blocks
 level 7: 12 delay ticks +   "     "    "
 level 8:  8 delay ticks +   "     "    "
 level x:  6 delay ticks +   "     "    "
-
-- CAS/WAV
-
 */
 
 
