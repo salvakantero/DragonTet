@@ -48,19 +48,12 @@ WAV files:
 "perl bin2cas.pl -o dtetdr.wav -D dtetdr.bin"
 "perl bin2cas.pl -o dtetcc.wav -C dtetcc.bin"
 
-Level description:
-level 1: 36 delay ticks
-level 2: 32 delay ticks
-level 3: 28 delay ticks
-level 4: 24 delay ticks + lower trap lines
-level 5: 20 delay ticks + lower trap lines
-level 6: 16 delay ticks + upper trap blocks
-level 7: 12 delay ticks +   "     "    "
-level 8:  8 delay ticks +   "     "    "
-level x:  6 delay ticks +   "     "    "
+==============================================================================
 
 melodía gameover más aguda al principio
 sonido trampa
+joystick
+refrescar HI
 
 */
 
@@ -72,8 +65,8 @@ sonido trampa
 #define SCREEN_WIDTH 32 // screen width in characters
 
 #define EMPTY_BLOCK 128 // black block, no active pixels
-#define FILLED_BLOCK 143 // all pixels in the block are active (green)
-#define WHITE_BLOCK 207 // to mark a completed line
+#define FILLED_BLOCK 143 // // all pixels in the block are active (143 = green)
+#define WHITE_BLOCK 207 // to highlight a complete line
 
 #define SIDE_BLOCK_SIZE 4 // size of the shape's side (shape = 4x4 blocks)
 #define LAST_SIDE_BLOCK 3 // to iterate over the current shape (0 to 3)
@@ -84,50 +77,49 @@ sonido trampa
 #define LINES_LEVEL 10 // lines per level
 #define DROP_RATE_LEVEL 4 // decrease of waiting time per level for piece drop
 #define MIN_DROP_RATE_LEVEL 6 // minimum waiting time for piece drop
-#define PIECES_TRAP 12 // pieces to generate a trap
-#define LINES_TRAP 3 // lines to generate a trap
+#define PIECES_TRAP 12 // pieces played to generate a trap (1 player)
+#define LINES_TRAP 3 // lines achieved to generate a trap (2 players)
 #define INPUT_DELAY 7 // delay for processing inputs
 #define JTHRESHOLD_LOW 16 // low level of joystick motion activation
 #define JTHRESHOLD_HIGH 48 // high level of joystick motion activation
 
 char key = '\0'; // key pressed
-unsigned char numPlayers; // 0 = dragon1  1 = dragon2
+unsigned char numPlayers; // 0 = 1 player  1 = 2 players
 BOOL newScore[2] = {FALSE, FALSE}; // TRUE = redraws the best scores table
 BOOL gameOver[2] = {FALSE, FALSE}; // FALSE = game in progress, TRUE = finished
-int dropRate[2] = {0, 0}; // 0 = lower the shape one position
-int startTime[2] = {0, 0}; // system ticks since the shape has moved
+int dropRate[2] = {0, 0}; // waiting ticks to lower the piece one line
+int startTime[2] = {0, 0}; // ticks elapsed since the piece went down
 char pit[2][PIT_WIDTH * PIT_HEIGHT]; // content of each pit in blocks
-unsigned char level[2] = {1, 1}; // game levels (increases the speed)
+unsigned char level[2] = {1, 1}; // current level
 int lines[2] = {0, 0}; // lines cleared
 const unsigned char pitLeft[2] = {0, 22}; // X position of the left side of each pit
 unsigned char shape[2] = {255, 255}; // shape type (0 to 6). 255 = shape not defined
 unsigned char nextShape[2] = {255, 255}; // next shape type (0 to 6). 255 = shape not defined
-unsigned char shapeAngle[2] = {0, 0}; // shape rotation (0 to 3)
+unsigned char shapeAngle[2] = {0, 0}; // shape rotation (0 to 3; every -90 degrees)
 int shapeX[2] = {0, 0}, shapeY[2] = {0, 0};	// shape XY position
-char shapeMap[2][BLOCK_SIZE]; // shape design
-char nextShapeMap[2][BLOCK_SIZE]; // next shape design
+char shapeMap[2][BLOCK_SIZE]; // shape design (for example: "0000111001000000")
+char nextShapeMap[2][BLOCK_SIZE]; // next shape design (for example: "0000111001000000")
 char rotatedMap[2][BLOCK_SIZE]; // design of the already rotated shape
-unsigned char colourShift = 0; // colour shift effect in the title
+unsigned char colourShift = 0; // colour block scrolling effect in the title
 BOOL emptyBackground = FALSE; // enables/disables the chars in the pit (options menu)
 BOOL muted = FALSE; // enables/disables the sound effects and tunes (options menu)
 BOOL autorepeatKeys = TRUE; // enables/disables autorepeat keys (options menu)
-BOOL cancelled = FALSE; // TRUE = 'X' was pressed to cancel the game
+BOOL cancelled = FALSE; // TRUE when X is pressed during game play to exit
 unsigned char lastLines; // lines in the last move (for the status line)
 unsigned int lastPoints; // points in the last move (for the status line)
 unsigned char backgroundChar[2]; // character to fill in the pits with backgroundCharList
 const unsigned char backgroundCharList[8] = {42, 43, 39, 35, 28, 44, 47, 46 }; // * + . # \ , / .
-unsigned int lastInputTime[2][3]; // for each player and action (rotate, left, right) 
-unsigned char linesPiecesPlayed[2]; // allows trap lines/blocks to be generated
-unsigned char previousLevel[2]; // previous level for each player
+unsigned int lastInputTime[2][3]; // time elapsed since last keystroke (0=rotate, 1=left, 2=right) 
+unsigned char linesPiecesPlayed[2]; // counts lines/pieces played (to generate traps)
+unsigned char previousLevel[2]; // to detect a change of player level
 
 // pos 0-5: fake values for the initial TOP 6
 // pos 6-7: values for the current game
-char names[8][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","", ""};
+char names[8][11] = {"DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","DRAGON","",""};
 unsigned int scores[8] = {2000, 1800, 1600, 1400, 1200, 1000, 0, 0};
 
 // tunes
 // hall of fame
-//const unsigned char tune1Notes[] = { 201, 201, 201, 208, 195, 210, 218 };
 const unsigned char tune1Notes[] = { 196, 196, 196, 204, 191, 206, 213 };
 const unsigned char tune1Durations[] = { 4, 2, 2, 3, 3, 3, 7 };
 // start of game
@@ -144,7 +136,7 @@ void playTune(const unsigned char notes[], const unsigned char durations[], unsi
     for (unsigned char i = 0; i < numNotes; i++) {
         if (inkey() != '\0') return; // the melody ends
         sound(notes[i], durations[i]);
-        if (inkey() != '\0') return;
+        if (inkey() != '\0') return; // another chance to finish the tune
     }
 }
 
@@ -180,7 +172,7 @@ void drawPit(unsigned char i) {
 }
 
 
-// check if a shape can move in the specified direction (i = dragon pit)
+// check if a shape can move in the specified direction (i = player pit)
 BOOL shapeCanMove(char *map, char xDir, char yDir, unsigned char i) {
     int x, y, blockX, blockY;
     // loop through all the blocks of the shape
@@ -191,7 +183,7 @@ BOOL shapeCanMove(char *map, char xDir, char yDir, unsigned char i) {
                 x = shapeX[i] + blockX + xDir;
                 y = shapeY[i] + blockY + yDir;
                 // new shape appears at the top
-                if (y < 0) // Allow only vertical movement until fully visible
+                if (y < 0) // allow only vertical movement until fully visible
                     return (xDir == 0);
                 // check if the block is within the pit boundaries
                 if (x >= 0 && x < PIT_WIDTH && y < PIT_HEIGHT) {
@@ -217,8 +209,7 @@ void drawNextShape(unsigned char y, unsigned char i) {
             if (blockColour == NO_BLOCK) blockColour = '1'; // green background
             else if (blockColour == '1') blockColour = '5'; // white over green
             // different position depending on the player
-            if (i == 0) drawBlock(blockX + 17, blockY + y, blockColour, i);
-            else drawBlock(blockX - 5, blockY + y, blockColour, i);
+            drawBlock(i == 0 ? blockX + 17 : blockX - 5, blockY + y, blockColour, i);
         }
     }
 }
@@ -250,7 +241,7 @@ void drawHeader(BOOL ingame, unsigned char shift) {
 }
 
 
-// auxiliary function for drawing a player's status
+// auxiliary function for drawing a player's status (2 player game)
 void drawPlayerStatus(unsigned char i) {
     unsigned char yOffset = (i == 0) ? 0 : 8;
     locate(12, yOffset);  printf("DRAGON %u", i + 1);
@@ -269,7 +260,7 @@ void displayStatus() {
         locate(11, 6);  printf("LEVEL:  %2u", level[0]);
         locate(11, 7);  printf("LINES: %3d", lines[0]);
         locate(11, 8);  printf("SC: %6u", scores[6]);
-        locate(11, 9);  printf("HI: %6u", scores[0]);
+        locate(11, 9);  printf("HI: %6u", scores[6] > scores[0] ? scores[6] : scores[0]);
         locate(11, 11); printf("NEXT:");
         drawNextShape(10, 0);        
         // status line
@@ -306,7 +297,7 @@ void getRotatedShapeMap(unsigned char shape, unsigned char angle, char *rotatedM
     const char *map = getShapeMap(shape); // Unrotated map
     // no rotation needed, copy map directly
     if (angle == 0) {
-        strncpy(rotatedMap, map, BLOCK_SIZE);
+        memcpy(rotatedMap, map, BLOCK_SIZE);
         return;
     }
     // clear the rotatedMap array
@@ -336,25 +327,29 @@ void getRotatedShapeMap(unsigned char shape, unsigned char angle, char *rotatedM
 }
 
 
-void createNextShape(unsigned char i) {
-	nextShape[i] = (unsigned char) rand() % 7; // shape type (0 to 6)
-    memcpy(nextShapeMap[i], getShapeMap(nextShape[i]), BLOCK_SIZE);
-}
-
-
 void createShape(unsigned char i) {
-    // calculates the fall speed based on the level
+    /* calculates the fall speed based on the level...
+        level 1: 36 delay ticks
+        level 2: 32 delay ticks
+        level 3: 28 delay ticks
+        level 4: 24 delay ticks + lower trap lines
+        level 5: 20 delay ticks + lower trap lines
+        level 6: 16 delay ticks + upper trap blocks
+        level 7: 12 delay ticks +   "     "    "
+        level 8:  8 delay ticks +   "     "    "
+        level x:  6 delay ticks +   "     "    "
+    */
     dropRate[i] = (level[i] < 9) ? 
         (40 - (level[i] * DROP_RATE_LEVEL)) : MIN_DROP_RATE_LEVEL;
     // if it's not the first shape, take the value of nextShape
-    shape[i] = (nextShape[i] != 255) ? nextShape[i] : (unsigned char)(rand() % 7);
-       
+    shape[i] = (nextShape[i] != 255) ? nextShape[i] : (unsigned char)(rand() % 7); 
     shapeX[i] = 3; // centre of the pit
     shapeY[i] = -LAST_SIDE_BLOCK; // fully hidden
     shapeAngle[i] = 0; // unrotated
     memcpy(shapeMap[i], getShapeMap(shape[i]), BLOCK_SIZE);
     // generates the next shape
-    createNextShape(i);
+    nextShape[i] = (unsigned char) rand() % 7; // shape type (0 to 6)
+    memcpy(nextShapeMap[i], getShapeMap(nextShape[i]), BLOCK_SIZE);
 }
 
 
@@ -413,14 +408,22 @@ void removeFullRow(unsigned char removedRow, unsigned char i) {
 }
 
 
+// bass sound when generating trap
+void trapSound()
+{
+    if (!muted) 
+        for (unsigned char k = 90; k > 0; k -= 6)
+            sound(k, 0);
+}
+
+
 void setTrapLine(unsigned char i) {
     unsigned char x, y, emptyX;
 
     // with two players generates line in the opposing pit
     if (numPlayers == 1) {
         i = 1 - i;
-        if (gameOver[i])
-            return;
+        if (gameOver[i]) return;
     }
 
     // generates a random empty space on the new line
@@ -437,10 +440,7 @@ void setTrapLine(unsigned char i) {
 
     // redraws the pit at the moment (only when it goes to the opposite pit)
     if (numPlayers > 0) drawPit(i);
-
-    if (!muted) 
-        for (unsigned char k = 70; k > 0; k -= 5)
-            sound(k,0);
+    trapSound();
 }
 
 
@@ -451,8 +451,7 @@ void setTrapBlock(unsigned char i) {
     // with two players generates block in the opposing pit
     if (numPlayers == 1) {
         i = 1 - i;
-        if (gameOver[i])
-            return;
+        if (gameOver[i]) return;
     }
 
     while (attempts > 0) {
@@ -471,10 +470,7 @@ void setTrapBlock(unsigned char i) {
             pit[i][y * PIT_WIDTH + x] = 5; // white block
             // paints the block at the moment when it goes to the opposite pit
             if (numPlayers > 0) printBlock(x + pitLeft[i], y, WHITE_BLOCK);
-
-            if (!muted)
-                for (unsigned char k = 70; k > 0; k -= 5)
-                    sound(k,0);
+            trapSound();
             return;
         }
         attempts--;
@@ -482,7 +478,7 @@ void setTrapBlock(unsigned char i) {
 }
 
 
-void checkForFullRows(unsigned char i) { // searches for full rows
+void checkForFullRows(unsigned char i) {
     BOOL fullRow;
     unsigned char numLines = 0;
     unsigned char x, y;
@@ -501,7 +497,7 @@ void checkForFullRows(unsigned char i) { // searches for full rows
         if (fullRow) {
             removeFullRow(y, i);
             numLines++;
-            if (numPlayers > 0 && level[i] > 3) 
+            if (numPlayers > 0 && level[i] > 3) // setting a trap
                 linesPiecesPlayed[i]++;
         }
     }
@@ -558,7 +554,7 @@ void settleActiveShapeInPit(unsigned char i) {
                 pit[i][y * PIT_WIDTH + x] = blockColour;
         }
     }
-    if (numPlayers == 0 && level[0] > 3)
+    if (numPlayers == 0 && level[0] > 3) // setting a trap
         linesPiecesPlayed[0]++;
 }
 
@@ -596,7 +592,7 @@ void dropShape(unsigned char i) {
 
 
 // rounds the text window by drawing the corners
-// +16:yellow +32:blue +48:red +64:white +80:cyan +96:magenta +112:orange 
+// offset: 128 +16:yellow +32:blue +48:red +64:white +80:cyan +96:magenta +112:orange 
 void roundWindow(int ulx, int uly, int brx, int bry, unsigned char offset) {
     printBlock(ulx, uly, 129 + offset); // upper left corner
     printBlock(brx, uly, 130 + offset); // upper right corner
@@ -676,9 +672,10 @@ void drawHelp() {
 }
 
 
+// cursor
 void drawMenuPtr(unsigned char x, unsigned char y, unsigned char offset, BOOL delete) {
-    unsigned char pointer = delete ? 143 : 62; // empty block : arrow
-    printBlock(x, y + offset, pointer);
+    unsigned char cursor = delete ? 143 : 62; // empty block : arrow
+    printBlock(x, y + offset, cursor);
 }
 
 
@@ -691,15 +688,9 @@ void drawOptionsMenu() {
     locate(7, 11); printf("BACK");
     locate(2, 14); printf("SELECT OPTION (CURSOR/ENTER)");
     // on/off switches
-    locate(25, 8);
-    if (emptyBackground) printf("on ");
-    else printf("off");
-    locate(25, 9);
-    if (autorepeatKeys) printf("on ");
-    else printf("off");
-    locate(25, 10);
-    if (muted) printf("on ");
-    else printf("off");
+    locate(25, 8); printf("%s", emptyBackground ? "on " : "off");
+    locate(25, 9); printf("%s", autorepeatKeys ? "on " : "off");
+    locate(25, 10); printf("%s", muted ? "on " : "off");
 }
 
 
@@ -749,7 +740,7 @@ void drawMenu() {
 	cls(1);
     roundWindow(0, 0, 31, 15, 80);
 	locate(10, 7);  printf("1 DRAGON GAME");
-    locate(10, 8);  printf("2 DRAGONS GAME");
+    locate(10, 8);  printf("2 DRAGON GAME");
     locate(10, 9);  printf("HIGH SCORES");
     locate(10, 10); printf("OPTIONS");
     locate(10, 11); printf("HELP");
@@ -818,7 +809,7 @@ void menu() {
 }
 
 
-// logic to initialize the system and pits
+// logic to initialize the system
 void init() {
     unsigned char i;
     setTimer(0); // initialises the system timer    
@@ -861,7 +852,7 @@ void rotateKeyPressed(unsigned char i) {
     if (shapeCanMove(rotatedMap[i], 0, 0, i)) {
         shapeAngle[i] = nextAngle;
         drawShape(TRUE, i); // erase shape
-        strncpy(shapeMap[i], rotatedMap[i], BLOCK_SIZE);
+        memcpy(shapeMap[i], rotatedMap[i], BLOCK_SIZE);
         drawShape(FALSE, i); // redraw shape
     }
 }
