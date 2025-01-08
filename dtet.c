@@ -55,6 +55,9 @@ level 7: 12 delay ticks +   "     "    "
 level 8:  8 delay ticks +   "     "    "
 level x:  6 delay ticks +   "     "    "
 
+melodía gameover más aguda al principio
+sonido trampa
+
 */
 
 
