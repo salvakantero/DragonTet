@@ -6,7 +6,8 @@
   Programming: salvaKantero
   Betatesting: Luna_314
 
-  A Tetris Clone for Dragon 32/64 and Tandy CoCo 1/2/3.
+  An experimental Clone of 'Tetris' in text mode 
+  for Dragon 32/64 and Tandy Color Computer 1/2/3.
   Based on Peter Swinkels' PC Qbasic code (QBBlocks v1.0).
 
 ==============================================================================
@@ -37,12 +38,15 @@ Testing:
 use xroar to test (dragon)...
 "xroar -run dtetdr.bin"
 
-CAS/WAV files:
+CAS files:
 "perl bin2cas.pl -o dtetdr.cas -D dtetdr.bin"
 "perl bin2cas.pl -o dtetcc.cas -C dtetcc.bin"
 ...then "CLOADM" and "EXEC" already inside the emulator.
 (after uploading the .cas file)
 
+WAV files:
+"perl bin2cas.pl -o dtetdr.wav -D dtetdr.bin"
+"perl bin2cas.pl -o dtetcc.wav -C dtetcc.bin"
 
 Level description:
 level 1: 36 delay ticks
@@ -68,7 +72,7 @@ sonido trampa
 #define SCREEN_WIDTH 32 // screen width in characters
 
 #define EMPTY_BLOCK 128 // black block, no active pixels
-#define FILLED_BLOCK 143 // all pixels in the block are active
+#define FILLED_BLOCK 143 // all pixels in the block are active (green)
 #define WHITE_BLOCK 207 // to mark a completed line
 
 #define SIDE_BLOCK_SIZE 4 // size of the shape's side (shape = 4x4 blocks)
