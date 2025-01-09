@@ -50,11 +50,6 @@ WAV files:
 
 ==============================================================================
 
-melodía gameover más aguda al principio
-sonido trampa
-joystick
-refrescar HI
-
 */
 
 
@@ -126,7 +121,7 @@ const unsigned char tune1Durations[] = { 4, 2, 2, 3, 3, 3, 7 };
 const unsigned char tune2Notes[] = { 190, 200, 210, 216, 200, 180, 190, 200 };
 const unsigned char tune2Durations[] = { 2, 2, 2, 2, 4, 2, 2, 4 };
 // game over
-const unsigned char tune3Notes[] = { 165, 140, 155, 135, 150, 130, 140, 120, 110, 102 };
+const unsigned char tune3Notes[] = { 170, 145, 155, 135, 150, 130, 140, 120, 110, 102 };
 const unsigned char tune3Durations[] = { 3, 1, 3, 1, 3, 1, 2, 1, 2, 6 };
 
 
@@ -411,9 +406,10 @@ void removeFullRow(unsigned char removedRow, unsigned char i) {
 // bass sound when generating trap
 void trapSound()
 {
-    if (!muted) 
-        for (unsigned char k = 90; k > 0; k -= 6)
-            sound(k, 0);
+    if (!muted) {
+        sound(60, 1);
+        sound(0, 1);
+    }
 }
 
 
