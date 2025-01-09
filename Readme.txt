@@ -1,7 +1,11 @@
 
-////////////////////////////////
-DragonTet v1.0 salvaKantero 2025
-////////////////////////////////
+///////////////////
+DragonTet v1.0 2025
+///////////////////
+
+Programming: salvaKantero
+Betatesting: Luna_314
+
 
 Compatible with:
 - Dragon 32/64
