@@ -20,7 +20,7 @@ Package Contents:
 - dtetdr.wav: Audio file for recording onto a real cassette compatible with Dragon 32/64/200/Tano.
 - dtetcc.wav: Audio file for recording onto a real cassette compatible with Tandy Coco 1/2/3.
 - dtet.c: Source code (includes compilation instructions).
-- dtet.png: Cassette cover.
+- tetris.bas: Original QBasic code by Peter Swinkels (QBBlocks v1.0)
 - Readme.txt/Leeme.txt: This file. Instructions and additional information.
 - License.txt: Legal information about the licence.
 - Bin2cas.pl/Bin2cas.txt: Perl script for generating custom .cas files.

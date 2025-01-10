@@ -125,17 +125,6 @@ const unsigned char tune3Notes[] = { 170, 145, 155, 135, 150, 130, 140, 120, 110
 const unsigned char tune3Durations[] = { 3, 1, 3, 1, 3, 1, 2, 1, 2, 6 };
 
 
-void playTune(const unsigned char notes[], const unsigned char durations[], unsigned char numNotes) {
-    if (muted) return; // sssshh!
-    // plays the arrays of notes to form the melody
-    for (unsigned char i = 0; i < numNotes; i++) {
-        if (inkey() != '\0') return; // the melody ends
-        sound(notes[i], durations[i]);
-        if (inkey() != '\0') return; // another chance to finish the tune
-    }
-}
-
-
 void printBlock(int x, int y, unsigned char ch) {
     // calculates the memory address based on X and Y coordinates
     unsigned char *screenPos = (unsigned char *)(SCREEN_BASE + y * SCREEN_WIDTH + x);
@@ -163,6 +152,17 @@ void drawPit(unsigned char i) {
         rowOffset = y * PIT_WIDTH;
         for (x = 0; x < PIT_WIDTH; x++)
             drawBlock(x, y, pit[i][x + rowOffset], i);
+    }
+}
+
+
+void playTune(const unsigned char notes[], const unsigned char durations[], unsigned char numNotes) {
+    if (muted) return; // sssshh!
+    // plays the arrays of notes to form the melody
+    for (unsigned char i = 0; i < numNotes; i++) {
+        if (inkey() != '\0') return; // the melody ends
+        sound(notes[i], durations[i]);
+        if (inkey() != '\0') return; // another chance to finish the tune
     }
 }
 
@@ -659,10 +659,11 @@ void drawHelp() {
     locate(1, 8);  printf( " 4 LINES: 800 * LEVEL NUMBER ");
     locate(1, 9);  printf( "                             ");
     locate(1, 10); printf( "  SOFT DROP:  1 POINT * ROW  ");
+    locate(1, 11); printf( "                             ");
 
 	locate(0, 14); printf("   PRESS ANY KEY TO CONTINUE!   ");
 
-    roundWindow(1, 2, 29, 10, 112);
+    roundWindow(1, 2, 29, 11, 112);
     screen(0,1);
     waitkey(FALSE);
 }
