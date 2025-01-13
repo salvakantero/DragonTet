@@ -13,17 +13,16 @@ Compatible with:
 
 
 Package Contents:
-- dtetdr.bin: Binary file for running on Dragon 32/64/200/Tano emulators.
-- dtetcc.bin: Binary file for running on Tandy Coco 1/2/3 emulators.
-- dtetdr.cas: Simple cassette file for loading on Dragon 32/64/200/Tano emulators.
-- dtetcc.cas: Simple cassette file for loading on Tandy Coco 1/2/3 emulators.
-- dtetdr.wav: Audio file for recording onto a real cassette compatible with Dragon 32/64/200/Tano.
-- dtetcc.wav: Audio file for recording onto a real cassette compatible with Tandy Coco 1/2/3.
-- dtet.c: Source code (includes compilation instructions).
-- tetris.bas: Original QBasic code by Peter Swinkels (QBBlocks v1.0)
-- Readme.txt/Leeme.txt: This file. Instructions and additional information.
-- License.txt: Legal information about the licence.
-- Bin2cas.pl/Bin2cas.txt: Perl script for generating custom .cas files.
+- dtet.c: Source code (includes compilation instructions)
+- dtetdr.bin: Binary file for running on Dragon 32/64/200/Tano emulators
+- dtetcc.bin: Binary file for running on Tandy Coco 1/2/3 emulators
+- dtetdr.cas: Simple cassette file for loading on Dragon 32/64/200/Tano emulators
+- dtetcc.cas: Simple cassette file for loading on Tandy Coco 1/2/3 emulators
+- dtetdr.wav: Audio file for recording onto a real cassette compatible with Dragon 32/64/200/Tano
+- dtetcc.wav: Audio file for recording onto a real cassette compatible with Tandy Coco 1/2/3
+- dtet.png: Cassette cover
+- Readme.txt/Leeme.txt: This file. Instructions and additional information
+- License.txt: Legal information about the licence
 
 
 The objective of DragonTet is to move, rotate, and place the falling pieces to form complete horizontal lines on the game board.
