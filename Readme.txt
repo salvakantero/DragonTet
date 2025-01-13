@@ -12,6 +12,7 @@ Compatible with:
 - Tandy Color Computer 1/2/3
 *at least 16 Kb.
 
+
 Package Contents:
 - dtet.c: Source code (includes compilation instructions)
 - dtetdr.bin: Binary file for running on Dragon 32/64/200/Tano emulators
