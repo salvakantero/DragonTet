@@ -10,7 +10,7 @@ Betatesting: Luna_314
 Compatible with:
 - Dragon 32/64
 - Tandy Color Computer 1/2/3
-*at least 16 Kb.
+*at least 16 kb.
 
 
 Package Contents:
