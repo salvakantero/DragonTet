@@ -6,25 +6,10 @@ DragonTet v1.0 2025
 Programming: salvaKantero
 Betatesting: Luna_314
 
-
 Compatible with:
 - Dragon 32/64
 - Tandy Color Computer 1/2/3
 *at least 16 kb.
-
-
-Package Contents:
-- dtet.c: Source code (includes compilation instructions)
-- dtetdr.bin: Binary file for running on Dragon 32/64/200/Tano emulators
-- dtetcc.bin: Binary file for running on Tandy Coco 1/2/3 emulators
-- dtetdr.cas: Simple cassette file for loading on Dragon 32/64/200/Tano emulators
-- dtetcc.cas: Simple cassette file for loading on Tandy Coco 1/2/3 emulators
-- dtetdr.wav: Audio file for recording onto a real cassette compatible with Dragon 32/64/200/Tano
-- dtetcc.wav: Audio file for recording onto a real cassette compatible with Tandy Coco 1/2/3
-- dtet.png: Cassette cover
-- Readme.txt/Leeme.txt: This file. Instructions and additional information
-- License.txt: Legal information about the licence
-
 
 The objective of DragonTet is to move, rotate, and place the falling pieces to form complete horizontal lines on the game board.
 Each time you complete a line, it disappears, freeing up space on the board and increasing your score.
@@ -59,7 +44,6 @@ Soft drop (faster descent):
 Move piece right:
   Press <D>, the right arrow key, or joystick 1 right.
 
-
 PLAYER 2:
 
 Rotate piece:
@@ -73,7 +57,6 @@ Soft drop (faster descent):
 
 Move piece right:
   Press <L> or joystick 2 right.
-
 
 COMMON CONTROLS:
 
@@ -108,6 +91,32 @@ Keep the Board Tidy:
 
 Maximise Your Score:
   Aim to complete multiple lines at the same time for higher scores.
+
+
+
+PACKAGE CONTENTS
+================
+
+- dtet.c: Source code (includes compilation instructions)
+- dtetdr.bin: Binary file for running on Dragon 32/64/200/Tano emulators
+- dtetdr.cas: Simple cassette file for loading on Dragon 32/64/200/Tano emulators
+- dtetdr.vdk: Simple diskette file for loading on Dragon 64/200/Tano emulators
+- dtetdr.wav: Audio file for recording onto a real cassette compatible with Dragon 32/64/200/Tano
+- dtetcc.bin: Binary file for running on Tandy Coco 1/2/3 emulators
+- dtetcc.cas: Simple cassette file for loading on Tandy Coco 1/2/3 emulators
+- dtetcc.wav: Audio file for recording onto a real cassette compatible with Tandy Coco 1/2/3
+- dtet.png: Cassette cover
+- Readme.txt/Leeme.txt: This file. Instructions and additional information
+- License.txt: Legal information about the licence
+
+* BIN files generated with ‘CMOC’ v0.1.89 by Pierre Sarrazin
+  http://sarrazip.com/dev/cmoc.html
+
+* CAS/WAV files generated with ‘bin2cas.pl’ v3.14 by Ciaran Anscomb
+  https://www.6809.org.uk/dragon/bin2cas.pl
+
+* VDK file generated with ‘DragonDOS’ v1.0.2 by Robcfg
+  https://github.com/robcfg/retrotools/releases
 
 
 

@@ -41,12 +41,19 @@ use xroar to test (dragon)...
 CAS files:
 "perl bin2cas.pl -o dtetdr.cas -D dtetdr.bin"
 "perl bin2cas.pl -o dtetcc.cas -C dtetcc.bin"
-...then "CLOADM" and "EXEC" already inside the emulator.
+...then type "CLOADM" and "EXEC" already inside the emulator.
 (after uploading the .cas file)
 
 WAV files:
 "perl bin2cas.pl -o dtetdr.wav -D dtetdr.bin"
 "perl bin2cas.pl -o dtetcc.wav -C dtetcc.bin"
+
+VDK file:
+use DragonDOSui...
+  - create a new disk (180kb)
+  - insert bynary file (select "dtetdr.bin")
+  - enter load and exec address (default 0x2800)
+  - type RUN"DTETDR.BIN" already inside the emulator
 
 ==============================================================================
 

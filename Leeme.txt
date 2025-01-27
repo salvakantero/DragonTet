@@ -6,25 +6,10 @@ DragonTet v1.0 2025
 Programación: salvaKantero
 Betatesting: Luna_314
 
-
 Compatible con:
 - Dragon 32/64
 - Tandy Color Computer 1/2/3
 *al menos 16 kb.
-
-
-Contenido del paquete:
-- dtet.c: Código fuente (incluye instrucciones de compilación)
-- dtetdr.bin: Binario para ejecutar en emuladores de Dragon 32/64/200/Tano
-- dtetcc.bin: Binario para ejecutar en emuladores de Tandy Coco 1/2/3
-- dtetdr.cas: Cassette básico para cargar en emuladores de Dragon 32/64/200/Tano
-- dtetcc.cas: Cassette básico para cargar en emuladores de Tandy Coco 1/2/3
-- dtetdr.wav: Audio para grabar cassette real compatible con Dragon 32/64/200/Tano
-- dtetcc.wav: Audio para grabar cassette real compatible con Tandy Coco 1/2/3
-- dtet.png: Carátula para cassette
-- Readme.txt/Leeme.txt: Este archivo. Instrucciones e información adicional
-- License.txt: Información legal acerca de la licencia
-
 
 El objetivo de DragonTet es mover, rotar y colocar las piezas que caen para formar líneas horizontales completas en el tablero de juego. 
 Cada vez que completas una línea, esta desaparece, liberando espacio en el tablero y aumentando tu puntuación.
@@ -59,7 +44,6 @@ Caída rápida:
 Mover pieza a la derecha:
   Tecla <D>, o la flecha derecha, o joystick1 derecha.
 
-
 JUGADOR 2:
 
 Rotar pieza:
@@ -73,7 +57,6 @@ Caída rápida:
 
 Mover pieza a la derecha:
   Tecla <L> o joystick2 derecha.
-
 
 CONTROLES COMUNES:
 
@@ -109,6 +92,31 @@ Mantén el tablero ordenado:
 Maximiza puntos: 
   Busca completar múltiples líneas al mismo tiempo para obtener una puntuación mayor.
 
+
+
+CONTENIDO DEL PAQUETE
+=====================
+
+- dtet.c: Código fuente (incluye instrucciones de compilación)
+- dtetdr.bin: Binario para ejecutar en emuladores de Dragon 32/64/200/Tano
+- dtetdr.cas: Cassette básico para cargar en emuladores de Dragon 32/64/200/Tano
+- dtetdr.vdk: Diskette básico para cargar en emuladores de Dragon 64/200/Tano
+- dtetdr.wav: Audio para grabar cassette real compatible con Dragon 32/64/200/Tano
+- dtetcc.bin: Binario para ejecutar en emuladores de Tandy Coco 1/2/3
+- dtetcc.cas: Cassette básico para cargar en emuladores de Tandy Coco 1/2/3
+- dtetcc.wav: Audio para grabar cassette real compatible con Tandy Coco 1/2/3
+- dtet.png: Carátula para cassette
+- Readme.txt/Leeme.txt: Este archivo. Instrucciones e información adicional
+- License.txt: Información legal acerca de la licencia
+
+* archivos BIN generados con "CMOC" v0.1.89 de Pierre Sarrazin
+  http://sarrazip.com/dev/cmoc.html
+
+* archivos CAS/WAV generados con "bin2cas.pl" v3.14 de Ciaran Anscomb
+  https://www.6809.org.uk/dragon/bin2cas.pl
+
+* archivo VDK generado con "DragonDOS" v1.0.2 de Robcfg
+  https://github.com/robcfg/retrotools/releases
 
 
 Dragontet is released under GPL v3 for all software components* (see license.txt).
