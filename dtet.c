@@ -701,10 +701,10 @@ void drawSettingsMenu() {
     locate(7, 12); printf("BACK");
     locate(2, 14); printf("SELECT OPTION (CURSOR/ENTER)");
     // on/off switches
-    locate(25, 8); printf("%s", autorepeatKeys ? "on " : "off");
-    locate(25, 9); printf("%s", background ? "on " : "off");
-    locate(25, 10); printf("%s", joystick ? "on " : "off");
-    locate(25, 11); printf("%s", muted ? "on " : "off");
+    locate(24, 8); printf("%s", autorepeatKeys ? "on " : "off");
+    locate(24, 9); printf("%s", background ? "on " : "off");
+    locate(24, 10); printf("%s", joystick ? "on " : "off");
+    locate(24, 11); printf("%s", muted ? "on " : "off");
 }
 
 
