@@ -15,6 +15,7 @@
   CHANGELOG:
     2025-01-31 v1.1 
       Joystick support disabled by default, can be enabled in settings.
+      Settings menu reorganised.
 
 ==============================================================================
 
