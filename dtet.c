@@ -9,9 +9,10 @@
   An experimental Clone of 'Tetris' in text mode 
   for Dragon 32/64 and Tandy Color Computer 1/2/3.
   Based on Peter Swinkels' PC Qbasic code (QBBlocks v1.0).
+  
 ==============================================================================
 
-  CHANGELOG
+  CHANGELOG:
     2025-01-31 v1.1 
       Joystick support disabled by default, can be enabled in settings.
 
@@ -108,10 +109,10 @@ char shapeMap[2][BLOCK_SIZE]; // shape design (for example: "0000111001000000")
 char nextShapeMap[2][BLOCK_SIZE]; // next shape design (for example: "0000111001000000")
 char rotatedMap[2][BLOCK_SIZE]; // design of the already rotated shape
 unsigned char colourShift = 0; // colour block scrolling effect in the title
-BOOL emptyBackground = FALSE; // enables/disables the chars in the pit (settings menu)
-BOOL muted = FALSE; // enables/disables the sound effects and tunes (settings menu)
 BOOL autorepeatKeys = TRUE; // enables/disables autorepeat keys (settings menu)
+BOOL background = TRUE; // enables/disables the chars in the pit (settings menu)
 BOOL joystick = FALSE; // enables/disables joystick control (settings menu)
+BOOL muted = FALSE; // enables/disables the sound effects and tunes (settings menu)
 BOOL cancelled = FALSE; // TRUE when X is pressed during game play to exit
 unsigned char lastLines; // lines in the last move (for the status line)
 unsigned int lastPoints; // points in the last move (for the status line)
@@ -151,7 +152,7 @@ void drawBlock(unsigned char x, unsigned char y, char blockColour, unsigned char
     unsigned char colour = blockColour - NO_BLOCK; // (0 a 8)
     x += pitLeft[i];
     if (colour == 0) { // background
-        printBlock(x, y, emptyBackground ? EMPTY_BLOCK : backgroundChar[i]);
+        printBlock(x, y, background ? backgroundChar[i] : EMPTY_BLOCK);
         return;
     }
     printBlock(x, y, FILLED_BLOCK + ((colour - 1) << 4)); // <<4 = x16
@@ -525,7 +526,7 @@ void checkForFullRows(unsigned char i) {
         if (previousLevel[i] < level[i]) {
             previousLevel[i] = level[i];
             // level background char
-            if (!emptyBackground && level[i] < 9)
+            if (background && level[i] < 9)
                 backgroundChar[i] = backgroundCharList[level[i]-1];
             // level change sound
             if (!muted) {
@@ -691,18 +692,18 @@ void drawMenuPtr(unsigned char x, unsigned char y, unsigned char offset, BOOL de
 
 void drawSettingsMenu() {
 	cls(1);
-    roundWindow(0, 0, 31, 15, 80);	
-    locate(7, 8);  printf("EMPTY BACKGROUND:");
-    locate(7, 9);  printf("AUTOREPEAT KEYS:");
-    locate(7, 10); printf("MUTED:");
-    locate(7, 11); printf("JOYSTICKS:");    
+    roundWindow(0, 0, 31, 15, 80);
+    locate(7, 8);  printf("AUTOREPEAT KEYS:");
+    locate(7, 9);  printf("BACKGROUND:");
+    locate(7, 10); printf("JOYSTICKS:");
+    locate(7, 11); printf("MUTED:");
     locate(7, 12); printf("BACK");
     locate(2, 14); printf("SELECT OPTION (CURSOR/ENTER)");
     // on/off switches
-    locate(25, 8); printf("%s", emptyBackground ? "on " : "off");
-    locate(25, 9); printf("%s", autorepeatKeys ? "on " : "off");
-    locate(25, 10); printf("%s", muted ? "on " : "off");
-    locate(25, 11); printf("%s", joystick ? "on " : "off");
+    locate(25, 8); printf("%s", autorepeatKeys ? "on " : "off");
+    locate(25, 9); printf("%s", background ? "on " : "off");
+    locate(25, 10); printf("%s", joystick ? "on " : "off");
+    locate(25, 11); printf("%s", muted ? "on " : "off");
 }
 
 
@@ -729,17 +730,17 @@ void settingsMenu() {
             if (!muted) sound(100,0);
             switch(optNumber) {
                 case 0:
-                    emptyBackground = !emptyBackground;
-                    break;
-                case 1:
                     autorepeatKeys = !autorepeatKeys;                
                     break; 
-                case 2:
-                    muted = !muted;                
+                case 1:
+                    background = !background;
                     break;
-                case 3:
+                case 2:
                     joystick = !joystick;                
-                    break;                                        
+                    break;  
+                case 3:
+                    muted = !muted;                
+                    break;                                      
                 case 4:
                     return;
             }

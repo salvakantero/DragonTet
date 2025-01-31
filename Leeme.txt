@@ -1,6 +1,6 @@
 
 ///////////////////
-DragonTet v1.0 2025
+DragonTet v1.1 2025
 ///////////////////
 
 Programación: salvaKantero
