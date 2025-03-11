@@ -100,6 +100,7 @@ PACKAGE CONTENTS
 - dtet.c: Source code (includes compilation instructions)
 - dtetdr.bin: Binary file for running on Dragon 32/64/200/Tano emulators
 - dtetdr.cas: Simple cassette file for loading on Dragon 32/64/200/Tano emulators
+- dtetdr.vdk: Simple diskette file for loading on Dragon 64/200/Tano emulators
 - dtetdr.wav: Audio file for recording onto a real cassette compatible with Dragon 32/64/200/Tano
 - dtetcc.bin: Binary file for running on Tandy Coco 1/2/3 emulators
 - dtetcc.cas: Simple cassette file for loading on Tandy Coco 1/2/3 emulators
@@ -114,7 +115,8 @@ PACKAGE CONTENTS
 * CAS/WAV files generated with ‘bin2cas.pl’ v3.14 by Ciaran Anscomb
   https://www.6809.org.uk/dragon/bin2cas.pl
 
-
+* VDK file generated with ‘DragonDOS’ v1.0.3 by Robcfg
+  https://github.com/robcfg/retrotools/releases
 
 Dragontet is released under GPL v3 for all software components* (see license.txt).
 C SOURCE CODE AND RESOURCES AVAILABLE AT https://github.com/salvakantero/Dragontet

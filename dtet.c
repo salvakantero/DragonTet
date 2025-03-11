@@ -56,10 +56,9 @@ WAV files:
 "perl bin2cas.pl -o dtetcc.wav -C dtetcc.bin"
 
 VDK file:
-use DragonDOSui...
-  - create a new disk (180kb)
+use DragonDOSui 1.0.3 or higher...
+  - create a new disk (180kb) with .VDK extension
   - insert bynary file (select "dtetdr.bin")
-  - enter load and exec address (default 0x2800)
   - type RUN"DTETDR.BIN" already inside the emulator
 
 ==============================================================================
